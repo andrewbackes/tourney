@@ -1,7 +1,7 @@
 /*
 
  Project: Tourney
- 
+
  Module: bitboards
  Description: Support functions for working with bitbaords
 
@@ -14,11 +14,21 @@ package bitboard
 
 import "fmt"
 
+type BB struct {
+	Value uint64
+}
+
+func (x BB) Print() {
+	for i := 7; i >= 0; i-- {
+		fmt.Printf("%08s\n", fmt.Sprintf("%b", (x.Value>>uint64(8*i)&255)))
+	}
+}
+
 func Print(bb uint64) {
 	var one uint64
 	one = 1
 	for i := 63; i >= 0; i-- {
-		if bb & (one<<uint(i)) == uint64(0) {
+		if bb&(one<<uint(i)) == uint64(0) {
 			fmt.Print("0")
 		} else {
 			fmt.Print("1")
