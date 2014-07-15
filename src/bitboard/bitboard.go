@@ -20,7 +20,7 @@ type BB struct {
 
 func (x BB) Print() {
 	for i := 7; i >= 0; i-- {
-		fmt.Printf("%08s\n", fmt.Sprintf("%b", (x.Value>>uint64(8*i)&255)))
+		fmt.Printf("%08b\n", (x.Value >> uint64(8*i) & 255))
 	}
 }
 
