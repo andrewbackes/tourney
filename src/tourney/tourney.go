@@ -8,6 +8,12 @@ package main
 import "fmt"
 import "bitboard"
 
+/*
+
+Skeleton Branch Test
+
+*/
+
 func main() {
 	var bb uint64 = 1337
 	x := bitboard.BB{1337}
