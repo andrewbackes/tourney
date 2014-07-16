@@ -4,7 +4,7 @@ import (
 	"bufio"
 	// "bytes"
 	"fmt"
-	// "io"
+	"io"
 	"os"
 	"os/exec"
 	"strconv"
@@ -27,12 +27,12 @@ import (
 // 	return LabelWriter{label, newWriter}
 // }
 
-func SpawnChild(StdinChan chan string, command string, address int) {
+func NewNode(StdinChan chan string, command string, outHandler io.Writer, errHandler io.Writer) {
 	cmd := exec.Command(command)
 	StdinPipe, _ := cmd.StdinPipe()
 	writer := bufio.NewWriter(StdinPipe)
-	cmd.Stdout = os.Stdout //NewLabelWriter(os.Stdout, fmt.Sprintf("%d : ", address))
-	cmd.Stderr = os.Stderr //NewLabelWriter(os.Stderr, fmt.Sprintf("%d : ", address))
+	cmd.Stdout = outHandler
+	cmd.Stderr = errHandler
 	go cmd.Run()
 	for line := range StdinChan {
 		writer.WriteString(line)
@@ -59,7 +59,7 @@ func main() {
 		} else if line[0] == 's' {
 			Commands[n] = command
 			StdIn[n] = make(chan string)
-			go SpawnChild(StdIn[n], command[0:len(command)], n)
+			go NewNode(StdIn[n], command[0:len(command)], os.Stdout, os.Stderr)
 			fmt.Printf("Starting command `%s` on pipe %d.\n", command, n)
 			n += 1
 		} //else if line[0:len(line)] == "ls" {
