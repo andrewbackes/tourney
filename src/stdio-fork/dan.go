@@ -11,20 +11,21 @@ import (
 	"strings"
 )
 
-// type LabelWriter struct {
+// type labelwriter struct {
 // 	label  string
-// 	Writer *bufio.Writer
+// 	writer *bufio.Writer
 // }
 
-// func (lw LabelWriter) Write(p []byte) (int, error) {
+// func (lw labelwriter) Write(p []byte) (int, error) {
 // 	s := string(p[:len(p)])
-// 	defer lw.Writer.Flush()
-// 	return lw.Writer.WriteString(lw.label + s)
+// 	n, e := lw.writer.WriteString(lw.label + s)
+// 	defer lw.writer.Flush()
+// 	return lw.writer.WriteString(lw.label + s)
 // }
 
-// func NewLabelWriter(baseWriter io.Writer, label string) LabelWriter {
-// 	newWriter := bufio.NewWriter(baseWriter)
-// 	return LabelWriter{label, newWriter}
+// func NewLabelWriter(basewriter io.Writer, label string) labelwriter {
+// 	newwriter := bufio.NewWriter(basewriter)
+// 	return labelwriter{label, newwriter}
 // }
 
 func NewNode(StdinChan chan string, command string, outHandler io.Writer, errHandler io.Writer) {
