@@ -24,6 +24,11 @@ func (x BB) Print() {
 	}
 }
 
+/*
+
+Not used:
+
+
 func Print(bb uint64) {
 	var one uint64
 	one = 1
@@ -38,6 +43,7 @@ func Print(bb uint64) {
 		}
 	}
 }
+*/
 
 /*
 In C++
