@@ -1,0 +1,14 @@
+{
+	"Name": "Default Tourney",
+	"Engines": [
+		{ "Name": "UCI Eng", "Path": "./uci_engine", "Protocol": "UCI" },
+		{ "Name": "WB Eng", "Path": "./wv_engine", "Protocol": "WINBOARD" }
+	],
+	"TestSeats": 1,
+	"Carousel": true,
+	"Moves": 40,
+	"Time": 120,
+	"Repeating": true,
+	"Rounds": 30,
+	"QuitAfter": false
+}
