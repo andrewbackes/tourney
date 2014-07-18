@@ -11,30 +11,39 @@ import (
 	"strings"
 )
 
-// type labelwriter struct {
-// 	label  string
-// 	writer *bufio.Writer
-// }
+type LabelWriter struct {
+	label  string
+	writer *bufio.Writer
+}
 
-// func (lw labelwriter) Write(p []byte) (int, error) {
-// 	s := string(p[:len(p)])
-// 	n, e := lw.writer.WriteString(lw.label + s)
-// 	defer lw.writer.Flush()
-// 	return lw.writer.WriteString(lw.label + s)
-// }
+func (lw LabelWriter) Write(p []byte) (int, error) {
+	s := string(p[:len(p)])
+	defer lw.writer.Flush()
+	return lw.writer.WriteString(lw.label + s)
+}
 
-// func NewLabelWriter(basewriter io.Writer, label string) labelwriter {
-// 	newwriter := bufio.NewWriter(basewriter)
-// 	return labelwriter{label, newwriter}
-// }
+func NewLabelWriter(basewriter io.Writer, label string) LabelWriter {
+	newwriter := bufio.NewWriter(basewriter)
+	return LabelWriter{label, newwriter}
+}
 
-func NewNode(StdinChan chan string, command string, outHandler io.Writer, errHandler io.Writer) {
+func RPL(reader *bufio.Reader, s string) {
+	for {
+		line, _ := reader.ReadString('\n')
+		fmt.Printf("%s : %s", s, line)
+	}
+}
+
+func NewNode(StdinChan chan string, command string, out io.Reader, errHandler io.Writer) {
 	cmd := exec.Command(command)
 	StdinPipe, _ := cmd.StdinPipe()
+	StdoutPipe, _ := cmd.StdoutPipe()
 	writer := bufio.NewWriter(StdinPipe)
-	cmd.Stdout = outHandler
-	cmd.Stderr = errHandler
+	reader := bufio.NewReader(StdoutPipe)
+	// cmd.Stdout = outHandler
+	// cmd.Stderr = errHandler
 	go cmd.Run()
+	go RPL(reader, ":D")
 	for line := range StdinChan {
 		writer.WriteString(line)
 		writer.Flush()
