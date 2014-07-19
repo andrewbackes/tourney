@@ -4,7 +4,7 @@
 
  Module: commands
  Description: handles all of the commands from the user.
- 
+
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/15/2014
 
@@ -13,56 +13,80 @@
 package main
 
 import (
- 	"fmt"
- 	//"strings"
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
 )
 
 // system wide commands should be: start, stop, pause, restart, new, quit, help
 
-func doCommand(command string) (success bool, quitFlag bool){
+func doCommand(command string, T *Tourney) (quitFlag bool, err error) {
 	// This function is really really ugly!!!
 	// Q: 	Can there be a map whos keys are the avaliable commands
 	//		and the values are pointers to their individual functions?
 
-	switch command {
-		case "new", "n":
-
-		case "help", "h":
-			success, quitFlag = showHelp()
-		case "quit", "q":
-			success = true
-			quitFlag = true
+	words := strings.Fields(command)
+	switch words[0] {
+	case "start", "s":
+		T.Start()
+	case "stop", "p":
+		T.Stop()
+	case "new", "n":
+		//TODO: prompt menu with options for new tourney
+		err = T.LoadFile("default.tourney")
+	case "load", "l":
+		err = T.LoadFile(words[1])
+	case "help", "h":
+		quitFlag, err = showHelp()
+	case "quit", "q":
+		err = quit(T)
+		quitFlag = true
 	}
 	return
 }
 
 func commandLoop(tourney *Tourney) {
+	// Root level command loop -
 	// continuously accepts and executes the users commands.
 	// meant to be ran in the master thread
-	quitFlag := false
-	successFlag := false
+	var quitFlag bool
+	var err error
+	var line string
+
 	prompt := "Tourney> "
 
-	var input string
 	for !quitFlag {
 		fmt.Print(prompt)
-		fmt.Scanf("%s", &input)
-		
-		successFlag, quitFlag = doCommand(input)
-		
-		if !successFlag {
-			fmt.Println("Invalid Command. You can type 'help' if you need.")
+		//i, err2 := fmt.Scanln(&input)
+		//fmt.Println("i: ", i, "err2: ", err2)
+
+		input := bufio.NewReader(os.Stdin)
+		line, err = input.ReadString('\n')
+
+		quitFlag, err = doCommand(line, tourney)
+
+		if err != nil {
+			fmt.Println("An error occured with that command. You can type 'help' if you need.")
 		}
 	}
 }
 
-func showHelp() (success, quit bool) {
+func quit(T *Tourney) error {
+	// Quit the program. So take care of business first.
+
+	if T.State == RUNNING {
+		T.Stop()
+	}
+
+	return nil
+}
+
+func showHelp() (quit bool, err error) {
 	fmt.Println("Supported Commands:")
 	fmt.Println("quit \t stops any running tournament and exits")
 	fmt.Println("help \t displays this list")
 
-	success = true
 	quit = false
 	return
 }
-
