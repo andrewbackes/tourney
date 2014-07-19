@@ -18,13 +18,12 @@ import (
  	"encoding/json"
 )
 
-type State int
+type Status int
 
 const (
-	UNSTARTED State = iota
+	UNSTARTED Status = iota
 	RUNNING  				// in progress
-	PAUSED					// incomplete but not running
-	COMPLETED				// completed
+	STOPPED
 )
 
 
@@ -47,7 +46,7 @@ type Tourney struct {
 	Time uint64 // time per time control in seconds
 	Repeating bool //restart time after moves hits
 
-	Rounds uint8 //number of games each engine will play
+	Rounds int //number of games each engine will play
 
 	// Opening book information:
 
@@ -55,7 +54,7 @@ type Tourney struct {
 
 
 // Control settings (Determined while tourney is running, or when the tourney starts)
-	state State //flag to indicate: running, paused, stopped
+	State Status //flag to indicate: running, paused, stopped
 	GameList []Game //list of all games in the tourney. should be populated when the tourney starts
 	activeGame *Game //points to the currently running game in the list. Rethink this for multiple running games at a later time.
 
@@ -88,7 +87,7 @@ func (T *Tourney) LoadDefault() {
 	err := T.LoadFile("default.tourney")
 
 	if err != nil {
-	//if the file doesnt exist or has invalid data, then load 40/2 CCLR settings:
+	// something is wrong, so just load 40/2 CCLR settings:
 		T.Name = "Tourney"
 		T.Engines = make([]Engine,0)
 		T.TestSeats = 1
@@ -99,5 +98,45 @@ func (T *Tourney) LoadDefault() {
 		T.Rounds = 30
 		T.QuitAfter = false
 	}
+}
+
+func (T *Tourney) Generate() {
+	// Deduce the needed information for the tourney to run.
+	// This includes populating the game list.
+
+	fmt.Println("Generating Tourney Parameters.")
+
+	//Count the number of games:
+		// TODO: VERIFY FORMULA!
+	//S := T.TestSeats *( (T.TestSeats +1 )/2 ) // = Sum_{0}^{n} k
+	//gameCount := T.Rounds * (T.TestSeats * len(T.Engines) - S)
+	//T.GameList = make([]Game,gameCount)
+	for i :=0; i < T.TestSeats; i++ {
+		for j := i+1; j < len(T.Engines) ; j++ {
+			
+		}
+	}
+}
+
+func (T *Tourney) Start() error {
+	// Controls the state of the tourney.
+	if T.State == UNSTARTED {
+		T.Generate()
+	}
+	// TODO: error check to make sure it is safe to start it up right now
+	
+	T.State = RUNNING
+	fmt.Println("Tourney is running.")
+
+	return nil
+}
+
+func (T *Tourney) Stop() error {
+	// Controls the state of the tourney.
+	if T.State == RUNNING {
+		T.State = STOPPED
+		fmt.Println("Tourney is stopped.")
+	}
+	return nil
 }
 

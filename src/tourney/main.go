@@ -6,6 +6,7 @@
 package main
 
 import "fmt"
+
 //import "bitboard"
 
 func main() {
@@ -19,10 +20,10 @@ func main() {
 	// .tourney files contain all of the settings needed
 	// to start a tourney without any terminal input.
 
-		// validate that the file exists and is valid:
+	// validate that the file exists and is valid:
 
-		// when no .tourney file is provided or is invalid, should load default.tourney
-		tourney.LoadDefault()
+	// when no .tourney file is provided or is invalid, should load default.tourney
+	tourney.LoadDefault()
 
 	// TODO: Other launch arguements
 
@@ -31,7 +32,5 @@ func main() {
 }
 
 func printError(description string, err string) {
-	fmt.Println("ERROR:",err,"-",description)
+	fmt.Println("ERROR:", err, "-", description)
 }
-
-
