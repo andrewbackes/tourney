@@ -5,11 +5,12 @@
 
 package main
 
-import "fmt"
-
-//import "bitboard"
+import (
+	"fmt"
+)
 
 func main() {
+
 	fmt.Println("Project: Tourney Started")
 
 	// Until there is a need to have multiple Tourney objects to run at once,
@@ -29,6 +30,7 @@ func main() {
 
 	// and either go to the menu or the command loop
 	commandLoop(&tourney)
+
 }
 
 func printError(description string, err string) {

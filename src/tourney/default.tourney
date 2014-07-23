@@ -1,14 +1,22 @@
 {
 	"Name": "Default Tourney",
 	"Engines": [
-		{ "Name": "UCI Eng", "Path": "./uci_engine", "Protocol": "UCI" },
-		{ "Name": "WB Eng", "Path": "./wv_engine", "Protocol": "WINBOARD" }
+		{ 	
+			"Name": "Dirty-Bit 0.40 ip8", 
+			"Path": "/Users/Andrew/Projects/Dirty-Bit/Engine/Bin/Dirty-Bit 0.40 ip8", 
+			"Protocol": "UCI" 
+		},
+		{ 
+			"Name": "Dirty-Bit 0.40 rev1", 
+			"Path": "/Users/Andrew/Projects/Dirty-Bit/Engine/Bin/Dirty-Bit", 
+			"Protocol": "UCI" 
+		}
 	],
 	"TestSeats": 1,
 	"Carousel": true,
 	"Moves": 40,
-	"Time": 120,
+	"Time": 10000,
 	"Repeating": true,
-	"Rounds": 30,
+	"Rounds": 1,
 	"QuitAfter": false
 }
