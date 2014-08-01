@@ -1,14 +1,25 @@
-/*
+/*******************************************************************************
 
  Project: Tourney
 
  Module: engines
- Description: holds the engine object and methods for interacting with it.
+ Description: Engine struct, Protocoler interface, and UCI/WinBoard structs.
+
+ The Engine object has a Protocoler member. Then structs corresponding to UCI
+ and Winboard impliment the Protocoler interface. The engine executable itself
+ is ran in a goroutine, reader and writer Engine data members read/write the
+ executables stdio so other Engine methods can interact with the executable.
+
+TODO:
+	-WinBoard protocoler
+	-Engines need to take options for hashtable size, multithreading, pondering,
+	opening book, and a few other bare minimums.
+	-Fix the bug where >> >> >> >> ... keeps looping sometimes.
 
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/16/2014
 
-*/
+*******************************************************************************/
 
 package main
 
@@ -103,9 +114,10 @@ func (U UCI) Initialize(reader *bufio.Reader, writer *bufio.Writer) error {
 	writer.WriteString("uci\n")
 	writer.Flush()
 
-	// TODO: sometimes this line goes infinite! probably has something to do with
+	// TODO: sometimes this loop goes infinite! probably has something to do with
 	//			the time it takes the engine to load in the beginning.
 	//			Does the protocol require a 1 second delay here?
+
 	for line != "uciok\n" {
 		line, _ = reader.ReadString('\n')
 		fmt.Print(">> ", line)
@@ -148,7 +160,7 @@ func (U UCI) Move(reader *bufio.Reader, writer *bufio.Writer, timer [2]int64, mo
 		line, _ = reader.ReadString('\n')
 		m.log = append(m.log, line)
 	}
-	m.algebraic = strings.TrimPrefix(line, "bestmove ")
+	m.algebraic = strings.Split(line, " ")[1]
 	m.algebraic = strings.TrimSuffix(m.algebraic, "\n")
 
 	return m, nil
