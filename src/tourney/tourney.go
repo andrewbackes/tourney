@@ -1,14 +1,24 @@
-/*
+/*******************************************************************************
 
  Project: Tourney
 
  Module: tourney
- Description: holds the tourney object and methods for interacting with it
+
+ Description: A Tourney object impliments the Game object. The Engine object is
+ also implimented but is used for its data fields, its methods are ignored. The
+ tournament takes place in the playLoop() method. The Start() and Stop() methods
+ essentially modify the data feild "state" which is read by playLoop().
+
+ TODO:
+ 	-Allow for games to be distributed to multiple machines to be played.
+ 		-Each machine will have to be benchmarked to determine equivalent
+ 		 time control parameters.
+ 	-More tournament parameters
 
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/16/2014
 
-*/
+*******************************************************************************/
 
 package main
 
@@ -56,6 +66,21 @@ type Tourney struct {
 	GameList   []Game //list of all games in the tourney. should be populated when the tourney starts
 	activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later time.
 
+}
+
+func (T *Tourney) playLoop() error {
+	for T.State == RUNNING {
+		for i := 0; i < len(T.GameList); i++ { // doing for i, g := range T.GameList makes a copy of the game. is there a way to point instead?
+			T.GameList[i].Start() // TODO: adjust for partially completed tourneys/games
+		}
+
+		//Temporary:
+		T.Stop()
+	}
+	// Show results:
+	T.Status()
+
+	return nil
 }
 
 func (T *Tourney) LoadFile(filename string) error {
@@ -128,18 +153,6 @@ func (T *Tourney) Generate() {
 	}
 }
 
-func (T *Tourney) playLoop() error {
-	for T.State == RUNNING {
-		for _, g := range T.GameList {
-			g.Start() // TODO: adjust for partially completed tourneys/games
-		}
-
-		//Temporary:
-		T.Stop()
-	}
-	return nil
-}
-
 func (T *Tourney) Start() error {
 	// Controls the state of the tourney.
 	if T.State == UNSTARTED {
@@ -170,4 +183,54 @@ func (T *Tourney) Stop() error {
 		fmt.Println("Tourney stopped.")
 	}
 	return nil
+}
+
+func (T *Tourney) Status() {
+	// TODO: 	-add more detail. such as w-l-d for each matchup.
+	//			-formatting is messed up for long and then short engine names
+	type record struct {
+		wins, losses, draws, remaining int
+	}
+
+	records := make(map[string]*record)
+	for _, g := range T.GameList {
+		// golang trick so that i can do map[key].field :
+		if records[g.player[WHITE].Name] == nil {
+			records[g.player[WHITE].Name] = &record{0, 0, 0, 0}
+		}
+		if records[g.player[BLACK].Name] == nil {
+			records[g.player[BLACK].Name] = &record{0, 0, 0, 0}
+		}
+
+		if g.completed == false {
+			records[g.player[WHITE].Name].remaining += 1
+			records[g.player[BLACK].Name].remaining += 1
+			continue
+		}
+		if g.result == DRAW {
+			records[g.player[WHITE].Name].draws += 1
+			records[g.player[BLACK].Name].draws += 1
+		} else {
+			records[g.player[g.result].Name].wins += 1
+			records[g.player[[]Color{BLACK, WHITE}[g.result]].Name].losses += 1
+		}
+	}
+	for _, e := range T.Engines {
+
+		fmt.Print(e.Name, ": \t", records[e.Name].wins, "-", records[e.Name].losses, "-", records[e.Name].draws, ".\t")
+		fmt.Print(float64(records[e.Name].wins) + (0.5 * float64(records[e.Name].draws)))
+		gamesPlayed := records[e.Name].wins + records[e.Name].losses + records[e.Name].draws
+		fmt.Print("/", gamesPlayed)
+
+		if gamesPlayed > 0 {
+			fmt.Print("\t")
+			fmt.Printf("   %.2f", 100*(float64(records[e.Name].wins)+(0.5*float64(records[e.Name].draws)))/float64(gamesPlayed))
+			fmt.Print("%")
+		} else {
+			fmt.Print("\t--.--%")
+		}
+
+		fmt.Print("\tRemaining: ", records[e.Name].remaining, "\n")
+
+	}
 }

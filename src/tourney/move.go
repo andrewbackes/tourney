@@ -17,3 +17,10 @@ type Move struct {
 	algebraic string
 	log       []string
 }
+
+func getMove(from uint, to uint) Move {
+	// makes a move object from the to/from square index
+	var r Move
+	r.algebraic = getAlg(from) + getAlg(to)
+	return r
+}

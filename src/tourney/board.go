@@ -139,8 +139,13 @@ func (B *Board) Print() {
 
 }
 
-//Functions:
-//	clear() - takes all pieces off the board
+func (B *Board) Clear() {
+	for c := WHITE; c <= BLACK; c++ {
+		for p := PAWN; p <= KING; p++ {
+			B.pieceBB[c][p] = 0
+		}
+	}
+}
 
 func (B *Board) Reset() {
 	// puts the pieces in their starting/newgame positions
@@ -161,14 +166,26 @@ func (B *Board) Reset() {
 
 // Helpers:
 
-func (B *Board) onSquare(square Square) (Piece, Color) {
+func (B *Board) onSquare(square uint8) (Color, Piece) {
 	// returns the piece on that square
-	for p := PAWN; p <= KING; p++ {
-		for c := WHITE; c <= BLACK; c++ {
+	for c := WHITE; c <= BLACK; c++ {
+		for p := PAWN; p <= KING; p++ {
 			if (B.pieceBB[c][p] & (1 << square)) != 0 {
-				return p, c
+				return c, p
 			}
 		}
 	}
-	return NONE, NEITHER
+	return NEITHER, NONE
+}
+
+func (B *Board) Occupied(c Color) uint64 {
+	var mask uint64
+	for p := PAWN; p <= KING; p++ {
+		if c == BOTH {
+			mask |= B.pieceBB[WHITE][p] | B.pieceBB[BLACK][p]
+		} else {
+			mask |= B.pieceBB[c][p]
+		}
+	}
+	return mask
 }

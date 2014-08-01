@@ -2,8 +2,8 @@
 	"Name": "Default Tourney",
 	"Engines": [
 		{ 	
-			"Name": "Dirty-Bit 0.40 ip8", 
-			"Path": "/Users/Andrew/Projects/Dirty-Bit/Engine/Bin/Dirty-Bit 0.40 ip8", 
+			"Name": "Sempai 1.0", 
+			"Path": "/Users/Andrew/Documents/Engines/senpai_10-osx-x64", 
 			"Protocol": "UCI" 
 		},
 		{ 
