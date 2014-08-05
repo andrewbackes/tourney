@@ -53,27 +53,40 @@ func doCommand(command string, T *Tourney) (quitFlag bool, err error) {
 func commandLoop(tourney *Tourney) {
 	// Root level command loop -
 	// continuously accepts and executes the users commands.
-	// meant to be ran in the master thread
-	var quitFlag bool
-	var err error
-	var line string
 
 	prompt := "Tourney> "
+	inputReader := bufio.NewReader(os.Stdin)
+	inputChan := make(chan string)
 
-	for !quitFlag {
-		fmt.Print(prompt)
-		//i, err2 := fmt.Scanln(&input)
-		//fmt.Println("i: ", i, "err2: ", err2)
+	quitChan := make(chan bool)
+	defer close(quitChan)
 
-		input := bufio.NewReader(os.Stdin)
-		line, err = input.ReadString('\n')
-
-		quitFlag, err = doCommand(line, tourney)
-
-		if err != nil {
-			fmt.Println("An error occured with that command. You can type 'help' if you need.")
+	// UPSTREAM: ask user for a command
+	fmt.Print(prompt)
+	go func() {
+		for {
+			line, _ := inputReader.ReadString('\n')
+			select {
+			case inputChan <- line:
+			case <-quitChan:
+				break
+			}
 		}
+		close(inputChan)
+	}()
+
+	// DOWNSTREAM: execute the command
+	for i := range inputChan {
+		go func() {
+			quit, _ := doCommand(i, tourney)
+			quitChan <- quit
+		}()
+		if <-quitChan {
+			return
+		}
+		fmt.Print(prompt)
 	}
+	fmt.Print("\n")
 }
 
 func quit(T *Tourney) error {

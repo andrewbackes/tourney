@@ -25,10 +25,12 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 )
 
 /*******************************************************************************
@@ -58,14 +60,29 @@ func (E *Engine) Start() error {
 	}
 
 	cmd := exec.Command(E.Path)
+	// TODO: need error handling for whether or not the program launched:
 	go cmd.Run()
+	// TODO: wait for some sort of 'ok' to be recieved from the program that launched
 
-	StdinPipe, _ := cmd.StdinPipe()
-	StdoutPipe, _ := cmd.StdoutPipe()
+	StdinPipe, errIn := cmd.StdinPipe()
+	if errIn != nil {
+		return errors.New("Error Initializing Engine: can not establish in pipe.")
+	}
+	StdoutPipe, errOut := cmd.StdoutPipe()
+	if errOut != nil {
+		return errors.New("Error Initializing Engine: can not establish out pipe.")
+	}
 	E.writer, E.reader = bufio.NewWriter(StdinPipe), bufio.NewReader(StdoutPipe)
 
 	E.protocol.Initialize(E.reader, E.writer)
+	// TODO: Set options here
+	E.NewGame()
 
+	return nil
+}
+
+func (E *Engine) NewGame() error {
+	E.protocol.New(E.reader, E.writer)
 	return nil
 }
 
@@ -96,6 +113,7 @@ type Protocoler interface {
 	Quit(writer *bufio.Writer) error
 	Move(reader *bufio.Reader, writer *bufio.Writer, timers [2]int64, movesToGo int64) (Move, error)
 	Set(writer *bufio.Writer, movesSoFar []Move) error //temporary
+	New(reader *bufio.Reader, writer *bufio.Writer) error
 }
 
 type UCI struct{}
@@ -111,17 +129,34 @@ func (U UCI) Initialize(reader *bufio.Reader, writer *bufio.Writer) error {
 	var line string
 
 	fmt.Print("> uci\n")
+	/*
+		if _, err := writer.WriteString("uci\n"); err != nil {
+			return errors.New("Error initializing engine. Engine not ready to accept input.")
+		}
+	*/
 	writer.WriteString("uci\n")
 	writer.Flush()
 
 	// TODO: sometimes this loop goes infinite! probably has something to do with
 	//			the time it takes the engine to load in the beginning.
 	//			Does the protocol require a 1 second delay here?
-
+	startTime := time.Now()
 	for line != "uciok\n" {
 		line, _ = reader.ReadString('\n')
-		fmt.Print(">> ", line)
+		if line != "" {
+			fmt.Print(">> ", line)
+		}
+		// Allow 1 second before timing out:
+		if time.Now().Sub(startTime).Seconds() > 1 {
+			return errors.New("Timed out. Did not recieve 'uciok' response from engine.")
+		}
 	}
+
+	return nil
+}
+
+func (U UCI) New(reader *bufio.Reader, writer *bufio.Writer) error {
+
 	fmt.Print("> ucinewgame\n")
 	writer.WriteString("ucinewgame\n")
 	writer.Flush()
@@ -150,13 +185,24 @@ func (U UCI) Move(reader *bufio.Reader, writer *bufio.Writer, timer [2]int64, mo
 	}
 	goString += "\n"
 
+	var maxTime int64
+	if timer[0] >= timer[1] {
+		maxTime = timer[0]
+	} else {
+		maxTime = timer[1]
+	}
+
 	fmt.Print("> " + goString)
 	writer.WriteString(goString)
 	writer.Flush()
 
 	var line string
 	var m Move
+	startTime := time.Now()
 	for strings.HasPrefix(line, "bestmove") == false {
+		if int64(time.Now().Sub(startTime).Seconds()*1000) > maxTime {
+			return Move{algebraic: "none"}, errors.New("Engine timed out.")
+		}
 		line, _ = reader.ReadString('\n')
 		m.log = append(m.log, line)
 	}

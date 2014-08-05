@@ -15,9 +15,10 @@
  playLoop() method.
 
  TODO:
- 	-Opening Book
+ 	-Opening Book (make sure to note the first moves out of the book and FEN)
  	-Distributed game playing
  	-http output
+ 	-Vertical score graph. rows will be move#'s, cols will be the graph.
 
 *******************************************************************************/
 
@@ -25,20 +26,17 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
-func bitprint(x uint64) {
-	for i := 7; i >= 0; i-- {
-		fmt.Printf("%08b\n", (x >> uint64(8*i) & 255))
-	}
-}
-
 func main() {
-
 	/*
+		var G Game
 		G.LoadFEN("r3k2r/8/8/8/8/8/8/4K3 w kq - 0 1")
-		G.Print()
+		G.MakeMove(Move{algebraic: "e1f1"})
+		G.MakeMove(Move{algebraic: "a8a1"})
+		G.PrintHUD()
+	*/
+	/*
 		fmt.Println(G.FEN())
 
 		G.MakeMove(Move{algebraic: "e1f1"})
@@ -96,18 +94,15 @@ func main() {
 
 }
 
-// Error Handling:
+type OutputType int
 
-type customError struct {
-	What string
-	When time.Time
-}
+const (
+	STANDARD OutputType = iota
+	ERROR
+	ENGINE_INPUT
+	ENGINE_OUTPUT
+)
 
-func (e customError) Error() string {
-	return e.What
-	//return fmt.Sprintf("at %v, %s", e.When, e.What)
-}
+func Output(a ...interface{}) {
 
-func printError(description string, err string) {
-	fmt.Println("ERROR:", err, "-", description)
 }

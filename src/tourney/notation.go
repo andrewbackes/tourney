@@ -5,6 +5,11 @@
  Module: notation
  Description: notation parsing utilities
 
+ The internals of Tourney use Pure Coordinate Notation to represent moves. For
+ example, a2a4 means to move what is on a2 to a4. However, UCI and WB require
+ Standard Algebraic Notation. The purpose of this module is to translate between
+ PCN and SAN.
+
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/29/2014
 
@@ -13,8 +18,10 @@
 package main
 
 import (
-	//"fmt"
+	"errors"
+	"fmt"
 	"regexp"
+	"strings"
 )
 
 func InternalizeNotation(G *Game, moveToParse string) string {
@@ -24,10 +31,13 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 	// TODO: what about promotion captures? or ambiguous promotions?
 
 	// First check to see if it is already in the correct form.
-	PCN := "([a-h][1-8])([a-h][1-8])([QBNR]?)"
+	PCN := "([a-h][1-8])([a-h][1-8])([QBNRqbnr]?)"
 	matches, _ := regexp.MatchString(PCN, moveToParse)
 	if matches {
-		return moveToParse
+		parsed := moveToParse[:len(moveToParse)-1]
+		// Some engines dont capitalize the promotion piece:
+		parsed += strings.ToUpper(moveToParse[len(moveToParse)-1:])
+		return parsed
 	}
 	// Check for castling:
 	if moveToParse == "O-O" {
@@ -36,6 +46,10 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 	if moveToParse == "O-O-O" {
 		return []string{"e1c1", "e8c8"}[G.toMove()]
 	}
+
+	// First check for an ambiguous promotion:
+	//SAN := "([a-h]?)([0-9]?)([a-h][0-9])([=])([BNQR])([+#]?)"
+	//p, _ := regexp.Compile(SAN)
 
 	// Breakdown the SAN:
 	SAN := "([BKNPQR]?)([a-h]?)([0-9]?)([x=]?)([BKNPQR]|[a-h][1-8])([+#]?)"
@@ -66,7 +80,7 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 
 	origin, err := originOfPiece(piece, destination, fromFile, fromRank, G)
 	if err != nil {
-		//error finding the origin
+		fmt.Println(err)
 	}
 
 	return origin + destination + promote
@@ -121,7 +135,7 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 		}
 
 	}
-	return "", nil // TODO: this should really return an error
+	return "", errors.New("Notation: Can not find source square")
 }
 
 /*******************************************************************************

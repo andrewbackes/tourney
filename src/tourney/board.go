@@ -140,21 +140,14 @@ func (B *Board) Print() {
 }
 
 func (B *Board) Clear() {
-	for c := WHITE; c <= BLACK; c++ {
-		for p := PAWN; p <= KING; p++ {
-			B.pieceBB[c][p] = 0
-		}
-	}
+	B.pieceBB = [2][6]uint64{}
 }
 
 func (B *Board) Reset() {
 	// puts the pieces in their starting/newgame positions
 	for color := uint(0); color < 2; color = color + 1 {
 		//Pawns first:
-		B.pieceBB[color][PAWN] ^= 255 << (8 + (color * 8 * 5)) // cant believe if missed this
-		//for square := uint(0); square < 8; square++ {
-		//	B.pieceBB[color][PAWN] ^= 1 << ((square + 8) + (color * 8 * 5))
-		//}
+		B.pieceBB[color][PAWN] ^= 255 << (8 + (color * 8 * 5))
 		//Then the rest of the pieces:
 		B.pieceBB[color][KNIGHT] = (1 << (B1 + (color * 8 * 7))) ^ (1 << (G1 + (color * 8 * 7)))
 		B.pieceBB[color][BISHOP] = (1 << (C1 + (color * 8 * 7))) ^ (1 << (F1 + (color * 8 * 7)))

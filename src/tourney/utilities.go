@@ -12,6 +12,8 @@
 
 package main
 
+import "fmt"
+
 /*******************************************************************************
 
 	Bit Stuff:
@@ -58,4 +60,10 @@ func BSR(b uint64) uint {
 		return 0
 	}
 	return 64
+}
+
+func bitprint(x uint64) {
+	for i := 7; i >= 0; i-- {
+		fmt.Printf("%08b\n", (x >> uint64(8*i) & 255))
+	}
 }

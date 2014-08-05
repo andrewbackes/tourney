@@ -69,9 +69,15 @@ type Tourney struct {
 }
 
 func (T *Tourney) playLoop() error {
-	for T.State == RUNNING {
+	if T.State == RUNNING {
 		for i := 0; i < len(T.GameList); i++ { // doing for i, g := range T.GameList makes a copy of the game. is there a way to point instead?
-			T.GameList[i].Start() // TODO: adjust for partially completed tourneys/games
+			if err := T.GameList[i].Start(); err != nil { // TODO: adjust for partially completed tourneys/games
+				fmt.Println(err.Error())
+				break
+			}
+			if T.State != RUNNING {
+				break
+			}
 		}
 
 		//Temporary:
@@ -90,14 +96,14 @@ func (T *Tourney) LoadFile(filename string) error {
 	tourneyFile, err := os.Open(filename)
 	// when i try to combine this with the if statement, i get an error about tourneyFile not being defined
 	if err != nil {
-		printError("opening .tourney file", err.Error())
+		fmt.Println("Error opening ", filename, ".", err.Error())
 		return err
 	}
 
 	//Try to decode the file:
 	jsonParser := json.NewDecoder(tourneyFile)
 	if err = jsonParser.Decode(T); err != nil {
-		printError("parsing .tourney file", err.Error())
+		fmt.Println("Error parsing .tourney file.", err.Error())
 		return err
 	}
 

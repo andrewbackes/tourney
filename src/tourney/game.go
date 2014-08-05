@@ -19,6 +19,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -89,10 +90,10 @@ func (G *Game) playLoop() error {
 				break
 			}
 			// Request a move from the engine:
-			startTime := time.Now()
+			startTime := time.Now() // TODO: move the timing stuff to the Move() method.
 			move, err := G.player[color].Move(G.timer, G.movesToGo)
 			if err != nil {
-				G.Stop()
+				G.GameOver(color, err.Error())
 				break
 			}
 			endTime := time.Now()
@@ -269,8 +270,12 @@ func (G *Game) Start() error {
 	fmt.Println("Game running. (", G.player[WHITE].Name, "vs", G.player[BLACK].Name, ")") //TODO: include round#
 
 	// Start up the engines:
-	G.player[WHITE].Start()
-	G.player[BLACK].Start()
+	if err := G.player[WHITE].Start(); err != nil {
+		return err
+	}
+	if err := G.player[BLACK].Start(); err != nil {
+		return err
+	}
 
 	// Begin playing the game:
 	G.playLoop()
@@ -327,7 +332,7 @@ func (G *Game) MakeMove(m Move) error {
 
 	color, piece := G.board.onSquare(from)
 	if color == NEITHER || piece == NONE {
-		return customError{"Illegal Move", time.Now()}
+		return errors.New("Illegal Move.")
 	}
 
 	//move piece:
@@ -542,6 +547,84 @@ func (G *Game) Print() {
 		map[bool]string{true: "k", false: "-"}[G.castleRights[BLACK][SHORT]],
 		map[bool]string{true: "q", false: "-"}[G.castleRights[BLACK][LONG]])
 	fmt.Print("\n")
+}
+
+func (G *Game) PrintHUD() {
+	toMove := G.toMove()
+	lastMoveSource, lastMoveDestination := uint8(64), uint8(64)
+	if len(G.moveList) > 0 {
+		lastMoveSource, lastMoveDestination = getIndex(G.moveList[len(G.moveList)-1].algebraic)
+	}
+	abbrev := [2][6]string{{"P", "N", "B", "R", "Q", "K"}, {"p", "n", "b", "r", "q", "k"}}
+	fmt.Println("+---+---+---+---+---+---+---+---+")
+	for i := uint8(1); i <= 64; i++ {
+		square := uint8(64 - i)
+		fmt.Print("|")
+		blankSquare := true
+		for j := PAWN; j <= KING; j = j + 1 {
+			for color := Color(0); color <= BLACK; color++ {
+				if ((1 << square) & G.board.pieceBB[color][j]) != 0 {
+					if lastMoveDestination == square {
+						fmt.Print("[", abbrev[color][j], "]")
+					} else {
+						fmt.Print(" ", abbrev[color][j], " ")
+					}
+					blankSquare = false
+				}
+			}
+		}
+		if blankSquare == true {
+			if lastMoveSource == square {
+				fmt.Print("[ ]")
+			} else {
+				fmt.Print("   ")
+			}
+		}
+		if square%8 == 0 {
+			fmt.Print("|")
+			switch square / 8 {
+			case 7:
+				formattedTimer := []string{"WHITE " + FormatTimer(G.timer[WHITE]), "BLACK " + FormatTimer(G.timer[BLACK])}
+				formattedTimer[toMove] = "[" + formattedTimer[toMove] + "]"
+				fmt.Print(strings.Repeat(" ", 6), formattedTimer[WHITE], strings.Repeat(" ", 3), formattedTimer[BLACK])
+			case 5:
+				fmt.Print(strings.Repeat(" ", 6))
+				if G.enPassant != 64 {
+					fmt.Print("Enpassant: ", getAlg(uint(G.enPassant)))
+				} else {
+					fmt.Print("Enpassant: ", "None")
+				}
+			case 4:
+				fmt.Print(strings.Repeat(" ", 6))
+				fmt.Print("Castling Rights: ",
+					map[bool]string{true: "K", false: "-"}[G.castleRights[WHITE][SHORT]],
+					map[bool]string{true: "Q", false: "-"}[G.castleRights[WHITE][LONG]],
+					map[bool]string{true: "k", false: "-"}[G.castleRights[BLACK][SHORT]],
+					map[bool]string{true: "q", false: "-"}[G.castleRights[BLACK][LONG]])
+			}
+			fmt.Print("\n")
+			fmt.Println("+---+---+---+---+---+---+---+---+")
+
+		}
+	}
+}
+
+func FormatTimer(ms int64) string {
+	var r string
+	if ms/60000 < 10 {
+		r += "0"
+	}
+	r += strconv.FormatInt(ms/60000, 10) + ":"
+	if (ms%60000)/1000 < 10 {
+		r += "0"
+	}
+	r += strconv.FormatInt((ms%60000)/1000, 10) + "." + strconv.FormatInt((ms%60000)%1000, 10)
+	if (ms%60000)%1000 < 10 {
+		r += "00"
+	} else if (ms%60000)%1000 < 100 {
+		r += "0"
+	}
+	return r
 }
 
 func (G *Game) toMove() Color {
