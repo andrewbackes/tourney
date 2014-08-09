@@ -105,7 +105,7 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 
 	// Grab the legal moves that land on our square:
 	for _, mv := range legalMoves {
-		dest := mv.algebraic[2:4]
+		dest := mv.Algebraic[2:4]
 		if dest == destination {
 			eligableMoves = append(eligableMoves, mv)
 		}
@@ -120,7 +120,7 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 		sq := getAlg(bit)
 		//verify that its a legal move:
 		for _, mv := range eligableMoves {
-			if mv.algebraic[:2] == sq {
+			if mv.Algebraic[:2] == sq {
 				eligableSquares = append(eligableSquares, sq)
 				break
 			}

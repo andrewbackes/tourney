@@ -192,7 +192,7 @@ func (U UCI) Move(reader *bufio.Reader, writer *bufio.Writer, timer [2]int64, mo
 		maxTime = timer[1]
 	}
 
-	fmt.Print("> " + goString)
+	//fmt.Print("> " + goString)
 	writer.WriteString(goString)
 	writer.Flush()
 
@@ -201,13 +201,13 @@ func (U UCI) Move(reader *bufio.Reader, writer *bufio.Writer, timer [2]int64, mo
 	startTime := time.Now()
 	for strings.HasPrefix(line, "bestmove") == false {
 		if int64(time.Now().Sub(startTime).Seconds()*1000) > maxTime {
-			return Move{algebraic: "none"}, errors.New("Engine timed out.")
+			return Move{Algebraic: "none"}, errors.New("Engine timed out.")
 		}
 		line, _ = reader.ReadString('\n')
 		m.log = append(m.log, line)
 	}
-	m.algebraic = strings.Split(line, " ")[1]
-	m.algebraic = strings.TrimSuffix(m.algebraic, "\n")
+	m.Algebraic = strings.Split(line, " ")[1]
+	m.Algebraic = strings.TrimSuffix(m.Algebraic, "\n")
 
 	return m, nil
 }
@@ -217,7 +217,7 @@ func (U UCI) Set(writer *bufio.Writer, movesSoFar []Move) error {
 	var ml []string
 
 	for _, m := range movesSoFar {
-		ml = append(ml, m.algebraic)
+		ml = append(ml, m.Algebraic)
 	}
 
 	var pos string

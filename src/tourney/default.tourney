@@ -1,5 +1,7 @@
 {
-	"Name": "Default Tourney",
+	"Event": "Default Tourney",
+	"Site": "localhost",
+	"Date": "??",
 	"Engines": [
 		{ 	
 			"Name": "Sempai 1.0", 
@@ -7,16 +9,16 @@
 			"Protocol": "UCI" 
 		},
 		{ 
-			"Name": "Dirty-Bit 0.40 rev1", 
-			"Path": "/Users/Andrew/Projects/Dirty-Bit/Engine/Bin/Dirty-Bit", 
-			"Protocol": "UCI" 
+			"Name": "Sempai 1.0 - copy", 
+			"Path": "/Users/Andrew/Documents/Engines/senpai_10-osx-x64", 
+			"Protocol": "UCI"  
 		}
 	],
 	"TestSeats": 1,
 	"Carousel": true,
 	"Moves": 40,
-	"Time": 10000,
+	"Time": 1000,
 	"Repeating": true,
-	"Rounds": 1,
+	"Rounds": 100,
 	"QuitAfter": false
 }

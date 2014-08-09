@@ -26,58 +26,41 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 )
 
 func main() {
 	/*
 		var G Game
-		G.LoadFEN("r3k2r/8/8/8/8/8/8/4K3 w kq - 0 1")
-		G.MakeMove(Move{algebraic: "e1f1"})
-		G.MakeMove(Move{algebraic: "a8a1"})
-		G.PrintHUD()
+		G.MakeMove(Move{Algebraic: "e2e4"})
+		G.MakeMove(Move{Algebraic: "d7d5"})
+		G.MakeMove(Move{Algebraic: "b1c3"})
+		G.MakeMove(Move{Algebraic: "b8c6"})
+		G.Completed = true
+		G.Result = WHITE
+		G.Event = "E"
+		fmt.Print(EncodePGN(&G))
+		return
 	*/
 	/*
-		fmt.Println(G.FEN())
-
-		G.MakeMove(Move{algebraic: "e1f1"})
-		G.MakeMove(Move{algebraic: "h8h3"})
-		G.MakeMove(Move{algebraic: "f1g1"})
-		G.Print()
-		fmt.Println(G.FEN())
-
-		//divide(G, 1)
-	*/
-	/*
-		for i := PAWN; i <= KING; i++ {
-			bitprint(G.board.pieceBB[WHITE][i])
-			fmt.Println(" ")
-			bitprint(G.board.pieceBB[BLACK][i])
-			fmt.Println("----------------------------------------")
+		buf, err := ioutil.ReadFile("sample.pgn")
+		if err != nil {
+			fmt.Println(err)
 		}
-	*/
-	//G.Print()
-	//PerftSuite("/Users/Andrew/Projects/tourney/bin/perftsuite.epd", 7) //passed up to FEN 30.
-
-	/*
-		goal := []int64{1, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860}
-
-		for i := 1; i <= 6; i++ {
-			nodes, chk, cstl, m, cap, prom, enpas := perft(G, i)
-			fmt.Println("PERFT ", i, ": ", nodes, cap, enpas, cstl, prom, chk, m)
-
-			if diff := int64(nodes) - int64(goal[i]); diff != 0 {
-				fmt.Println("\toff by ", diff)
-			}
+		s := string(buf)
+		g := DecodePGN(s)
+		for _, s := range g {
+			fmt.Println(s, "\n\n\n\n")
 
 		}
+		return
 	*/
-	//return
 	fmt.Println("Project: Tourney Started")
 
 	// Until there is a need to have multiple Tourney objects to run at once,
 	// this single object will just be passed around and manipulated:
 	var tourney Tourney
-
+	tourney.StateFlow = make(chan Status)
 	// Check for a lanuch arguement with for a .tourney file
 	// .tourney files contain all of the settings needed
 	// to start a tourney without any terminal input.
@@ -90,19 +73,6 @@ func main() {
 	// TODO: Other launch arguements
 
 	// and either go to the menu or the command loop
-	commandLoop(&tourney)
-
-}
-
-type OutputType int
-
-const (
-	STANDARD OutputType = iota
-	ERROR
-	ENGINE_INPUT
-	ENGINE_OUTPUT
-)
-
-func Output(a ...interface{}) {
+	Controller(&tourney)
 
 }

@@ -17,11 +17,12 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 )
 
 // system wide commands should be: start, stop, pause, restart, new, quit, help
 
-func doCommand(command string, T *Tourney) (quitFlag bool, err error) {
+func doCommand(command string, T *Tourney, wg *sync.WaitGroup) bool {
 	//TODO
 
 	// This function is really really ugly!!!
@@ -32,71 +33,61 @@ func doCommand(command string, T *Tourney) (quitFlag bool, err error) {
 	if len(words) > 0 {
 		switch words[0] {
 		case "start", "s":
-			T.Start()
+			T.StateFlow = make(chan Status)
+			go func() {
+				T.StateFlow <- RUNNING // BUG: Doing this more than once, this will block.
+			}()
+			wg.Add(1)
+			go func() {
+				if err := RunTourney(T); err != nil {
+					fmt.Println(err)
+				}
+				wg.Done()
+			}()
 		case "stop", "p":
-			T.Stop()
+			wg.Add(1)
+			go func() {
+				T.StateFlow <- STOPPED // BUG: Doing this more than once, this will block.
+				wg.Done()
+			}()
 		case "new", "n":
 			//TODO: prompt menu with options for new tourney
-			err = T.LoadFile("default.tourney")
+			T.LoadFile("default.tourney") //TODO: this will cause unknown errors with the goroutine running the tourney
 		case "load", "l":
-			err = T.LoadFile(words[1])
+			T.LoadFile(words[1]) //TODO: this will cause unknown errors with the goroutine running the tourney
 		case "help", "h":
-			err = showHelp()
+			showHelp()
 		case "quit", "q":
-			err = quit(T)
-			quitFlag = true
+			wg.Add(1)
+			go func() {
+				//close(T.StateFlow)
+				//T.StateFlow <- STOPPED
+				wg.Done()
+			}()
+			return true
+		default:
+			fmt.Print("There was an error processing that command. Type 'help' for a list of commands.\n")
 		}
 	}
-	return
+	return false
 }
 
-func commandLoop(tourney *Tourney) {
-	// Root level command loop -
+func Controller(tourney *Tourney) {
 	// continuously accepts and executes the users commands.
 
 	prompt := "Tourney> "
 	inputReader := bufio.NewReader(os.Stdin)
-	inputChan := make(chan string)
 
-	quitChan := make(chan bool)
-	defer close(quitChan)
+	var wg sync.WaitGroup
+	var quit bool
 
-	// UPSTREAM: ask user for a command
-	fmt.Print(prompt)
-	go func() {
-		for {
-			line, _ := inputReader.ReadString('\n')
-			select {
-			case inputChan <- line:
-			case <-quitChan:
-				break
-			}
-		}
-		close(inputChan)
-	}()
-
-	// DOWNSTREAM: execute the command
-	for i := range inputChan {
-		go func() {
-			quit, _ := doCommand(i, tourney)
-			quitChan <- quit
-		}()
-		if <-quitChan {
-			return
-		}
+	for !quit {
 		fmt.Print(prompt)
+		line, _ := inputReader.ReadString('\n')
+		quit = doCommand(line, tourney, &wg)
 	}
 	fmt.Print("\n")
-}
-
-func quit(T *Tourney) error {
-	// Quit the program. So take care of business first.
-
-	if T.State == RUNNING {
-		T.Stop()
-	}
-
-	return nil
+	wg.Wait()
 }
 
 func showHelp() error {
