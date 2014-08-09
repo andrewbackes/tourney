@@ -89,7 +89,7 @@ func (G *Game) MoveGen() []Move {
 			p := []string{"Q", "R", "B", "N"}
 			for i := 0; i < 4; i++ {
 				mv := getMove(from, to)
-				mv.algebraic += p[i]
+				mv.Algebraic += p[i]
 				list = append(list, mv)
 			}
 			destinations ^= (1 << to)

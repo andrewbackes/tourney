@@ -21,6 +21,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	//"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -42,32 +43,33 @@ const (
 )
 
 type Game struct {
-	// TODO: 50 move rule and 3 fold
 
 	// Header info (General info, usually needed for pgn):
-	time      int64
-	moves     int64
-	repeating bool
-	player    [2]Engine //white=0,black=1
-
-	//TODO: the rest of the PGN required heading. i think there are 8?
+	Event       string
+	Site        string
+	Date        string
+	Round       int
+	time        int64
+	moves       int64
+	repeating   bool
+	Player      [2]Engine // white=0,black=1
+	StartingFEN string    // first position out of the book
 
 	// Control info:
 	timer     [2]int64 //the game clock for each side. milliseconds.
 	movesToGo int64    //moves until time control
 
 	// Game run time info:
-	state        Status //UNSTARTED,RUNNING,STOPPED
 	board        Board
 	fiftyRule    uint64
 	history      []string // FEN of every known position so far.
 	enPassant    uint8
 	castleRights [2][2]bool
-	moveList     []Move //move history
-	completed    bool   // TODO:  change this to reflect how the game ended. time, checkmate, adjunction, etc
+	MoveList     []Move //move history
+	Completed    bool   // TODO:  change this to reflect how the game ended. time, checkmate, adjunction, etc
 
 	// Post game info:
-	result Color //WHITE,BLACK,DRAW - should be set when game state is changed to STOPPED
+	Result Color //WHITE,BLACK,DRAW - should be set when game state is changed to STOPPED
 
 }
 
@@ -78,93 +80,124 @@ type Game struct {
 
 *******************************************************************************/
 
-func (G *Game) playLoop() error {
-	// TODO:
-	//		-Optimization: legal move gen gets called twice per loop. once in the notation adaptation, and once in move verification
-	for G.state == RUNNING {
-		for color := WHITE; color <= BLACK; color++ {
-			otherColor := []Color{BLACK, WHITE}[color]
-			// Tell the engine to set its internal board:
-			if err := G.player[color].Set(G.moveList); err != nil { //TODO: should probably pass by ref
-				G.Stop()
-				break
-			}
-			// Request a move from the engine:
-			startTime := time.Now() // TODO: move the timing stuff to the Move() method.
-			move, err := G.player[color].Move(G.timer, G.movesToGo)
-			if err != nil {
-				G.GameOver(color, err.Error())
-				break
-			}
-			endTime := time.Now()
-			lapsed := endTime.Sub(startTime)
-			// Adjust time control:
-			G.timer[color] -= int64(lapsed.Seconds() * 1000)
-			if G.timer[color] <= 0 {
-				G.GameOver(color, "Out of time. Used "+strconv.FormatInt(int64(lapsed.Seconds()*1000), 10)+" ms.")
-				break
-			}
-			// Convert the notation from the engines notation to pure coordinate notation
-			preparsedMove := move
-			move.algebraic = InternalizeNotation(G, preparsedMove.algebraic)
+func PlayGame(G *Game) error {
+	G.initialize() // TODO: should check for partial game completion here.
+	fmt.Println("Game started.")
 
-			fmt.Print([]string{"WHITE", "BLACK"}[color], "> ", move.algebraic, " (From Engine: ", preparsedMove.algebraic, ")\n")
-			// Check legality of move.
-			LegalMoves := LegalMoveList(G)
-			if !contains(LegalMoves, move) {
-				G.GameOver(color, "Illegal move.")
-				break
-			}
-			// Adjust the internal board:
-			if err = G.MakeMove(move); err != nil {
-				G.GameOver(color, err.Error()) // illegal move
-				break
-			}
-			// Check:
-			check := G.isInCheck(otherColor)
-			// Mate:
-			oppLegalMoves := LegalMoveList(G)
-			if len(oppLegalMoves) == 0 {
-				if check {
-					//checkmate!
-					G.GameOver(otherColor, "Checkmate.")
-					break
-				} else {
-					//stalemate!
-					G.GameOver(NEITHER, "Stalemate.")
-					break
-				}
-			}
-			// 50 Move Draw:
-			if FiftyMoveDraw(G) {
-				G.GameOver(NEITHER, "50 move rule.")
-				break
-			}
-			// Insufficient material:
-			if InsufficientMaterial(G) {
-				G.GameOver(NEITHER, "Insufficient material.")
-				break
-			}
-			// 3 fold:
-			if ThreeFold(G) {
-				G.GameOver(NEITHER, "Three fold repitition.")
-				break
-			}
+	// Start up the engines:
+	if err := G.Player[WHITE].Start(); err != nil {
+		return err
+	}
+	if err := G.Player[BLACK].Start(); err != nil {
+		return err
+	}
+	var state Status = RUNNING
+
+	for state == RUNNING {
+		if state == STOPPED {
+			// More clean up code here.
+			break
 		}
-		if G.completed == false {
+		// Play:
+		gameover := ExecuteNextTurn(G)
+		if gameover {
+			state = STOPPED
+			break
+		}
+
+		if G.toMove() == WHITE {
 			G.movesToGo -= 1
 			if G.movesToGo == 0 && G.repeating == true {
 				G.resetTimeControl()
 			}
 		}
 	}
-	G.board.Print()
+	// Show Results:
+	fmt.Println("Game stopped.")
+	// Stop the engines:
+	G.Player[WHITE].Shutdown()
+	G.Player[BLACK].Shutdown()
+
 	return nil
+}
+
+func ExecuteNextTurn(G *Game) bool {
+	//Return true to quit game
+	color := G.toMove()
+	otherColor := []Color{BLACK, WHITE}[color]
+	// Tell the engine to set its internal board:
+	if err := G.Player[color].Set(G.MoveList); err != nil { //TODO: should probably pass by ref
+		G.GameOver(color, err.Error())
+		return true
+	}
+	// Request a move from the engine:
+	startTime := time.Now() // TODO: move the timing stuff to the Move() method.
+	move, err := G.Player[color].Move(G.timer, G.movesToGo)
+	if err != nil {
+		G.GameOver(color, err.Error())
+		return true
+	}
+	endTime := time.Now()
+	lapsed := endTime.Sub(startTime)
+	// Adjust time control:
+	G.timer[color] -= int64(lapsed.Seconds() * 1000)
+	if G.timer[color] <= 0 {
+		G.GameOver(color, "Out of time. Used "+strconv.FormatInt(int64(lapsed.Seconds()*1000), 10)+" ms.")
+		return true
+	}
+	// Convert the notation from the engines notation to pure coordinate notation
+	preparsedMove := move
+	move.Algebraic = InternalizeNotation(G, preparsedMove.Algebraic)
+
+	fmt.Print([]string{"WHITE", "BLACK"}[color], "> ", move.Algebraic, " (From Engine: ", preparsedMove.Algebraic, ")\n")
+	// Check legality of move.
+	LegalMoves := LegalMoveList(G)
+	if !contains(LegalMoves, move) {
+		G.GameOver(color, "Illegal move.")
+		return true
+	}
+	// Adjust the internal board:
+	if err = G.MakeMove(move); err != nil {
+		G.GameOver(color, err.Error()) // illegal move
+		return true
+	}
+	// Check:
+	check := G.isInCheck(otherColor)
+	// Mate:
+	oppLegalMoves := LegalMoveList(G)
+	if len(oppLegalMoves) == 0 {
+		if check {
+			//checkmate!
+			G.GameOver(otherColor, "Checkmate.")
+			return true
+		} else {
+			//stalemate!
+			G.GameOver(NEITHER, "Stalemate.")
+			return true
+		}
+	}
+	// 50 Move Draw:
+	if FiftyMoveDraw(G) {
+		G.GameOver(NEITHER, "50 move rule.")
+		return true
+	}
+	// Insufficient material:
+	if InsufficientMaterial(G) {
+		G.GameOver(NEITHER, "Insufficient material.")
+		return true
+	}
+	// 3 fold:
+	if ThreeFold(G) {
+		G.GameOver(NEITHER, "Three fold repitition.")
+		return true
+	}
+	fmt.Println("false")
+	return false
 }
 
 func contains(list []Move, move Move) bool {
 	for i, _ := range list {
-		if move.algebraic == list[i].algebraic {
+		if move.Algebraic == list[i].Algebraic {
 			return true
 		}
 	}
@@ -177,7 +210,8 @@ func FiftyMoveDraw(G *Game) bool {
 
 func ThreeFold(G *Game) bool {
 	// TODO: Can this be optimized? very very slow right now.
-	// maybe sort them alphabetically first
+	// maybe sort them alphabetically first.
+	// should go backwards instead, as many times as in the fiftyMove count.
 	for i := 0; i < len(G.history); i++ {
 		fen := G.history[i]
 		fenSplit := strings.Split(fen, " ")
@@ -236,7 +270,7 @@ func InsufficientMaterial(G *Game) bool {
 				}
 			}
 		}
-		// King vs King & opposite bishop
+		// King vs King & oppoSite bishop
 		kingBishopMask := G.board.pieceBB[color][KING] | G.board.pieceBB[color][BISHOP]
 		if (G.board.Occupied(color)&kingBishopMask == G.board.Occupied(color)) && (popcount(G.board.pieceBB[color][BISHOP]) == 1) {
 			mask := G.board.pieceBB[otherColor][KING] | G.board.pieceBB[otherColor][BISHOP]
@@ -261,46 +295,11 @@ func InsufficientMaterial(G *Game) bool {
 
 *******************************************************************************/
 
-func (G *Game) Start() error {
-	// TODO: Start the game with error checking based on G.state and G.completed
-	if G.state == UNSTARTED {
-		G.initialize()
-	}
-	G.state = RUNNING
-	fmt.Println("Game running. (", G.player[WHITE].Name, "vs", G.player[BLACK].Name, ")") //TODO: include round#
-
-	// Start up the engines:
-	if err := G.player[WHITE].Start(); err != nil {
-		return err
-	}
-	if err := G.player[BLACK].Start(); err != nil {
-		return err
-	}
-
-	// Begin playing the game:
-	G.playLoop()
-
-	return nil
-}
-
-func (G *Game) Stop() error {
-	// TODO: Stop the game with error checking based on G.state and G.completed
-	if G.state == RUNNING {
-		// Turn off the engines:
-		G.player[WHITE].Shutdown()
-		G.player[BLACK].Shutdown()
-
-		G.state = STOPPED
-		fmt.Println("Game stopped.")
-	}
-	return nil
-}
-
 func (G *Game) GameOver(looser Color, reason string) {
 	fmt.Println("Game Over.", []string{"White looses.", "Black looses.", "Draw."}[looser], reason)
-	G.result = []Color{BLACK, WHITE, DRAW}[looser] //opposite of the looser
-	G.completed = true
-	G.Stop()
+	G.Result = []Color{BLACK, WHITE, DRAW}[looser] //oppoSite of the looser
+	G.Completed = true
+	//G.Stop()
 }
 
 /*******************************************************************************
@@ -318,9 +317,9 @@ func (G *Game) MakeMove(m Move) error {
 
 	G.fiftyRule += 1
 
-	G.moveList = append(G.moveList, m)
+	G.MoveList = append(G.MoveList, m)
 
-	from, to := getIndex(m.algebraic)
+	from, to := getIndex(m.Algebraic)
 
 	capturedColor, capturedPiece := G.board.onSquare(to)
 
@@ -377,7 +376,7 @@ func (G *Game) MakeMove(m Move) error {
 			G.enPassant = 64
 		}
 
-		promotes := getPromotion(m.algebraic)
+		promotes := getPromotion(m.Algebraic)
 		// Handle Promotions:
 		if promotes != NONE {
 			G.board.pieceBB[color][piece] ^= (1 << to)    // remove pawn
@@ -434,7 +433,7 @@ func (G *Game) FEN() string {
 	}
 	// Moves and 50 move rule
 	fifty := strconv.Itoa(int(G.fiftyRule / 2))
-	move := strconv.Itoa(int(len(G.moveList)/2) + 1)
+	move := strconv.Itoa(int(len(G.MoveList)/2) + 1)
 	// all together:
 	fen := board + " " + turn + " " + rights + " " + enPas + " " + fifty + " " + move
 	return fen
@@ -447,11 +446,11 @@ func (G *Game) LoadFEN(fen string) error {
 	words := strings.Split(fen, " ")
 
 	// Move Count & toMove:
-	unknownMove := Move{algebraic: ""}
+	unknownMove := Move{Algebraic: ""}
 	fullMoves, _ := strconv.ParseUint(words[5], 10, 0)
 	halfMoves := ((fullMoves - 1) * 2) + map[string]uint64{"w": 0, "b": 1}[words[1]]
 	for i := uint64(0); i < halfMoves; i++ {
-		G.moveList = append(G.moveList, unknownMove)
+		G.MoveList = append(G.MoveList, unknownMove)
 	}
 
 	// 50 Move Rule:
@@ -516,13 +515,7 @@ func (G *Game) initialize() error {
 	G.board.Reset()
 	G.castleRights = [2][2]bool{{true, true}, {true, true}}
 	G.enPassant = 64
-	G.state = UNSTARTED
-	G.completed = false
-	return nil
-}
-
-func (G *Game) Validate() error {
-	// TODO: Should check that all the data members are set up correctly to not cause a crash.
+	G.Completed = false
 	return nil
 }
 
@@ -552,8 +545,8 @@ func (G *Game) Print() {
 func (G *Game) PrintHUD() {
 	toMove := G.toMove()
 	lastMoveSource, lastMoveDestination := uint8(64), uint8(64)
-	if len(G.moveList) > 0 {
-		lastMoveSource, lastMoveDestination = getIndex(G.moveList[len(G.moveList)-1].algebraic)
+	if len(G.MoveList) > 0 {
+		lastMoveSource, lastMoveDestination = getIndex(G.MoveList[len(G.MoveList)-1].Algebraic)
 	}
 	abbrev := [2][6]string{{"P", "N", "B", "R", "Q", "K"}, {"p", "n", "b", "r", "q", "k"}}
 	fmt.Println("+---+---+---+---+---+---+---+---+")
@@ -628,7 +621,7 @@ func FormatTimer(ms int64) string {
 }
 
 func (G *Game) toMove() Color {
-	return Color(len(G.moveList) % 2)
+	return Color(len(G.MoveList) % 2)
 }
 
 func (G *Game) isInCheck(toMove Color) bool {
@@ -640,7 +633,7 @@ func (G *Game) isInCheck(toMove Color) bool {
 
 func (G *Game) isAttacked(square uint, byWho Color) bool {
 	// TODO: conceptually whether somebody is attacked or not isnt a property of the game
-	//			but rather a property of the player? So maybe have this be a stand alone function
+	//			but rather a property of the Player? So maybe have this be a stand alone function
 	//			that takes in *Game
 	defender := []Color{BLACK, WHITE}[byWho]
 
