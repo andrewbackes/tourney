@@ -65,6 +65,10 @@ type Tourney struct {
 	Rounds int //number of games each engine will play
 
 	// Opening book information:
+	BookLocation string // File location of the book
+	BookMoves    int    // Number of moves to use out of the book
+	BookPGN      []Game
+	RandomBook   bool
 
 	QuitAfter bool //Quit after the tourney is complete.
 
@@ -111,10 +115,15 @@ func RunTourney(T *Tourney) error {
 				fmt.Println(err.Error())
 				break
 			}
+			// DEBUG:
+			//for _, mv := range T.GameList[i].MoveList {
+			//	fmt.Println(mv.Algebraic)
+			//}
+			T.GameList[i].PrintHUD()
 		}
 
 	}
-	// Empty the channel: (TODO: this way not be needed anymore)
+	// Empty the channel: (TODO: this may not be needed anymore)
 	emptied := false
 	for !emptied {
 		select {
@@ -203,6 +212,27 @@ func (T *Tourney) LoadFile(filename string) error {
 	// Create the game list:
 	T.GenerateMatchups()
 	fmt.Println("Successfully Loaded ", filename)
+	// Load the opening book:
+	if T.BookLocation != "" {
+		if err := LoadBook(T); err != nil {
+			fmt.Println("Could not load opening book:", err)
+		} else {
+			fmt.Println("Successfully loaded opening book:", T.BookLocation)
+			// TODO: this will have to be changed when more opening book support is added.
+			if e := PlayOpenings(T); e != nil {
+				fmt.Println("Error playing openings from book. ", e)
+			} else {
+				fmt.Println("Successfully applied openings from book.")
+				/* DEBUG
+				for i, _ := range T.GameList {
+					fmt.Println(T.GameList[i].StartingFEN)
+				}
+				*/
+			}
+		}
+	} else {
+		fmt.Println("No opening book specified.")
+	}
 	// Check if this tourney was previously stopped midway
 	if loaded, err := LoadPreviousResults(T); err != nil {
 		return err
@@ -242,7 +272,12 @@ func (T *Tourney) GenerateMatchups() {
 	//S := T.TestSeats *( (T.TestSeats +1 )/2 ) // = Sum_{0}^{n} k
 	//gameCount := T.Rounds * (T.TestSeats * len(T.Engines) - S)
 	//T.GameList = make([]Game,gameCount)
-	def := Game{time: T.Time, moves: T.Moves, repeating: T.Repeating, Completed: false}
+	var def Game
+	def.initialize()
+	def.time = T.Time
+	def.moves = T.Moves
+	def.repeating = T.Repeating
+	def.Completed = false
 
 	// Non-Carousel:
 	for t := 0; t < T.TestSeats; t++ {

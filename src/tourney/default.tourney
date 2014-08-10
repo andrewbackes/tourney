@@ -19,6 +19,9 @@
 	"Moves": 40,
 	"Time": 1000,
 	"Repeating": true,
-	"Rounds": 100,
-	"QuitAfter": false
+	"Rounds": 20,
+	"QuitAfter": false,
+	"BookLocation": "",
+	"BookMoves": 4,
+	"RandomBook": true
 }

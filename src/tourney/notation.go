@@ -81,6 +81,8 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 	origin, err := originOfPiece(piece, destination, fromFile, fromRank, G)
 	if err != nil {
 		fmt.Println(err)
+		fmt.Println(G.FEN())
+		fmt.Println(moveToParse)
 	}
 
 	return origin + destination + promote
@@ -135,7 +137,7 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 		}
 
 	}
-	return "", errors.New("Notation: Can not find source square")
+	return "", errors.New("Notation: Can not find source square.")
 }
 
 /*******************************************************************************
@@ -143,6 +145,12 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 	Notation Stuff:
 
 *******************************************************************************/
+
+func StripAnnotations(mv string) string {
+	m := strings.Replace(mv, "!", "", -1)
+	m = strings.Replace(m, "?", "", -1)
+	return m
+}
 
 func getIndex(alg string) (uint8, uint8) {
 	// TODO: accept more notation.
