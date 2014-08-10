@@ -81,7 +81,14 @@ type Game struct {
 *******************************************************************************/
 
 func PlayGame(G *Game) error {
-	G.initialize() // TODO: should check for partial game completion here.
+	//G.PrintHUD()
+	if len(G.MoveList) == 0 {
+		G.initialize() // TODO: should check for partial game completion here.
+	}
+	//G.PrintHUD()
+	//if G.StartingFEN != "" {
+	//G.LoadFEN(G.StartingFEN)
+	//}
 	fmt.Println("Game started.")
 
 	// Start up the engines:
