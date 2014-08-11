@@ -14,6 +14,13 @@
  		-Each machine will have to be benchmarked to determine equivalent
  		 time control parameters.
  	-More tournament parameters
+ 	-Formatting results needs to be able to handle big numbers.
+ 	 Like: 35000-25000-10000
+
+ BUGS:
+ 	-There may be an issue with things like: changing fields in the .tourney
+ 	 file when there is already a .details file. Because when the details are
+ 	 loaded, there may be a different number of games.
 
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/16/2014
@@ -28,7 +35,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
+	//"strconv"
+	//"strings"
 	//"time"
 	//"runtime"
 )
@@ -82,10 +90,12 @@ type Tourney struct {
 
 type Record struct {
 	Player     Engine
+	Opponent   Engine
 	Wins       int
 	Losses     int
 	Draws      int
 	Incomplete int
+	Order      string
 }
 
 func RunTourney(T *Tourney) error {
@@ -111,6 +121,13 @@ func RunTourney(T *Tourney) error {
 		// Start the next game on the list:
 		fmt.Println("Round ", i, ": ", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
 		if !T.GameList[i].Completed {
+			fmt.Println("Game started.")
+			fmt.Print("Playing from opening book... ")
+			if err := PlayOpening(T, i); err != nil {
+				fmt.Println("Failed:", err.Error())
+				break
+			}
+			fmt.Println("Success.")
 			if err := PlayGame(&T.GameList[i]); err != nil {
 				fmt.Println(err.Error())
 				break
@@ -119,6 +136,7 @@ func RunTourney(T *Tourney) error {
 			//for _, mv := range T.GameList[i].MoveList {
 			//	fmt.Println(mv.Algebraic)
 			//}
+			fmt.Println("Game stopped.")
 			T.GameList[i].PrintHUD()
 		}
 
@@ -134,17 +152,45 @@ func RunTourney(T *Tourney) error {
 	}
 
 	// Show results:
-	ShowResults(T)
-	// Save results
+	fmt.Print(SummarizeResults(T))
+	// Save results:
+	fmt.Print("Saving '" + T.Event + ".results'... ")
 	if err := SaveResults(T); err != nil {
-		fmt.Println(err)
+		fmt.Println("Failed.", err)
+		return err
 	}
+	fmt.Println("Success.")
+	// Save details:
+	fmt.Print("Saving '" + T.Event + ".details'... ")
+	if err := SaveDetails(T); err != nil {
+		fmt.Println("Failed.", err)
+		return err
+	}
+	fmt.Println("Success.")
 	return nil
 }
 
 func SaveResults(T *Tourney) error {
 	//check if the file exists:
 	filename := T.Event + ".results"
+	//var file *os.File
+	//var err error
+	if _, test := os.Stat(filename); os.IsNotExist(test) {
+		// file doesnt exist
+	} else if test == nil {
+		// file does exist
+		os.Remove(filename)
+	}
+	file, err := os.Create(filename)
+	defer file.Close()
+	_, err = file.WriteString(SummarizeResults(T))
+
+	return err
+}
+
+func SaveDetails(T *Tourney) error {
+	//check if the file exists:
+	filename := T.Event + ".details"
 	var file *os.File
 	var err error
 	if _, er := os.Stat(filename); os.IsNotExist(er) {
@@ -165,12 +211,12 @@ func SaveResults(T *Tourney) error {
 	if _, err = file.Write(encoded); err != nil {
 		return err
 	}
-	fmt.Println("Successfully saved " + filename)
+	//fmt.Println("Successfully saved " + filename)
 	return nil
 }
 
 func LoadPreviousResults(T *Tourney) (bool, error) {
-	filename := T.Event + ".results"
+	filename := T.Event + ".details"
 	var err error
 	if _, err = os.Stat(filename); os.IsNotExist(err) {
 		// file doesnt exist
@@ -197,47 +243,56 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 
 func (T *Tourney) LoadFile(filename string) error {
 	// Try to open the file:
+	fmt.Print("Loading tourney settings: '", filename, "'... ")
 	tourneyFile, err := os.Open(filename)
 	defer tourneyFile.Close()
 	if err != nil {
-		fmt.Println("Error opening ", filename, ".", err.Error())
+		fmt.Println("Failed:", filename, ",", err.Error())
 		return err
 	}
 	//Try to decode the file:
 	jsonParser := json.NewDecoder(tourneyFile)
 	if err = jsonParser.Decode(T); err != nil {
-		fmt.Println("Error parsing .tourney file.", err.Error())
+		fmt.Println("Failed:", err.Error())
 		return err
 	}
+	// TODO: this is un-needed if there is previous data to load
+	// 		 since the opening book will have already been played out.
 	// Create the game list:
-	T.GenerateMatchups()
-	fmt.Println("Successfully Loaded ", filename)
+	T.GenerateGames()
+	fmt.Print("Success.\n")
 	// Load the opening book:
 	if T.BookLocation != "" {
+		fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
 		if err := LoadBook(T); err != nil {
-			fmt.Println("Could not load opening book:", err)
+			fmt.Println("Failed:", err)
+			return err
 		} else {
-			fmt.Println("Successfully loaded opening book:", T.BookLocation)
+			fmt.Println("Success.")
 			// TODO: this will have to be changed when more opening book support is added.
-			if e := PlayOpenings(T); e != nil {
-				fmt.Println("Error playing openings from book. ", e)
-			} else {
-				fmt.Println("Successfully applied openings from book.")
-				/* DEBUG
-				for i, _ := range T.GameList {
-					fmt.Println(T.GameList[i].StartingFEN)
+			/*
+				fmt.Print("Applying opening book to games... ")
+
+				if e := PlayOpenings(T); e != nil {
+					fmt.Println("Failed: ", e)
+					return e
+				} else {
+					fmt.Println("Success.")
 				}
-				*/
-			}
+			*/
 		}
 	} else {
 		fmt.Println("No opening book specified.")
 	}
 	// Check if this tourney was previously stopped midway
+	fmt.Print("Loading previous tourney data... ")
 	if loaded, err := LoadPreviousResults(T); err != nil {
+		fmt.Println("Failed.", err)
 		return err
 	} else if loaded {
-		fmt.Println("Successfully loaded previous results.")
+		fmt.Println("Success.")
+	} else {
+		fmt.Println("Nothing to load.")
 	}
 	return nil
 }
@@ -261,11 +316,11 @@ func (T *Tourney) LoadDefault() error {
 	return err
 }
 
-func (T *Tourney) GenerateMatchups() {
-	// Deduce the needed information for the tourney to run.
-	// This includes populating the game list.
+func (T *Tourney) GenerateGames() {
+	// Populates the game list with a generic unstarted game based
+	// on the Tourney parameters.
 
-	fmt.Println("Generating matchups between engines.")
+	//fmt.Println("Generating matchups between engines.")
 
 	//Count the number of games:
 	// TODO: VERIFY FORMULA!
@@ -277,6 +332,11 @@ func (T *Tourney) GenerateMatchups() {
 	def.time = T.Time
 	def.moves = T.Moves
 	def.repeating = T.Repeating
+	def.Completed = false
+	def.resetTimeControl()
+	def.board.Reset()
+	def.castleRights = [2][2]bool{{true, true}, {true, true}}
+	def.enPassant = 64
 	def.Completed = false
 
 	// Non-Carousel:
@@ -294,61 +354,4 @@ func (T *Tourney) GenerateMatchups() {
 		}
 	}
 	// TODO: Carousel
-}
-
-func GetResults(T *Tourney) []Record {
-	var r []Record
-
-	// helper function:
-	indexOf := func(e Engine) int {
-		for i, _ := range r {
-			if r[i].Player.Name == e.Name {
-				return i
-			}
-		}
-		r = append(r, Record{Player: e})
-		return len(r) - 1
-	}
-	// workhorse:
-	for i, _ := range T.GameList {
-		for color := WHITE; color <= BLACK; color++ {
-			ind := indexOf(T.GameList[i].Player[color])
-			if T.GameList[i].Completed {
-				if winner := T.GameList[i].Result; winner == DRAW {
-					r[ind].Draws++
-				} else if winner == color {
-					r[ind].Wins++
-				} else {
-					r[ind].Losses++
-				}
-			} else {
-				r[ind].Incomplete++
-			}
-		}
-	}
-	return r
-}
-
-func ShowResults(T *Tourney) {
-	// TODO: 	-add more detail. such as w-l-d for each matchup.
-
-	// find the length of the longest name, for formatting purposes:
-	var longestName int
-	results := GetResults(T)
-	for _, record := range results {
-		if len(record.Player.Name) > longestName {
-			longestName = len(record.Player.Name)
-		}
-	}
-	for _, record := range results {
-		fmt.Print(record.Player.Name, strings.Repeat(" ", longestName-len(record.Player.Name)), ":\t")
-		fmt.Print(record.Wins, "-", record.Losses, "-", record.Draws, " remaining: ", record.Incomplete, "\t")
-		score := float64(record.Wins) + 0.5*float64(record.Draws)
-		possible := float64(record.Wins + record.Losses + record.Draws)
-		fmt.Print(score, "/", possible, "\t")
-		if possible > 0 {
-			fmt.Printf("%.2f", 100*(score/possible))
-			fmt.Print("%\n")
-		}
-	}
 }

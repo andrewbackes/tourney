@@ -90,6 +90,10 @@ func DecodePGN(pgn string) []Game {
 					if strings.HasPrefix(m, "{") {
 						continue
 					}
+					if strings.Contains(m, ".") {
+						m = strings.Split(m, ".")[1]
+						m = strings.Trim(m, " ")
+					}
 					SAN := "([BKNPQR]?)([a-h]?)([0-9]?)([x=]?)([BKNPQR]|[a-h][1-8])([+#!?]?)([+#!?]?)"
 					if ok, _ := regexp.MatchString(SAN, m); ok || m == "O-O" || m == "O-O-O" {
 						G.MoveList = append(G.MoveList, Move{Algebraic: m})

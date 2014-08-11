@@ -13,6 +13,11 @@
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/29/2014
 
+
+ TODO:
+ 	-instead of calling LegalMoveGen(), should have a stripped down version
+ 	for just the type of piece moving.
+
 *******************************************************************************/
 
 package main
@@ -28,6 +33,7 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 	// Converts Standard Algebraic Notation (SAN) to Pure Coordinate Notation (PCN)
 	// Examples of PCN are: e2e4 (and) e7e8Q
 
+	// TODO: needs error handling.
 	// TODO: what about promotion captures? or ambiguous promotions?
 
 	// First check to see if it is already in the correct form.
@@ -83,6 +89,7 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 		fmt.Println(err)
 		fmt.Println(G.FEN())
 		fmt.Println(moveToParse)
+		G.PrintHUD()
 	}
 
 	return origin + destination + promote
