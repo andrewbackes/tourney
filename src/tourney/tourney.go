@@ -256,11 +256,11 @@ func (T *Tourney) LoadFile(filename string) error {
 		fmt.Println("Failed:", err.Error())
 		return err
 	}
-	// TODO: this is un-needed if there is previous data to load
-	// 		 since the opening book will have already been played out.
+
 	// Create the game list:
 	T.GenerateGames()
 	fmt.Print("Success.\n")
+
 	// Load the opening book:
 	if T.BookLocation != "" {
 		fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
@@ -269,17 +269,6 @@ func (T *Tourney) LoadFile(filename string) error {
 			return err
 		} else {
 			fmt.Println("Success.")
-			// TODO: this will have to be changed when more opening book support is added.
-			/*
-				fmt.Print("Applying opening book to games... ")
-
-				if e := PlayOpenings(T); e != nil {
-					fmt.Println("Failed: ", e)
-					return e
-				} else {
-					fmt.Println("Success.")
-				}
-			*/
 		}
 	} else {
 		fmt.Println("No opening book specified.")
@@ -342,16 +331,33 @@ func (T *Tourney) GenerateGames() {
 	// Non-Carousel:
 	for t := 0; t < T.TestSeats; t++ {
 		//Go around the test seats:
-		for e := t + 1; e < len(T.Engines); e++ {
-			//Now go around each opponent for that test seat:
-			for r := 0; r < T.Rounds; r++ {
-				//Finally all the rounds for that matchup:
-				nextGame := def
-				nextGame.Player[r%2] = T.Engines[t]
-				nextGame.Player[(r+1)%2] = T.Engines[e]
-				T.GameList = append(T.GameList, nextGame)
+		if T.Carousel {
+			for r := 0; r < T.Rounds; r = r + []int{2, 1}[T.Rounds%2] {
+				for e := t + 1; e < len(T.Engines); e++ {
+					nextGame := def
+					nextGame.Player[r%2] = T.Engines[t]
+					nextGame.Player[(r+1)%2] = T.Engines[e]
+					T.GameList = append(T.GameList, nextGame)
+					if T.Rounds%2 == 0 {
+						nextNextGame := def
+						nextNextGame.Player[r%2] = T.Engines[e]
+						nextNextGame.Player[(r+1)%2] = T.Engines[t]
+						T.GameList = append(T.GameList, nextNextGame)
+					}
+				}
+			}
+		} else {
+			for e := t + 1; e < len(T.Engines); e++ {
+				//Now go around each opponent for that test seat:
+				for r := 0; r < T.Rounds; r++ {
+					//Finally all the rounds for that matchup:
+					nextGame := def
+					nextGame.Player[r%2] = T.Engines[t]
+					nextGame.Player[(r+1)%2] = T.Engines[e]
+					T.GameList = append(T.GameList, nextGame)
+				}
 			}
 		}
 	}
-	// TODO: Carousel
+
 }
