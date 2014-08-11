@@ -11,25 +11,14 @@
  TODO:
  	-adjust for carousel
  	-error handling
- 	-PlayOpeniings() can go infinite
 
 *******************************************************************************/
-
-/*
-
-KNOWN BUG:
-
-Notation: Can not find source square.
-r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 2 4
-d5
-panic: runtime error: index out of range
-
-*/
 
 package main
 
 import (
-	"fmt"
+	"errors"
+	//"fmt"
 	"io/ioutil"
 	"math/rand"
 	"strings"
@@ -49,13 +38,81 @@ func LoadBook(T *Tourney) error {
 	return nil
 }
 
+// Plays the opening from the pgn book for a single game:
+func PlayOpening(T *Tourney, GameIndex int) error {
+
+	// Helper function:
+	alreadyUsed := func(n string) bool {
+		for i, _ := range T.GameList {
+			if n == T.GameList[i].StartingFEN {
+				return true
+			}
+		}
+		return false
+	}
+
+	rand.Seed(time.Now().Unix())
+	if T.GameList[GameIndex].Completed {
+		return nil
+	}
+	if T.Rounds%2 == 0 && GameIndex%2 == 1 && GameIndex > 0 {
+		players := T.GameList[GameIndex].Player
+		T.GameList[GameIndex] = T.GameList[GameIndex-1]
+		T.GameList[GameIndex].Player = players
+		return nil
+	}
+	var dummy Game
+	alreadyListed := true // hack to get the for loop to go at least once
+	// Loop until a unique FEN is found:
+	attempts := 0
+	for alreadyListed {
+		// escape if going infinite:
+		if attempts > len(T.BookPGN) {
+			return errors.New("Not enough unique positions in the opening book.")
+		}
+		// pick a game from the book to use:
+		var index int = GameIndex
+		if T.RandomBook {
+			index = rand.Intn(len(T.BookPGN))
+		}
+		// play out the opening on a dummy game:
+		dummy = T.GameList[GameIndex]
+		for j := 0; j < 2*T.BookMoves; j++ {
+			b := &T.BookPGN[index]
+			// make sure we dont try to play more moves than what is in the book:
+			if j >= len(b.MoveList) {
+				break
+			}
+			mv := b.MoveList[j].Algebraic
+			mv = StripAnnotations(mv)
+			mv = InternalizeNotation(&dummy, mv)
+			dummy.MakeMove(Move{Algebraic: mv, log: []string{"Book Move."}})
+		}
+		alreadyListed = alreadyUsed(dummy.FEN())
+		attempts++
+	}
+	T.GameList[GameIndex] = dummy
+	T.GameList[GameIndex].StartingFEN = dummy.FEN()
+	/*
+		if T.Rounds%2 == 0 && !T.GameList[GameIndex+1].Completed {
+			dummy.Player = T.GameList[GameIndex+1].Player
+			T.GameList[GameIndex+1] = dummy
+			T.GameList[GameIndex+1].StartingFEN = dummy.FEN()
+			GameIndex++
+			// DEBUG:
+			//fmt.Println(dummy.FEN())
+		}
+	*/
+	// DEBUG:
+	//fmt.Println(dummy.FEN())
+
+	// TODO : This will not work for for non-Carousel
+
+	return nil
+}
+
 // Play each game in the tourney enough to get out of the book:
 func PlayOpenings(T *Tourney) error {
-
-	//var FENs []string
-	//var moves [][]Move
-	//FENcount := []int{len(T.GameList) / 2, len(T.GameList)}[T.Rounds%2]
-	//var BookIndexes []int
 
 	// Helper function:
 	alreadyUsed := func(n string) bool {
@@ -69,34 +126,28 @@ func PlayOpenings(T *Tourney) error {
 
 	// Pick which games from the book pgn to use:
 	rand.Seed(time.Now().Unix())
-	/*
-		for i := 0; i < FENcount; i++ {
-			if T.RandomBook {
-				r := rand.Intn(FENcount) % len(T.BookPGN)
-				for onList(BookIndexes, r) {
-					r = rand.Intn(FENcount)
-				}
-				BookIndexes = append(BookIndexes, r)
-			} else {
-				BookIndexes = append(BookIndexes, i%len(T.BookPGN))
-			}
-		}
-	*/
-	// Figure out what the FENs are from the pgn choices we made above:
+
+	//for i, _ := range T.GameList {
 	for i := 0; i < len(T.GameList); i++ {
+		if T.GameList[i].Completed {
+			continue
+		}
 		var dummy Game
 		alreadyListed := true // hack to get the for loop to go at least once
 		// Loop until a unique FEN is found:
-		// TODO: This could go infinite if there arent enough unique positions.
+		attempts := 0
 		for alreadyListed {
+			// escape if going infinite:
+			if attempts > len(T.BookPGN) {
+				return errors.New("Not enough unique positions in the opening book.")
+			}
 			// pick a game from the book to use:
 			var index int = i
 			if T.RandomBook {
 				index = rand.Intn(len(T.BookPGN))
 			}
 			// play out the opening on a dummy game:
-			dummy = Game{}
-			dummy.initialize()
+			dummy = T.GameList[i]
 			for j := 0; j < 2*T.BookMoves; j++ {
 				b := &T.BookPGN[index]
 				// make sure we dont try to play more moves than what is in the book:
@@ -109,31 +160,23 @@ func PlayOpenings(T *Tourney) error {
 				dummy.MakeMove(Move{Algebraic: mv, log: []string{"Book Move."}})
 			}
 			alreadyListed = alreadyUsed(dummy.FEN())
+			attempts++
+		}
+		T.GameList[i] = dummy
+		T.GameList[i].StartingFEN = dummy.FEN()
+		if T.Rounds%2 == 0 && !T.GameList[i+1].Completed {
+			dummy.Player = T.GameList[i+1].Player
+			T.GameList[i+1] = dummy
+			T.GameList[i+1].StartingFEN = dummy.FEN()
+			i++
+			// DEBUG:
+			//fmt.Println(dummy.FEN())
 		}
 		// DEBUG:
-		fmt.Println(dummy.FEN())
+		//fmt.Println(dummy.FEN())
 
 		// TODO : This will not work for for non-Carousel
-		// Apply the FENs to the games on our game list:
-		if !T.GameList[i].Completed {
-			for _, mv := range dummy.MoveList {
-				T.GameList[i].MakeMove(mv)
-			}
-			/*
-				T.GameList[i].board = dummy.board
-				T.GameList[i].enPassant = dummy.enPassant
-				T.GameList[i].castleRights = dummy.castleRights
-				T.GameList[i].fiftyRule = dummy.fiftyRule
-				T.GameList[i].StartingFEN = dummy.FEN()
-				T.GameList[i].MoveList = dummy.MoveList
-			*/
-		}
-		if T.Rounds%2 == 0 {
-			i++
-			for _, mv := range dummy.MoveList {
-				T.GameList[i].MakeMove(mv)
-			}
-		}
+
 	}
 
 	return nil

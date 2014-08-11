@@ -81,15 +81,6 @@ type Game struct {
 *******************************************************************************/
 
 func PlayGame(G *Game) error {
-	//G.PrintHUD()
-	if len(G.MoveList) == 0 {
-		G.initialize() // TODO: should check for partial game completion here.
-	}
-	//G.PrintHUD()
-	//if G.StartingFEN != "" {
-	//G.LoadFEN(G.StartingFEN)
-	//}
-	fmt.Println("Game started.")
 
 	// Start up the engines:
 	if err := G.Player[WHITE].Start(); err != nil {
@@ -119,8 +110,7 @@ func PlayGame(G *Game) error {
 			}
 		}
 	}
-	// Show Results:
-	fmt.Println("Game stopped.")
+
 	// Stop the engines:
 	G.Player[WHITE].Shutdown()
 	G.Player[BLACK].Shutdown()
