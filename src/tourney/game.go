@@ -12,6 +12,7 @@
  	same fen comes out after loading.
  	-check state before each modifying function and functions that print to
  	the screen
+ 	-add support for processing nullmoves.
 
 
 *******************************************************************************/
@@ -81,7 +82,7 @@ type Game struct {
 *******************************************************************************/
 
 func PlayGame(G *Game) error {
-
+	// Note: opening book is handled in RunTourney()
 	// Start up the engines:
 	if err := G.Player[WHITE].Start(); err != nil {
 		return err
@@ -188,7 +189,6 @@ func ExecuteNextTurn(G *Game) bool {
 		G.GameOver(NEITHER, "Three fold repitition.")
 		return true
 	}
-	fmt.Println("false")
 	return false
 }
 

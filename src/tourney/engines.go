@@ -227,7 +227,7 @@ func (U UCI) Set(writer *bufio.Writer, movesSoFar []Move) error {
 		pos = "position startpos\n"
 	}
 
-	fmt.Print("> ", pos)
+	//fmt.Print("> ", pos)
 	writer.WriteString(pos)
 	writer.Flush()
 

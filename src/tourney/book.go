@@ -37,6 +37,20 @@ func LoadBook(T *Tourney) error {
 	}
 	return nil
 }
+func CopyStartingPosition(From *Game, To *Game) error {
+	To.StartingFEN = From.StartingFEN
+	//Play the moves until the FEN matches the starting FEN:
+	for i := 0; i < len(From.MoveList); i++ {
+		if To.FEN() == To.StartingFEN {
+			break
+		}
+		if err := To.MakeMove(From.MoveList[i]); err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
 
 // Plays the opening from the pgn book for a single game:
 func PlayOpening(T *Tourney, GameIndex int) error {
@@ -56,9 +70,15 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 		return nil
 	}
 	if T.Rounds%2 == 0 && GameIndex%2 == 1 && GameIndex > 0 {
-		players := T.GameList[GameIndex].Player
-		T.GameList[GameIndex] = T.GameList[GameIndex-1]
-		T.GameList[GameIndex].Player = players
+		if err := CopyStartingPosition(&T.GameList[GameIndex-1], &T.GameList[GameIndex]); err != nil {
+			return err
+		}
+		/*
+			players := T.GameList[GameIndex].Player
+			T.GameList[GameIndex] = T.GameList[GameIndex-1]
+			T.GameList[GameIndex].Player = players
+		*/
+
 		return nil
 	}
 	var dummy Game
@@ -111,6 +131,7 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 	return nil
 }
 
+/*
 // Play each game in the tourney enough to get out of the book:
 func PlayOpenings(T *Tourney) error {
 
@@ -181,3 +202,4 @@ func PlayOpenings(T *Tourney) error {
 
 	return nil
 }
+*/
