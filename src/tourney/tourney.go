@@ -14,6 +14,13 @@
  		-Each machine will have to be benchmarked to determine equivalent
  		 time control parameters.
  	-More tournament parameters
+ 	-Formatting results needs to be able to handle big numbers.
+ 	 Like: 35000-25000-10000
+
+ BUGS:
+ 	-There may be an issue with things like: changing fields in the .tourney
+ 	 file when there is already a .details file. Because when the details are
+ 	 loaded, there may be a different number of games.
 
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/16/2014
@@ -23,9 +30,15 @@
 package main
 
 import (
+	//"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	//"strconv"
+	//"strings"
+	//"time"
+	//"runtime"
 )
 
 type Status int
@@ -38,7 +51,9 @@ const (
 
 type Tourney struct {
 	// Predetermined Settings for a tourney:
-	Name string //identifier for this tournament. Unique may be better?
+	Event string //identifier for this tournament. Unique may be better?
+	Site  string
+	Date  string
 
 	Engines []Engine // which engines are playing in the tournament
 
@@ -58,56 +73,216 @@ type Tourney struct {
 	Rounds int //number of games each engine will play
 
 	// Opening book information:
+	BookLocation string // File location of the book
+	BookMoves    int    // Number of moves to use out of the book
+	BookPGN      []Game
+	RandomBook   bool
 
 	QuitAfter bool //Quit after the tourney is complete.
 
 	// Control settings (Determined while tourney is running, or when the tourney starts)
-	State      Status //flag to indicate: running, paused, stopped
-	GameList   []Game //list of all games in the tourney. should be populated when the tourney starts
-	activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later time.
+	//State     Status //flag to indicate: running, paused, stopped
+	StateFlow chan Status
+	GameList  []Game //list of all games in the tourney. populated when the tourney starts
+	//activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later time.
 
 }
 
-func (T *Tourney) playLoop() error {
-	if T.State == RUNNING {
-		for i := 0; i < len(T.GameList); i++ { // doing for i, g := range T.GameList makes a copy of the game. is there a way to point instead?
-			if err := T.GameList[i].Start(); err != nil { // TODO: adjust for partially completed tourneys/games
+type Record struct {
+	Player     Engine
+	Opponent   Engine
+	Wins       int
+	Losses     int
+	Draws      int
+	Incomplete int
+	Order      string
+}
+
+func RunTourney(T *Tourney) error {
+	var state Status
+	for i, _ := range T.GameList {
+		select {
+		case state = <-T.StateFlow:
+			switch state {
+			case RUNNING:
+				fmt.Println("Tourney is running.")
+			case STOPPED:
+				fmt.Println("Tourney is stopped.")
+			default:
+				return errors.New("Tourney was put into an unknown state.")
+			}
+		default:
+			// Dont block!
+		}
+		if state == STOPPED {
+			// More clean up code here.
+			break
+		}
+		// Start the next game on the list:
+		fmt.Println("Round ", i, ": ", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
+		if !T.GameList[i].Completed {
+			fmt.Println("Game started.")
+			fmt.Print("Playing from opening book... ")
+			if err := PlayOpening(T, i); err != nil {
+				fmt.Println("Failed:", err.Error())
+				break
+			}
+			fmt.Println("Success.")
+			if err := PlayGame(&T.GameList[i]); err != nil {
 				fmt.Println(err.Error())
 				break
 			}
-			if T.State != RUNNING {
-				break
-			}
+			// DEBUG:
+			//for _, mv := range T.GameList[i].MoveList {
+			//	fmt.Println(mv.Algebraic)
+			//}
+			fmt.Println("Game stopped.")
+			T.GameList[i].PrintHUD()
 		}
 
-		//Temporary:
-		T.Stop()
 	}
-	// Show results:
-	T.Status()
+	// Empty the channel: (TODO: this may not be needed anymore)
+	emptied := false
+	for !emptied {
+		select {
+		case <-T.StateFlow:
+		default:
+			emptied = true
+		}
+	}
 
+	// Show results:
+	fmt.Print(SummarizeResults(T))
+	// Save results:
+	fmt.Print("Saving '" + T.Event + ".results'... ")
+	if err := SaveResults(T); err != nil {
+		fmt.Println("Failed.", err)
+		return err
+	}
+	fmt.Println("Success.")
+	// Save details:
+	fmt.Print("Saving '" + T.Event + ".details'... ")
+	if err := SaveDetails(T); err != nil {
+		fmt.Println("Failed.", err)
+		return err
+	}
+	fmt.Println("Success.")
 	return nil
 }
 
-func (T *Tourney) LoadFile(filename string) error {
+func SaveResults(T *Tourney) error {
+	//check if the file exists:
+	filename := T.Event + ".results"
+	//var file *os.File
+	//var err error
+	if _, test := os.Stat(filename); os.IsNotExist(test) {
+		// file doesnt exist
+	} else if test == nil {
+		// file does exist
+		os.Remove(filename)
+	}
+	file, err := os.Create(filename)
+	defer file.Close()
+	_, err = file.WriteString(SummarizeResults(T))
 
-	// Try to open the file:
+	return err
+}
 
-	tourneyFile, err := os.Open(filename)
-	// when i try to combine this with the if statement, i get an error about tourneyFile not being defined
-	if err != nil {
-		fmt.Println("Error opening ", filename, ".", err.Error())
-		return err
+func SaveDetails(T *Tourney) error {
+	//check if the file exists:
+	filename := T.Event + ".details"
+	var file *os.File
+	var err error
+	if _, er := os.Stat(filename); os.IsNotExist(er) {
+		// file doesnt exist
+	} else if er == nil {
+		// file does exist
+		os.Remove(filename)
 	}
 
+	file, err = os.Create(filename)
+	defer file.Close()
+
+	var encoded []byte
+	encoded, err = json.MarshalIndent(T.GameList, "", "  ")
+	if err != nil {
+		return err
+	}
+	if _, err = file.Write(encoded); err != nil {
+		return err
+	}
+	//fmt.Println("Successfully saved " + filename)
+	return nil
+}
+
+func LoadPreviousResults(T *Tourney) (bool, error) {
+	filename := T.Event + ".details"
+	var err error
+	if _, err = os.Stat(filename); os.IsNotExist(err) {
+		// file doesnt exist
+		return false, nil
+	} else if err == nil {
+		// file does exist
+		file, err := os.Open(filename)
+		defer file.Close()
+		jsonParser := json.NewDecoder(file)
+		gamelist := make([]Game, len(T.GameList), len(T.GameList))
+		if err = jsonParser.Decode(&gamelist); err != nil {
+			return false, err
+		}
+		// only load the completed games:
+		for i, _ := range gamelist {
+			if gamelist[i].Completed {
+				T.GameList[i] = gamelist[i]
+			}
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
+func (T *Tourney) LoadFile(filename string) error {
+	// Try to open the file:
+	fmt.Print("Loading tourney settings: '", filename, "'... ")
+	tourneyFile, err := os.Open(filename)
+	defer tourneyFile.Close()
+	if err != nil {
+		fmt.Println("Failed:", filename, ",", err.Error())
+		return err
+	}
 	//Try to decode the file:
 	jsonParser := json.NewDecoder(tourneyFile)
 	if err = jsonParser.Decode(T); err != nil {
-		fmt.Println("Error parsing .tourney file.", err.Error())
+		fmt.Println("Failed:", err.Error())
 		return err
 	}
 
-	fmt.Println("Successfully Loaded ", filename)
+	// Create the game list:
+	T.GenerateGames()
+	fmt.Print("Success.\n")
+
+	// Load the opening book:
+	if T.BookLocation != "" {
+		fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
+		if err := LoadBook(T); err != nil {
+			fmt.Println("Failed:", err)
+			return err
+		} else {
+			fmt.Println("Success.")
+		}
+	} else {
+		fmt.Println("No opening book specified.")
+	}
+	// Check if this tourney was previously stopped midway
+	fmt.Print("Loading previous tourney data... ")
+	if loaded, err := LoadPreviousResults(T); err != nil {
+		fmt.Println("Failed.", err)
+		return err
+	} else if loaded {
+		fmt.Println("Success.")
+	} else {
+		fmt.Println("Nothing to load.")
+	}
 	return nil
 }
 
@@ -117,7 +292,7 @@ func (T *Tourney) LoadDefault() error {
 	//Loads default.tourney
 	if err = T.LoadFile("default.tourney"); err != nil {
 		// something is wrong, so just load 40/2 CCLR settings:
-		T.Name = "Tourney"
+		T.Event = "Tourney"
 		T.Engines = make([]Engine, 0)
 		T.TestSeats = 1
 		T.Carousel = true
@@ -130,113 +305,59 @@ func (T *Tourney) LoadDefault() error {
 	return err
 }
 
-func (T *Tourney) Generate() {
-	// Deduce the needed information for the tourney to run.
-	// This includes populating the game list.
+func (T *Tourney) GenerateGames() {
+	// Populates the game list with a generic unstarted game based
+	// on the Tourney parameters.
 
-	fmt.Println("Generating Tourney Parameters.")
+	//fmt.Println("Generating matchups between engines.")
 
 	//Count the number of games:
 	// TODO: VERIFY FORMULA!
 	//S := T.TestSeats *( (T.TestSeats +1 )/2 ) // = Sum_{0}^{n} k
 	//gameCount := T.Rounds * (T.TestSeats * len(T.Engines) - S)
 	//T.GameList = make([]Game,gameCount)
-	def := Game{time: T.Time, moves: T.Moves, repeating: T.Repeating, state: UNSTARTED, completed: false}
+	var def Game
+	def.initialize()
+	def.time = T.Time
+	def.moves = T.Moves
+	def.repeating = T.Repeating
+	def.Completed = false
+	def.resetTimeControl()
+	def.board.Reset()
+	def.castleRights = [2][2]bool{{true, true}, {true, true}}
+	def.enPassant = 64
+	def.Completed = false
 
 	// Non-Carousel:
 	for t := 0; t < T.TestSeats; t++ {
 		//Go around the test seats:
-		for e := t + 1; e < len(T.Engines); e++ {
-			//Now go around each opponent for that test seat:
-			for r := 0; r < T.Rounds; r++ {
-				//Finally all the rounds for that matchup:
-				nextGame := def
-				nextGame.player[r%2] = T.Engines[t]
-				nextGame.player[(r+1)%2] = T.Engines[e]
-				T.GameList = append(T.GameList, nextGame)
+		if T.Carousel {
+			for r := 0; r < T.Rounds; r = r + []int{2, 1}[T.Rounds%2] {
+				for e := t + 1; e < len(T.Engines); e++ {
+					nextGame := def
+					nextGame.Player[r%2] = T.Engines[t]
+					nextGame.Player[(r+1)%2] = T.Engines[e]
+					T.GameList = append(T.GameList, nextGame)
+					if T.Rounds%2 == 0 {
+						nextNextGame := def
+						nextNextGame.Player[r%2] = T.Engines[e]
+						nextNextGame.Player[(r+1)%2] = T.Engines[t]
+						T.GameList = append(T.GameList, nextNextGame)
+					}
+				}
+			}
+		} else {
+			for e := t + 1; e < len(T.Engines); e++ {
+				//Now go around each opponent for that test seat:
+				for r := 0; r < T.Rounds; r++ {
+					//Finally all the rounds for that matchup:
+					nextGame := def
+					nextGame.Player[r%2] = T.Engines[t]
+					nextGame.Player[(r+1)%2] = T.Engines[e]
+					T.GameList = append(T.GameList, nextGame)
+				}
 			}
 		}
 	}
-}
 
-func (T *Tourney) Start() error {
-	// Controls the state of the tourney.
-	if T.State == UNSTARTED {
-		T.Generate()
-	}
-	// TODO: error check to make sure it is safe to start it up right now
-
-	T.State = RUNNING
-	fmt.Println("Tourney is running.")
-
-	// Begin playing games:
-	T.playLoop()
-
-	return nil
-}
-
-func (T *Tourney) Stop() error {
-	// Controls the state of the tourney.
-	// TODO: change the state of each game to STOPPED
-
-	if T.State == RUNNING {
-		for _, g := range T.GameList {
-			if g.state == RUNNING {
-				g.Stop()
-			}
-		}
-		T.State = STOPPED
-		fmt.Println("Tourney stopped.")
-	}
-	return nil
-}
-
-func (T *Tourney) Status() {
-	// TODO: 	-add more detail. such as w-l-d for each matchup.
-	//			-formatting is messed up for long and then short engine names
-	type record struct {
-		wins, losses, draws, remaining int
-	}
-
-	records := make(map[string]*record)
-	for _, g := range T.GameList {
-		// golang trick so that i can do map[key].field :
-		if records[g.player[WHITE].Name] == nil {
-			records[g.player[WHITE].Name] = &record{0, 0, 0, 0}
-		}
-		if records[g.player[BLACK].Name] == nil {
-			records[g.player[BLACK].Name] = &record{0, 0, 0, 0}
-		}
-
-		if g.completed == false {
-			records[g.player[WHITE].Name].remaining += 1
-			records[g.player[BLACK].Name].remaining += 1
-			continue
-		}
-		if g.result == DRAW {
-			records[g.player[WHITE].Name].draws += 1
-			records[g.player[BLACK].Name].draws += 1
-		} else {
-			records[g.player[g.result].Name].wins += 1
-			records[g.player[[]Color{BLACK, WHITE}[g.result]].Name].losses += 1
-		}
-	}
-	for _, e := range T.Engines {
-
-		fmt.Print(e.Name, ": \t", records[e.Name].wins, "-", records[e.Name].losses, "-", records[e.Name].draws, ".\t")
-		fmt.Print(float64(records[e.Name].wins) + (0.5 * float64(records[e.Name].draws)))
-		gamesPlayed := records[e.Name].wins + records[e.Name].losses + records[e.Name].draws
-		fmt.Print("/", gamesPlayed)
-
-		if gamesPlayed > 0 {
-			fmt.Print("\t")
-			fmt.Printf("   %.2f", 100*(float64(records[e.Name].wins)+(0.5*float64(records[e.Name].draws)))/float64(gamesPlayed))
-			fmt.Print("%")
-		} else {
-			fmt.Print("\t--.--%")
-		}
-
-		fmt.Print("\tRemaining: ", records[e.Name].remaining, "\n")
-
-	}
 }

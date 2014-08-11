@@ -147,7 +147,7 @@ func (B *Board) Reset() {
 	// puts the pieces in their starting/newgame positions
 	for color := uint(0); color < 2; color = color + 1 {
 		//Pawns first:
-		B.pieceBB[color][PAWN] ^= 255 << (8 + (color * 8 * 5))
+		B.pieceBB[color][PAWN] = 255 << (8 + (color * 8 * 5))
 		//Then the rest of the pieces:
 		B.pieceBB[color][KNIGHT] = (1 << (B1 + (color * 8 * 7))) ^ (1 << (G1 + (color * 8 * 7)))
 		B.pieceBB[color][BISHOP] = (1 << (C1 + (color * 8 * 7))) ^ (1 << (F1 + (color * 8 * 7)))
