@@ -546,9 +546,12 @@ func (G *Game) PrintHUD() {
 		lastMoveSource, lastMoveDestination = getIndex(G.MoveList[len(G.MoveList)-1].Algebraic)
 	}
 	abbrev := [2][6]string{{"P", "N", "B", "R", "Q", "K"}, {"p", "n", "b", "r", "q", "k"}}
-	fmt.Println("+---+---+---+---+---+---+---+---+")
+	fmt.Println("   +---+---+---+---+---+---+---+---+")
 	for i := uint8(1); i <= 64; i++ {
 		square := uint8(64 - i)
+		if square%8 == 7 {
+			fmt.Print(" ", square/8+1, " ")
+		}
 		fmt.Print("|")
 		blankSquare := true
 		for j := PAWN; j <= KING; j = j + 1 {
@@ -572,31 +575,68 @@ func (G *Game) PrintHUD() {
 		}
 		if square%8 == 0 {
 			fmt.Print("|")
+			fmt.Print(strings.Repeat(" ", 6))
 			switch square / 8 {
 			case 7:
 				formattedTimer := []string{"WHITE " + FormatTimer(G.timer[WHITE]), "BLACK " + FormatTimer(G.timer[BLACK])}
 				formattedTimer[toMove] = "[" + formattedTimer[toMove] + "]"
-				fmt.Print(strings.Repeat(" ", 6), formattedTimer[WHITE], strings.Repeat(" ", 3), formattedTimer[BLACK])
+				fmt.Print(formattedTimer[WHITE], strings.Repeat(" ", 3), formattedTimer[BLACK])
+			case 6:
+				fmt.Print("Move #: ", len(G.MoveList)/2, "    (Moves Remaining: ", G.movesToGo, ")")
+
 			case 5:
-				fmt.Print(strings.Repeat(" ", 6))
 				if G.enPassant != 64 {
 					fmt.Print("Enpassant: ", getAlg(uint(G.enPassant)))
 				} else {
 					fmt.Print("Enpassant: ", "None")
 				}
 			case 4:
-				fmt.Print(strings.Repeat(" ", 6))
 				fmt.Print("Castling Rights: ",
 					map[bool]string{true: "K", false: "-"}[G.castleRights[WHITE][SHORT]],
 					map[bool]string{true: "Q", false: "-"}[G.castleRights[WHITE][LONG]],
 					map[bool]string{true: "k", false: "-"}[G.castleRights[BLACK][SHORT]],
 					map[bool]string{true: "q", false: "-"}[G.castleRights[BLACK][LONG]])
+			case 3:
+				fmt.Print("Out of Play: ", FormatGraveyard(G)[WHITE])
+			case 2:
+				fmt.Print("             ", FormatGraveyard(G)[BLACK])
+			case 0:
+				fmt.Print("Last move: ", G.MoveList[len(G.MoveList)-1].Algebraic)
 			}
-			fmt.Print("\n")
-			fmt.Println("+---+---+---+---+---+---+---+---+")
 
+			fmt.Print("\n")
+			fmt.Println("   +---+---+---+---+---+---+---+---+")
 		}
 	}
+	fmt.Println("     a   b   c   d   e   f   g   h")
+	title := G.Player[[]int{1, 0}[toMove]].Name + " (" + []string{"Black", "White"}[toMove] + ")"
+
+	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
+	pv := G.MoveList[len(G.MoveList)-1].log
+	fmt.Print(pv[len(pv)-2])
+	title = G.Player[toMove].Name + " (" + []string{"White", "Black"}[toMove] + ")"
+	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
+}
+
+func FormatGraveyard(G *Game) [2]string {
+	// Q RR BB NN PPPPPPPP
+	// q rr bb nn pppppppp
+	var gy [2]string
+	pieces := [][]string{{"P", "N", "B", "R", "Q", "K"}, {"p", "n", "b", "r", "q", "k"}}
+	counts := []int{8, 2, 2, 2, 1, 1}
+	for color := WHITE; color <= BLACK; color++ {
+		for p := PAWN; p < KING; p++ {
+			inplay := int(popcount(G.board.pieceBB[color][p]))
+			dead := counts[p] - inplay
+			if dead < 0 {
+				dead = 0
+			}
+			gy[color] += strings.Repeat(pieces[color][p], dead)
+			gy[color] += strings.Repeat(" ", inplay+1)
+		}
+	}
+
+	return gy
 }
 
 func FormatTimer(ms int64) string {
