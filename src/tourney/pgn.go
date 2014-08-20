@@ -26,7 +26,14 @@ func EncodePGN(G *Game) string {
 		{"Date", G.Date},
 		{"Round", strconv.Itoa(G.Round)},
 		{"White", G.Player[WHITE].Name},
-		{"Black", G.Player[BLACK].Name}}
+		{"Black", G.Player[BLACK].Name},
+		{"WhiteElo", "-"},
+		{"WhiteElo", "-"},
+		{"Time", "-"},
+		{"TimeControl", "-"},
+		//{"SetUp", "1"}
+		//{"FEN", G.StartingFen}
+	}
 	if G.Completed {
 		tags = append(tags, []string{"Result", []string{"1-0", "0-1", "1/2-1/2"}[G.Result]})
 	} else {
