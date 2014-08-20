@@ -32,7 +32,7 @@ package main
 import (
 	//"bufio"
 	"encoding/json"
-	"errors"
+	//"errors"
 	"fmt"
 	"os"
 	//"strconv"
@@ -82,10 +82,11 @@ type Tourney struct {
 
 	// Control settings (Determined while tourney is running, or when the tourney starts)
 	//State     Status //flag to indicate: running, paused, stopped
-	StateFlow chan Status
-	GameList  []Game //list of all games in the tourney. populated when the tourney starts
+	//StateFlow chan Status
+	//Flow     Context
+	GameList []Game //list of all games in the tourney. populated when the tourney starts
 	//activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later time.
-
+	Done chan struct{}
 }
 
 type Record struct {
@@ -99,58 +100,49 @@ type Record struct {
 }
 
 func RunTourney(T *Tourney) error {
-	var state Status
+	// TODO: verify that the settings currently loaded will not cause any problems.
+
+	//var state Status
 	for i, _ := range T.GameList {
 		select {
-		case state = <-T.StateFlow:
-			switch state {
-			case RUNNING:
-				fmt.Println("Tourney is running.")
-			case STOPPED:
-				fmt.Println("Tourney is stopped.")
-			default:
-				return errors.New("Tourney was put into an unknown state.")
-			}
-		default:
-			// Dont block!
-		}
-		if state == STOPPED {
-			// More clean up code here.
+		case <-T.Done:
 			break
-		}
-		// Start the next game on the list:
-		fmt.Println("Round ", i, ": ", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
-		if !T.GameList[i].Completed {
-			fmt.Println("Game started.")
-			fmt.Print("Playing from opening book... ")
-			if err := PlayOpening(T, i); err != nil {
-				fmt.Println("Failed:", err.Error())
-				break
-			}
-			fmt.Println("Success.")
-			if err := PlayGame(&T.GameList[i]); err != nil {
-				fmt.Println(err.Error())
-				break
-			}
-			// DEBUG:
-			//for _, mv := range T.GameList[i].MoveList {
-			//	fmt.Println(mv.Algebraic)
-			//}
-			fmt.Println("Game stopped.")
-			T.GameList[i].PrintHUD()
-		}
-
-	}
-	// Empty the channel: (TODO: this may not be needed anymore)
-	emptied := false
-	for !emptied {
-		select {
-		case <-T.StateFlow:
+			//means its closed, so stop.
 		default:
-			emptied = true
+			//means its not closed, so keep playing
+			fmt.Println("Round ", i, ": ", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
+			if !T.GameList[i].Completed {
+				fmt.Println("Game started.")
+				fmt.Print("Playing from opening book... ")
+				if err := PlayOpening(T, i); err != nil {
+					fmt.Println("Failed:", err.Error())
+					break
+				}
+				fmt.Println("Success.")
+				if err := PlayGame(&T.GameList[i]); err != nil {
+					fmt.Println(err.Error())
+					break
+				}
+				// DEBUG:
+				//for _, mv := range T.GameList[i].MoveList {
+				//	fmt.Println(mv.Algebraic)
+				//}
+				fmt.Println("Game stopped.")
+				T.GameList[i].PrintHUD()
+			}
 		}
 	}
-
+	/*
+		// Empty the channel: (TODO: this may not be needed anymore)
+		emptied := false
+		for !emptied {
+			select {
+			case <-T.StateFlow:
+			default:
+				emptied = true
+			}
+		}
+	*/
 	// Show results:
 	fmt.Print(SummarizeResults(T))
 	// Save results:
@@ -241,20 +233,25 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 	return false, nil
 }
 
-func (T *Tourney) LoadFile(filename string) error {
+func LoadFile(filename string) (*Tourney, error) {
+
 	// Try to open the file:
 	fmt.Print("Loading tourney settings: '", filename, "'... ")
 	tourneyFile, err := os.Open(filename)
 	defer tourneyFile.Close()
 	if err != nil {
 		fmt.Println("Failed:", filename, ",", err.Error())
-		return err
+		return nil, err
 	}
-	//Try to decode the file:
+	// Make the object:
+	T := new(Tourney)
+	T.Done = make(chan struct{})
+
+	// Try to decode the file:
 	jsonParser := json.NewDecoder(tourneyFile)
 	if err = jsonParser.Decode(T); err != nil {
 		fmt.Println("Failed:", err.Error())
-		return err
+		return nil, err
 	}
 
 	// Create the game list:
@@ -266,7 +263,7 @@ func (T *Tourney) LoadFile(filename string) error {
 		fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
 		if err := LoadBook(T); err != nil {
 			fmt.Println("Failed:", err)
-			return err
+			return nil, err
 		} else {
 			fmt.Println("Success.")
 		}
@@ -277,21 +274,27 @@ func (T *Tourney) LoadFile(filename string) error {
 	fmt.Print("Loading previous tourney data... ")
 	if loaded, err := LoadPreviousResults(T); err != nil {
 		fmt.Println("Failed.", err)
-		return err
+		return nil, err
 	} else if loaded {
 		fmt.Println("Success.")
 	} else {
 		fmt.Println("Nothing to load.")
 	}
-	return nil
+	return T, nil
 }
 
-func (T *Tourney) LoadDefault() error {
+func LoadDefault() (*Tourney, error) {
 	//TODO: I dont really like the name of this function
 	var err error
+	// Create the object:
+	var T *Tourney
 	//Loads default.tourney
-	if err = T.LoadFile("default.tourney"); err != nil {
+	if T, err = LoadFile("default.tourney"); err != nil {
+
 		// something is wrong, so just load 40/2 CCLR settings:
+
+		T = new(Tourney)
+		T.Done = make(chan struct{})
 		T.Event = "Tourney"
 		T.Engines = make([]Engine, 0)
 		T.TestSeats = 1
@@ -302,7 +305,7 @@ func (T *Tourney) LoadDefault() error {
 		T.Rounds = 30
 		T.QuitAfter = false
 	}
-	return err
+	return T, err
 }
 
 func (T *Tourney) GenerateGames() {
