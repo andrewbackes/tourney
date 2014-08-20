@@ -70,8 +70,8 @@ type Game struct {
 	Completed    bool   // TODO:  change this to reflect how the game ended. time, checkmate, adjunction, etc
 
 	// Post game info:
-	Result Color //WHITE,BLACK,DRAW - should be set when game state is changed to STOPPED
-
+	Result       Color //WHITE,BLACK,DRAW
+	ResultDetail string
 }
 
 /*******************************************************************************
@@ -186,7 +186,7 @@ func ExecuteNextTurn(G *Game) bool {
 	}
 	// 3 fold:
 	if ThreeFold(G) {
-		G.GameOver(NEITHER, "Three fold repitition.")
+		G.GameOver(NEITHER, "Three fold repetition.")
 		return true
 	}
 	return false
@@ -295,8 +295,8 @@ func InsufficientMaterial(G *Game) bool {
 func (G *Game) GameOver(looser Color, reason string) {
 	fmt.Println("Game Over.", []string{"White looses.", "Black looses.", "Draw."}[looser], reason)
 	G.Result = []Color{BLACK, WHITE, DRAW}[looser] //oppoSite of the looser
+	G.ResultDetail = reason
 	G.Completed = true
-	//G.Stop()
 }
 
 /*******************************************************************************

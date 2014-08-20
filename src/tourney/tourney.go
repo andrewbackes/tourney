@@ -16,6 +16,8 @@
  	-More tournament parameters
  	-Formatting results needs to be able to handle big numbers.
  	 Like: 35000-25000-10000
+ 	-Saving .tourney / .detail / .result / .pgn files when other already exist
+	 should make a xxx1.xxx xxx2.xxx sort of thing.
 
  BUGS:
  	-There may be an issue with things like: changing fields in the .tourney
@@ -35,8 +37,8 @@ import (
 	//"errors"
 	"fmt"
 	"os"
-	//"strconv"
-	//"strings"
+	"strconv"
+	"strings"
 	//"time"
 	//"runtime"
 )
@@ -68,6 +70,7 @@ type Tourney struct {
 	// Time control (Moves, time, repeating):
 	Moves     int64 // moves per time control
 	Time      int64 // time per time control in milliseconds
+	BonusTime int64 // bonus time added after each move
 	Repeating bool  // restart time after moves hits
 
 	Rounds int //number of games each engine will play
@@ -89,16 +92,6 @@ type Tourney struct {
 	Done chan struct{}
 }
 
-type Record struct {
-	Player     Engine
-	Opponent   Engine
-	Wins       int
-	Losses     int
-	Draws      int
-	Incomplete int
-	Order      string
-}
-
 func RunTourney(T *Tourney) error {
 	// TODO: verify that the settings currently loaded will not cause any problems.
 
@@ -107,9 +100,9 @@ func RunTourney(T *Tourney) error {
 		select {
 		case <-T.Done:
 			break
-			//means its closed, so stop.
+			//channel closed, so stop.
 		default:
-			//means its not closed, so keep playing
+			//channel isnt closed, so keep playing
 			fmt.Println("Round ", i, ": ", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
 			if !T.GameList[i].Completed {
 				fmt.Println("Game started.")
@@ -123,28 +116,22 @@ func RunTourney(T *Tourney) error {
 					fmt.Println(err.Error())
 					break
 				}
-				// DEBUG:
-				//for _, mv := range T.GameList[i].MoveList {
-				//	fmt.Println(mv.Algebraic)
-				//}
 				fmt.Println("Game stopped.")
 				T.GameList[i].PrintHUD()
+
+				// Save progress:
+				if err := Save(T); err != nil {
+					return err
+				}
 			}
 		}
 	}
-	/*
-		// Empty the channel: (TODO: this may not be needed anymore)
-		emptied := false
-		for !emptied {
-			select {
-			case <-T.StateFlow:
-			default:
-				emptied = true
-			}
-		}
-	*/
 	// Show results:
 	fmt.Print(SummarizeResults(T))
+	return nil
+}
+
+func Save(T *Tourney) error {
 	// Save results:
 	fmt.Print("Saving '" + T.Event + ".results'... ")
 	if err := SaveResults(T); err != nil {
@@ -155,6 +142,13 @@ func RunTourney(T *Tourney) error {
 	// Save details:
 	fmt.Print("Saving '" + T.Event + ".details'... ")
 	if err := SaveDetails(T); err != nil {
+		fmt.Println("Failed.", err)
+		return err
+	}
+	fmt.Println("Success.")
+	// Save PGN:
+	fmt.Print("Saving '" + T.Event + ".pgn'... ")
+	if err := SavePGN(T); err != nil {
 		fmt.Println("Failed.", err)
 		return err
 	}
@@ -175,7 +169,8 @@ func SaveResults(T *Tourney) error {
 	}
 	file, err := os.Create(filename)
 	defer file.Close()
-	_, err = file.WriteString(SummarizeResults(T))
+	summary := SummarizeResults(T) + SummarizeGames(T)
+	_, err = file.WriteString(summary)
 
 	return err
 }
@@ -205,6 +200,29 @@ func SaveDetails(T *Tourney) error {
 	}
 	//fmt.Println("Successfully saved " + filename)
 	return nil
+}
+
+// Saves the completed games in pgn format:
+func SavePGN(T *Tourney) error {
+	//check if the file exists:
+	filename := T.Event + ".pgn"
+	if _, test := os.Stat(filename); os.IsNotExist(test) {
+		// file doesnt exist
+	} else if test == nil {
+		// file does exist
+		os.Remove(filename)
+	}
+	file, err := os.Create(filename)
+	defer file.Close()
+
+	var pgn string
+	for i, _ := range T.GameList {
+		if T.GameList[i].Completed {
+			pgn += EncodePGN(&T.GameList[i])
+		}
+	}
+	_, err = file.WriteString(pgn)
+	return err
 }
 
 func LoadPreviousResults(T *Tourney) (bool, error) {
@@ -321,6 +339,7 @@ func (T *Tourney) GenerateGames() {
 	//T.GameList = make([]Game,gameCount)
 	var def Game
 	def.initialize()
+	def.Event = T.Event
 	def.time = T.Time
 	def.moves = T.Moves
 	def.repeating = T.Repeating
@@ -331,7 +350,6 @@ func (T *Tourney) GenerateGames() {
 	def.enPassant = 64
 	def.Completed = false
 
-	// Non-Carousel:
 	for t := 0; t < T.TestSeats; t++ {
 		//Go around the test seats:
 		if T.Carousel {
@@ -350,6 +368,7 @@ func (T *Tourney) GenerateGames() {
 				}
 			}
 		} else {
+			// Non-Carousel:
 			for e := t + 1; e < len(T.Engines); e++ {
 				//Now go around each opponent for that test seat:
 				for r := 0; r < T.Rounds; r++ {
@@ -362,5 +381,40 @@ func (T *Tourney) GenerateGames() {
 			}
 		}
 	}
+	// Set the round numbers:
+	for i, _ := range T.GameList {
+		T.GameList[i].Round = i + 1
+	}
+}
+
+// Print the settings of the tourney:
+func (T *Tourney) Print() {
+
+	var summary string
+	summary = strings.Repeat("=", 80) + "\n Tourney Settings:\n" + strings.Repeat("=", 80) + "\n"
+	summary += " Event:        " + T.Event + "\n"
+	summary += " Site:         " + T.Site + "\n"
+	summary += " Date:         " + T.Date + "\n"
+	summary += " Rounds:       " + strconv.Itoa(T.Rounds) + "\n"
+	// TODO: add remaining time for non repeating. use ':'
+	summary += " Time control: " + strconv.FormatInt(T.Moves, 10) + "/" +
+		strconv.FormatInt(T.Time, 10) + " +" +
+		strconv.FormatInt(T.BonusTime, 10) + "\n\n"
+
+	summary += strings.Repeat("-", 80) + "\n Participants:\n" + strings.Repeat("-", 80) + "\n"
+	for _, e := range T.Engines {
+		summary += " Name:      " + e.Name + "\n  Path:     " + e.Path + "\n  Protocol: " + e.Protocol + "\n"
+	}
+	summary += "\n"
+	summary += strings.Repeat("-", 80) + "\n Opening Book:\n" + strings.Repeat("-", 80) + "\n"
+	summary += " Path:         " + T.BookLocation + "\n"
+	summary += " # Book Moves: " + strconv.Itoa(T.BookMoves) + "\n"
+	summary += " Randomize:    " + strconv.FormatBool(T.RandomBook) + "\n"
+
+	fmt.Println(summary)
+}
+
+// Walks through the settings of a tournament so a .tourney file isnt required.
+func Setup(T *Tourney) {
 
 }

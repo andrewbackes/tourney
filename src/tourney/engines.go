@@ -11,6 +11,7 @@
  executables stdio so other Engine methods can interact with the executable.
 
 TODO:
+	-Error checking for it engine path exists and if it opens okay
 	-WinBoard protocoler
 	-Engines need to take options for hashtable size, multithreading, pondering,
 	opening book, and a few other bare minimums.

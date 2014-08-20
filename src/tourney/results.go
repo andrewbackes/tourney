@@ -14,8 +14,19 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
+
+type Record struct {
+	Player     Engine
+	Opponent   Engine
+	Wins       int
+	Losses     int
+	Draws      int
+	Incomplete int
+	Order      string // w-l-d string. example: 10=11=01
+}
 
 // Returns the scores for each different matchup in the tourney:
 func MatchupResults(T *Tourney) []Record {
@@ -215,10 +226,37 @@ func SummarizeResults(T *Tourney) string {
 		}
 		matchupSummary += FormatRecord(matchups[i])
 	}
-	engineSummary := strings.Repeat("=", 80) + "\n   Result Summary:\n" + strings.Repeat("=", 80) + "\n"
+	eventSummary := strings.Repeat("=", 80) + "\n   Event Summary:\n" + strings.Repeat("=", 80) + "\n"
 	for _, record := range engines {
-		engineSummary += FormatRecord(record)
+		eventSummary += FormatRecord(record)
 	}
-	engineSummary += strings.Repeat("-", 80) + "\n"
-	return matchupSummary + "\n" + engineSummary + "\n"
+	// count completed games:
+	completed := 0
+	for _, g := range T.GameList {
+		if g.Completed {
+			completed++
+		}
+	}
+	eventSummary += strings.Repeat("-", 80) + "\nGames played: " + strconv.Itoa(completed) + "/" + strconv.Itoa(len(T.GameList)) + "\n"
+	return matchupSummary + "\n" + eventSummary + "\n"
+}
+
+func SummarizeGames(T *Tourney) string {
+	// Event, Round, Site, Date, White, Black, Result, Details
+	summary := strings.Repeat("=", 80) + "\n   Game History:\n" + strings.Repeat("=", 80) + "\n"
+	for _, g := range T.GameList {
+		summary += g.Event + ", " +
+			strconv.Itoa(g.Round) + ", " +
+			g.Site + ", " +
+			g.Date + ", " +
+			g.Player[WHITE].Name + ", " +
+			g.Player[BLACK].Name + ", "
+		if g.Completed {
+			summary += []string{"1-0", "0-1", "1/2-1/2"}[g.Result] + ", "
+		} else {
+			summary += "*, "
+		}
+		summary += g.ResultDetail + "\n"
+	}
+	return summary
 }
