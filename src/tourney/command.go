@@ -36,6 +36,18 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 	var commands []Command
 	commands = []Command{
 		{
+			label: []string{"tourney", "t"},
+			desc:  "Prints the settings of the selected tourney.",
+			f: func() {
+				T[*selected].Print()
+			}},
+		{
+			label: []string{"settings", "e"},
+			desc:  "Changes the settings of the current tourney.",
+			f: func() {
+				Setup(T[*selected])
+			}},
+		{
 			label: []string{"start", "s"},
 			desc:  "Starts the currently selected tourney.",
 			f: func() {
@@ -66,6 +78,13 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			desc:  "Displays the results of the currently selected tourney.",
 			f: func() {
 				fmt.Print(SummarizeResults(T[*selected]))
+				fmt.Println("To see more details type, 'games' or 'g'")
+			}},
+		{
+			label: []string{"games", "g"},
+			desc:  "Displays the results of each game in the selected tourney.",
+			f: func() {
+				fmt.Print(SummarizeGames(T[*selected]))
 			}},
 		{
 			label: []string{"load", "l"},
@@ -109,7 +128,13 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			f: func() {
 				fmt.Println("\nCommand:", "\t", "Description:\n")
 				for _, c := range commands {
-					fmt.Println(c.label[0], "\t\t", c.desc)
+					for i, _ := range c.label {
+						if i > 0 {
+							fmt.Print(", ")
+						}
+						fmt.Print(c.label[i])
+					}
+					fmt.Println("\n\t", c.desc)
 				}
 				fmt.Println()
 			}},
