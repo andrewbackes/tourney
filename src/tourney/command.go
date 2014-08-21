@@ -92,7 +92,8 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			f: func() {
 				// loads the file and moves the selected tourney to the new one.
 				filename := strings.Replace(command, words[0]+" ", "", 1)
-				filename = strings.Trim(filename, "\n")
+				filename = strings.Trim(filename, "\r\n") // for windows
+				filename = strings.Trim(filename, "\n")	// for *nix
 				filename = strings.Replace(filename, ".tourney", "", 1) + ".tourney"
 				if N, err := LoadFile(filename); err == nil {
 					T = append(T, N)
