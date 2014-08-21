@@ -613,7 +613,9 @@ func (G *Game) PrintHUD() {
 
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
 	pv := G.MoveList[len(G.MoveList)-1].log
-	fmt.Print(pv[len(pv)-2])
+	if len(pv)-2 >= 0 {
+		fmt.Print(pv[len(pv)-2])
+	}
 	title = G.Player[toMove].Name + " (" + []string{"White", "Black"}[toMove] + ")"
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
 }

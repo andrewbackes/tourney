@@ -99,7 +99,23 @@ func (E *Engine) Move(timers [2]int64, movesToGo int64) (Move, error) {
 
 // The engine should set its internal board to adjust for the moves far in the game
 func (E *Engine) Set(movesSoFar []Move) error {
-	return E.protocol.Set(E.writer, movesSoFar)
+	err := E.protocol.Set(E.writer, movesSoFar)
+	// DEBUG: ***********************************
+	/*
+	startTime := time.Now()
+	for i := 1; i <= 16; i++ {
+		line, _ := E.reader.ReadString('\n')
+		if line != "" {
+			fmt.Print(">> ", line)
+		}
+		// Allow 1 second before timing out:
+		if time.Now().Sub(startTime).Seconds() > 1 {		
+			break
+		}
+	}
+	*/
+	//********************************************
+	return err
 }
 
 /*******************************************************************************
@@ -142,17 +158,17 @@ func (U UCI) Initialize(reader *bufio.Reader, writer *bufio.Writer) error {
 	//			the time it takes the engine to load in the beginning.
 	//			Does the protocol require a 1 second delay here?
 	startTime := time.Now()
-	for line != "uciok\n" {
+	for !strings.Contains(line, "uciok") {
+	//for line != "uciok\n" {
 		line, _ = reader.ReadString('\n')
 		if line != "" {
 			fmt.Print(">> ", line)
 		}
 		// Allow 1 second before timing out:
-		if time.Now().Sub(startTime).Seconds() > 1 {
+		if time.Now().Sub(startTime).Seconds() > 1 {		
 			return errors.New("Timed out. Did not recieve 'uciok' response from engine.")
 		}
 	}
-
 	return nil
 }
 
@@ -193,7 +209,7 @@ func (U UCI) Move(reader *bufio.Reader, writer *bufio.Writer, timer [2]int64, mo
 		maxTime = timer[1]
 	}
 
-	//fmt.Print("> " + goString)
+	fmt.Print("> " + goString)
 	writer.WriteString(goString)
 	writer.Flush()
 
@@ -210,6 +226,7 @@ func (U UCI) Move(reader *bufio.Reader, writer *bufio.Writer, timer [2]int64, mo
 	m.Algebraic = strings.Split(line, " ")[1]
 	m.Algebraic = strings.TrimSuffix(m.Algebraic, "\n")
 
+	fmt.Println(">End of Move()")
 	return m, nil
 }
 
@@ -223,14 +240,18 @@ func (U UCI) Set(writer *bufio.Writer, movesSoFar []Move) error {
 
 	var pos string
 	if len(movesSoFar) > 0 {
-		pos = strings.Join([]string{"position startpos moves ", strings.Join(ml, " "), "\n"}, "")
+		pos = "position startpos moves " + strings.Join(ml, " ") + "\n"
 	} else {
 		pos = "position startpos\n"
 	}
-
-	//fmt.Print("> ", pos)
+	pos = strings.Trim(pos, " ")
+	//fmt.Println(">", pos)
 	writer.WriteString(pos)
 	writer.Flush()
+
+	//fmt.Println("> End of Set()")
+	//writer.WriteString("print\n")
+	//writer.Flush()
 
 	return nil
 }
