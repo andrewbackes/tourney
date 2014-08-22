@@ -221,7 +221,7 @@ func (U UCI) Move(reader *bufio.Reader, writer *bufio.Writer, timer [2]int64, mo
 		maxTime = timer[1]
 	}
 
-	fmt.Print("> " + goString)
+	//fmt.Print("> " + goString)
 	writer.WriteString(goString)
 	writer.Flush()
 
@@ -256,8 +256,13 @@ func (U UCI) Set(writer *bufio.Writer, movesSoFar []Move) error {
 	} else {
 		pos = "position startpos\n"
 	}
+<<<<<<< HEAD
 	pos = strings.Trim(pos, " ")
 	//fmt.Println(">", pos)
+=======
+
+	//fmt.Print("> ", pos)
+>>>>>>> 7c94c876d91adedf33192d4b5aafc58cacb9af67
 	writer.WriteString(pos)
 	writer.Flush()
 

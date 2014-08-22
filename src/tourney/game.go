@@ -610,6 +610,7 @@ func (G *Game) PrintHUD() {
 	}
 	fmt.Println("     a   b   c   d   e   f   g   h")
 	title := G.Player[[]int{1, 0}[toMove]].Name + " (" + []string{"Black", "White"}[toMove] + ")"
+<<<<<<< HEAD
 
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
 	pv := G.MoveList[len(G.MoveList)-1].log
@@ -620,6 +621,16 @@ func (G *Game) PrintHUD() {
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
 }
 
+=======
+
+	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
+	pv := G.MoveList[len(G.MoveList)-1].log
+	fmt.Print(pv[len(pv)-2])
+	title = G.Player[toMove].Name + " (" + []string{"White", "Black"}[toMove] + ")"
+	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
+}
+
+>>>>>>> 7c94c876d91adedf33192d4b5aafc58cacb9af67
 func FormatGraveyard(G *Game) [2]string {
 	// Q RR BB NN PPPPPPPP
 	// q rr bb nn pppppppp
