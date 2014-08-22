@@ -370,7 +370,7 @@ func (U UCI) SetBoard(movesSoFar []Move) string {
 
 	return pos
 
->>>>>>> d82507a511698f60c3fd2efc4ae959d0c6ecf838
+
 }
 
 /*******************************************************************************
