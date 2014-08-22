@@ -54,6 +54,9 @@ type Engine struct {
 
 // Set the engine up to be ready to think on its first move:
 func (E *Engine) Start() error {
+
+	// Decide which protocol to use:
+	// TODO: add some autodetect code here
 	if strings.ToUpper(E.Protocol) == "UCI" {
 		E.protocol = UCI{}
 	} else if strings.ToUpper(E.Protocol) == "WINBOARD" {
@@ -61,10 +64,8 @@ func (E *Engine) Start() error {
 	}
 
 	cmd := exec.Command(E.Path)
-	// TODO: need error handling for whether or not the program launched:
-	go cmd.Run()
-	// TODO: wait for some sort of 'ok' to be recieved from the program that launched
 
+	// Setup the pipes to communicate with the engine:
 	StdinPipe, errIn := cmd.StdinPipe()
 	if errIn != nil {
 		return errors.New("Error Initializing Engine: can not establish in pipe.")
@@ -75,9 +76,20 @@ func (E *Engine) Start() error {
 	}
 	E.writer, E.reader = bufio.NewWriter(StdinPipe), bufio.NewReader(StdoutPipe)
 
+	// Start the engine:
+	if err := cmd.Start(); err != nil {
+		return errors.New("Error executing " + E.Path + " - " + err.Error())
+	}
+
+	// Get the engine all ready:
 	E.protocol.Initialize(E.reader, E.writer)
-	// TODO: Set options here
 	E.NewGame()
+
+	// Setup up for when the engine exits:
+	go func() {
+		cmd.Wait()
+		//TODO: add some confirmation that the engine has terminated correctly.
+	}()
 
 	return nil
 }
@@ -102,17 +114,17 @@ func (E *Engine) Set(movesSoFar []Move) error {
 	err := E.protocol.Set(E.writer, movesSoFar)
 	// DEBUG: ***********************************
 	/*
-	startTime := time.Now()
-	for i := 1; i <= 16; i++ {
-		line, _ := E.reader.ReadString('\n')
-		if line != "" {
-			fmt.Print(">> ", line)
+		startTime := time.Now()
+		for i := 1; i <= 16; i++ {
+			line, _ := E.reader.ReadString('\n')
+			if line != "" {
+				fmt.Print(">> ", line)
+			}
+			// Allow 1 second before timing out:
+			if time.Now().Sub(startTime).Seconds() > 1 {
+				break
+			}
 		}
-		// Allow 1 second before timing out:
-		if time.Now().Sub(startTime).Seconds() > 1 {		
-			break
-		}
-	}
 	*/
 	//********************************************
 	return err
@@ -159,13 +171,13 @@ func (U UCI) Initialize(reader *bufio.Reader, writer *bufio.Writer) error {
 	//			Does the protocol require a 1 second delay here?
 	startTime := time.Now()
 	for !strings.Contains(line, "uciok") {
-	//for line != "uciok\n" {
+		//for line != "uciok\n" {
 		line, _ = reader.ReadString('\n')
 		if line != "" {
 			fmt.Print(">> ", line)
 		}
 		// Allow 1 second before timing out:
-		if time.Now().Sub(startTime).Seconds() > 1 {		
+		if time.Now().Sub(startTime).Seconds() > 1 {
 			return errors.New("Timed out. Did not recieve 'uciok' response from engine.")
 		}
 	}
