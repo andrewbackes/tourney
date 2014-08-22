@@ -618,6 +618,13 @@ func (G *Game) PrintHUD() {
 	}
 	title = G.Player[toMove].Name + " (" + []string{"White", "Black"}[toMove] + ")"
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
+	/*
+		fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
+		pv = G.MoveList[len(G.MoveList)-1].log
+		fmt.Print(pv[len(pv)-2])
+		title = G.Player[toMove].Name + " (" + []string{"White", "Black"}[toMove] + ")"
+		fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
+	*/
 }
 
 func FormatGraveyard(G *Game) [2]string {
