@@ -282,24 +282,6 @@ func (E *Engine) Move(timers [2]int64, movesToGo int64) (Move, error) {
 
 // The engine should set its internal board to adjust for the moves far in the game
 func (E *Engine) Set(movesSoFar []Move) error {
-<<<<<<< HEAD
-	err := E.protocol.Set(E.writer, movesSoFar)
-	// DEBUG: ***********************************
-	/*
-	startTime := time.Now()
-	for i := 1; i <= 16; i++ {
-		line, _ := E.reader.ReadString('\n')
-		if line != "" {
-			fmt.Print(">> ", line)
-		}
-		// Allow 1 second before timing out:
-		if time.Now().Sub(startTime).Seconds() > 1 {		
-			break
-		}
-	}
-	*/
-	//********************************************
-=======
 	s := E.protocol.SetBoard(movesSoFar)
 	err := E.Send(s)
 	return err
@@ -309,7 +291,6 @@ func (E *Engine) Ping() error {
 	s, r := E.protocol.Ping()
 	E.Send(s)
 	_, _, err := E.Recieve(r, -1)
->>>>>>> d82507a511698f60c3fd2efc4ae959d0c6ecf838
 	return err
 }
 
@@ -337,39 +318,9 @@ type WINBOARD struct{}
 
 *******************************************************************************/
 
-<<<<<<< HEAD
-func (U UCI) Initialize(reader *bufio.Reader, writer *bufio.Writer) error {
-	var line string
 
-	fmt.Print("> uci\n")
-	/*
-		if _, err := writer.WriteString("uci\n"); err != nil {
-			return errors.New("Error initializing engine. Engine not ready to accept input.")
-		}
-	*/
-	writer.WriteString("uci\n")
-	writer.Flush()
-
-	// TODO: sometimes this loop goes infinite! probably has something to do with
-	//			the time it takes the engine to load in the beginning.
-	//			Does the protocol require a 1 second delay here?
-	startTime := time.Now()
-	for !strings.Contains(line, "uciok") {
-	//for line != "uciok\n" {
-		line, _ = reader.ReadString('\n')
-		if line != "" {
-			fmt.Print(">> ", line)
-		}
-		// Allow 1 second before timing out:
-		if time.Now().Sub(startTime).Seconds() > 1 {		
-			return errors.New("Timed out. Did not recieve 'uciok' response from engine.")
-		}
-	}
-	return nil
-=======
 func (U UCI) Ping() (string, string) {
 	return "isready", "readyok"
->>>>>>> d82507a511698f60c3fd2efc4ae959d0c6ecf838
 }
 
 func (U UCI) Initialize() (string, string) {
@@ -397,38 +348,7 @@ func (U UCI) Move(timer [2]int64, movesToGo int64) (string, string) {
 	if movesToGo > 0 {
 		goString += " movestogo " + strconv.FormatInt(movesToGo, 10)
 	}
-	goString += "\n"
-
-<<<<<<< HEAD
-	var maxTime int64
-	if timer[0] >= timer[1] {
-		maxTime = timer[0]
-	} else {
-		maxTime = timer[1]
-	}
-
-	fmt.Print("> " + goString)
-	writer.WriteString(goString)
-	writer.Flush()
-
-	var line string
-	var m Move
-	startTime := time.Now()
-	for strings.HasPrefix(line, "bestmove") == false {
-		if int64(time.Now().Sub(startTime).Seconds()*1000) > maxTime {
-			return Move{Algebraic: "none"}, errors.New("Engine timed out.")
-		}
-		line, _ = reader.ReadString('\n')
-		m.log = append(m.log, line)
-	}
-	m.Algebraic = strings.Split(line, " ")[1]
-	m.Algebraic = strings.TrimSuffix(m.Algebraic, "\n")
-
-	fmt.Println(">End of Move()")
-	return m, nil
-=======
 	return goString, "bestmove"
->>>>>>> d82507a511698f60c3fd2efc4ae959d0c6ecf838
 }
 
 func (U UCI) SetBoard(movesSoFar []Move) string {
@@ -440,26 +360,12 @@ func (U UCI) SetBoard(movesSoFar []Move) string {
 
 	var pos string
 	if len(movesSoFar) > 0 {
-<<<<<<< HEAD
-		pos = "position startpos moves " + strings.Join(ml, " ") + "\n"
-=======
 		pos = "position startpos moves " + strings.Join(ml, " ")
->>>>>>> d82507a511698f60c3fd2efc4ae959d0c6ecf838
+
 	} else {
 		pos = "position startpos"
 	}
-<<<<<<< HEAD
-	pos = strings.Trim(pos, " ")
-	//fmt.Println(">", pos)
-	writer.WriteString(pos)
-	writer.Flush()
 
-	//fmt.Println("> End of Set()")
-	//writer.WriteString("print\n")
-	//writer.Flush()
-
-	return nil
-=======
 	//pos = strings.Trim(pos, " ")
 
 	return pos
