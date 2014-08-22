@@ -365,7 +365,6 @@ func (U UCI) SetBoard(movesSoFar []Move) string {
 	} else {
 		pos = "position startpos"
 	}
-	//pos = strings.Trim(pos, " ")
 
 	return pos
 
