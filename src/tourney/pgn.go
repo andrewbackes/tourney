@@ -7,11 +7,16 @@
  Module: PGN
  Description: PGN tools
 
+ TODO:
+ 		-finish tags: ELO, time, timecontrol
+ 		-reading PGN with split \n probably has some consequences with \r\n
+
 *******************************************************************************/
 
 package main
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -31,8 +36,10 @@ func EncodePGN(G *Game) string {
 		{"WhiteElo", "-"},
 		{"Time", "-"},
 		{"TimeControl", "-"},
-		//{"SetUp", "1"}
-		//{"FEN", G.StartingFen}
+	}
+	if G.StartingFEN != "" {
+		tags = append(tags, []string{"Setup", "1"})
+		tags = append(tags, []string{"FEN", G.StartingFEN})
 	}
 	if G.Completed {
 		tags = append(tags, []string{"Result", []string{"1-0", "0-1", "1/2-1/2"}[G.Result]})
@@ -40,16 +47,19 @@ func EncodePGN(G *Game) string {
 		tags = append(tags, []string{"Result", "*"})
 	}
 	for _, t := range tags {
-		pgn += "[" + t[0] + " \"" + t[1] + "\"]\n"
+		pgn += fmt.Sprintln("[" + t[0] + " \"" + t[1] + "\"]")
 	}
-	pgn += "\n"
+	pgn += fmt.Sprintln()
+
 	for j, _ := range G.MoveList {
 		if j%2 == 0 {
 			pgn += strconv.Itoa((j/2)+1) + ". "
 		}
 		pgn += G.MoveList[j].Algebraic + " "
 	}
-	pgn += tags[6][1] + "\n\n"
+	pgn += tags[6][1]
+	pgn += fmt.Sprintln()
+	pgn += fmt.Sprintln()
 
 	return pgn
 }

@@ -89,6 +89,16 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 		parsed := moveToParse[:len(moveToParse)-1]
 		// Some engines dont capitalize the promotion piece:
 		parsed += strings.ToUpper(moveToParse[len(moveToParse)-1:])
+		// some engines dont specify the promotion piece, assume queen:
+		if (parsed[1] == '7' && parsed[3] == '8') || (parsed[1] == '2' && parsed[3] == '1') {
+			if len(parsed) <= 4 {
+				f, _ := getIndex(parsed)
+				_, p := G.board.onSquare(f)
+				if p == PAWN {
+					parsed += "Q"
+				}
+			}
+		}
 		return parsed
 	}
 	// Check for null move:
@@ -149,12 +159,12 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 	}
 
 	// Some engines dont tell you to promote to queen, so assume so in that case:
-	if piece == "P" && ((origin[1] == '7' && destination[1] == '8') || (origin[1] == '2' && destination[1] == '1')) {
+	/*if piece == "P" && ((origin[1] == '7' && destination[1] == '8') || (origin[1] == '2' && destination[1] == '1')) {
 		if promote == "" {
 			promote = "Q"
 		}
 	}
-
+	*/
 	return origin + destination + promote
 }
 
