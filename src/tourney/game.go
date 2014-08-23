@@ -147,7 +147,12 @@ func ExecuteNextTurn(G *Game) bool {
 	preparsedMove := move
 	move.Algebraic = InternalizeNotation(G, preparsedMove.Algebraic)
 
-	fmt.Print([]string{"WHITE", "BLACK"}[color], "> ", move.Algebraic, " (From Engine: ", preparsedMove.Algebraic, ")\n")
+	// TODO: Temporary:
+	if color == WHITE {
+		fmt.Print(len(G.MoveList)/2+1, ". ")
+	}
+	fmt.Print(move.Algebraic, " ")
+
 	// Check legality of move.
 	LegalMoves := LegalMoveList(G)
 	if !contains(LegalMoves, move) {
@@ -293,10 +298,12 @@ func InsufficientMaterial(G *Game) bool {
 *******************************************************************************/
 
 func (G *Game) GameOver(looser Color, reason string) {
-	fmt.Println("Game Over.", []string{"White looses.", "Black looses.", "Draw."}[looser], reason)
 	G.Result = []Color{BLACK, WHITE, DRAW}[looser] //oppoSite of the looser
 	G.ResultDetail = reason
 	G.Completed = true
+
+	//TODO: Temporary:
+	fmt.Println("{" + reason + "} " + []string{"1-0", "0-1", "1/2-1/2"}[G.Result])
 }
 
 /*******************************************************************************
