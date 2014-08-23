@@ -129,35 +129,35 @@ func ExecuteNextTurn(G *Game) bool {
 		return true
 	}
 	// Request a move from the engine:
-	move, lapsed, err := G.Player[color].Move(G.timer, G.movesToGo)
+	engineMove, lapsed, err := G.Player[color].Move(G.timer, G.movesToGo)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
 	}
 	// Adjust time control:
-	G.timer[color] -= lapsed
+	G.timer[color] -= lapsed.Nanoseconds() / 1000000
 	if G.timer[color] <= 0 {
-		G.GameOver(color, "Out of time. Used "+strconv.FormatInt(lapsed, 10)+" ms.")
+		G.GameOver(color, "Out of time. Used "+strconv.FormatInt(lapsed.Nanoseconds()/1000000, 10)+" ms.")
 		return true
 	}
 	// Convert the notation from the engines notation to pure coordinate notation
-	preparsedMove := move
-	move.Algebraic = InternalizeNotation(G, preparsedMove.Algebraic)
+	parsedMove := engineMove
+	parsedMove.Algebraic = InternalizeNotation(G, parsedMove.Algebraic)
 
 	// Print the move:
 	if color == WHITE {
 		fmt.Print(len(G.MoveList)/2+1, ". ")
 	}
-	fmt.Print(move.Algebraic, " ")
+	fmt.Print(parsedMove.Algebraic, " ")
 
 	// Check legality of move.
 	LegalMoves := LegalMoveList(G)
-	if !contains(LegalMoves, move) {
-		G.GameOver(color, "Illegal move.")
+	if !contains(LegalMoves, parsedMove) {
+		G.GameOver(color, "Illegal move: "+parsedMove.Algebraic+" (raw: "+engineMove.Algebraic+").")
 		return true
 	}
 	// Adjust the internal board:
-	if err = G.MakeMove(move); err != nil {
+	if err = G.MakeMove(parsedMove); err != nil {
 		G.GameOver(color, err.Error()) // illegal move
 		return true
 	}
