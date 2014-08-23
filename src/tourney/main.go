@@ -40,6 +40,8 @@ type Context struct {
 
 func main() {
 
+	// 5r1k/PP6/2p2n2/5P2/6pK/1R1B4/8/2R5 w - - 4 47
+
 	fmt.Println("\nProject: Tourney Started\n")
 
 	// Check for a lanuch arguement with for a .tourney file

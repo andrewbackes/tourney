@@ -148,6 +148,13 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 		G.PrintHUD()
 	}
 
+	// Some engines dont tell you to promote to queen, so assume so in that case:
+	if piece == "P" && ((origin[1] == '7' && destination[1] == '8') || (origin[1] == '2' && destination[1] == '1')) {
+		if promote == "" {
+			promote = "Q"
+		}
+	}
+
 	return origin + destination + promote
 }
 

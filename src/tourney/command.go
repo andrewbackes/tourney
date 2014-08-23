@@ -36,6 +36,12 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 	var commands []Command
 	commands = []Command{
 		{
+			label: []string{"display", "d"},
+			desc:  "Displays the HUD for the current game.",
+			f: func() {
+
+			}},
+		{
 			label: []string{"tourney", "t"},
 			desc:  "Prints the settings of the selected tourney.",
 			f: func() {
