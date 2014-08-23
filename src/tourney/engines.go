@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -123,21 +124,21 @@ func (E *Engine) Send(s string) error {
 // Recieve and process commands until a certain command is recieved
 // or after the timeout (milliseconds) is achieved.
 // Returns: last line read, lapsed time, error
-func (E *Engine) Recieve(untilCmd string, timeout int64) (string, int64, error) {
+func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration, error) {
 
-	var line string
 	var err error
 
 	// Set up the timer:
 	startTime := time.Now()
 	// helper:
-	lapsed := func() int64 {
-		return time.Now().Sub(startTime).Nanoseconds() / 1000000
+	type rec struct {
+		data      string
+		timestamp time.Time
 	}
 
 	// Start recieving from the engine:
 	for {
-		recieved := make(chan string, 1)
+		recieved := make(chan rec, 1)
 		errChan := make(chan error, 1)
 		/*
 			//idea 1: (i think this has too much overhead)
@@ -176,7 +177,7 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, int64, error) 
 		go func() {
 			// TODO: need a better idea here. ReadString() could hault this goroutine.
 			if nextline, err := E.reader.ReadString('\n'); err == nil {
-				recieved <- nextline
+				recieved <- rec{nextline, time.Now()}
 			} else {
 				errChan <- err
 			}
@@ -197,30 +198,30 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, int64, error) 
 				}
 			}()
 		*/
-
+		runtime.Gosched() // try to make sure the above goroutine gets priority
 		// Since the timer and the reader are in goroutines, wait for:
 		// (1) Something from the engine, (2) Too much time to pass. (3) An error
 		select {
-		case line = <-recieved:
-			l := lapsed()
+		case line := <-recieved:
+			//l := lapsed()
 			// Take off line return bytes:
-			line = strings.Trim(line, "\r\n") // for windows
-			line = strings.Trim(line, "\n")   // for *nix/bsd
+			line.data = strings.Trim(line.data, "\r\n") // for windows
+			line.data = strings.Trim(line.data, "\n")   // for *nix/bsd
 			// Process the command recieved from the engine:
-			if err = E.Evaluate(line); err != nil {
-				return "", l, errors.New("Error recieving from engine: " + err.Error())
+			if err = E.Evaluate(line.data); err != nil {
+				return "", line.timestamp.Sub(startTime), errors.New("Error recieving from engine: " + err.Error())
 			}
 			// Check if the recieved command is the one we are waiting for:
-			if strings.Contains(line, untilCmd) {
-				return line, l, nil
+			if strings.Contains(line.data, untilCmd) {
+				return line.data, line.timestamp.Sub(startTime), nil
 			}
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
-			return "", lapsed(), errors.New("Timed out waiting for engine to respond.")
+			return "", time.Now().Sub(startTime), errors.New("Timed out waiting for engine to respond.")
 		case e := <-errChan:
-			return "", lapsed(), errors.New("Error recieving from engine: " + e.Error())
+			return "", time.Now().Sub(startTime), errors.New("Error recieving from engine: " + e.Error())
 		}
 	}
-	return "", lapsed(), nil
+	return "", time.Now().Sub(startTime), nil
 }
 
 // Set the engine up to be ready to think on its first move:
@@ -295,7 +296,7 @@ func (E *Engine) Shutdown() error {
 }
 
 // The engine should decide what move it wants to make:
-func (E *Engine) Move(timers [2]int64, movesToGo int64) (Move, int64, error) {
+func (E *Engine) Move(timers [2]int64, movesToGo int64) (Move, time.Duration, error) {
 	s, r := E.protocol.Move(timers, movesToGo)
 	E.Send(s)
 	max := timers[WHITE]
