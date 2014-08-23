@@ -32,6 +32,7 @@ func EncodePGN(G *Game) string {
 		{"Round", strconv.Itoa(G.Round)},
 		{"White", G.Player[WHITE].Name},
 		{"Black", G.Player[BLACK].Name},
+		{"Result", "*"},
 		{"WhiteElo", "-"},
 		{"WhiteElo", "-"},
 		{"Time", "-"},
@@ -42,9 +43,7 @@ func EncodePGN(G *Game) string {
 		tags = append(tags, []string{"FEN", G.StartingFEN})
 	}
 	if G.Completed {
-		tags = append(tags, []string{"Result", []string{"1-0", "0-1", "1/2-1/2"}[G.Result]})
-	} else {
-		tags = append(tags, []string{"Result", "*"})
+		tags[6][1] = []string{"1-0", "0-1", "1/2-1/2"}[G.Result]
 	}
 	for _, t := range tags {
 		pgn += fmt.Sprintln("[" + t[0] + " \"" + t[1] + "\"]")

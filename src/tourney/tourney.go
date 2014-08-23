@@ -103,7 +103,7 @@ func RunTourney(T *Tourney) error {
 			//channel closed, so stop.
 		default:
 			//channel isnt closed, so keep playing
-			fmt.Println("Round ", i, ": ", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
+			fmt.Println("Round", i+1, ":", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
 			if !T.GameList[i].Completed {
 				fmt.Println("Game started.")
 				fmt.Print("Playing from opening book... ")

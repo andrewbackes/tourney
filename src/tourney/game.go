@@ -25,7 +25,7 @@ import (
 	//"runtime"
 	"strconv"
 	"strings"
-	"time"
+	//"time"
 )
 
 type Color uint8
@@ -129,25 +129,22 @@ func ExecuteNextTurn(G *Game) bool {
 		return true
 	}
 	// Request a move from the engine:
-	startTime := time.Now() // TODO: move the timing stuff to the Move() method.
-	move, err := G.Player[color].Move(G.timer, G.movesToGo)
+	move, lapsed, err := G.Player[color].Move(G.timer, G.movesToGo)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
 	}
-	endTime := time.Now()
-	lapsed := endTime.Sub(startTime)
 	// Adjust time control:
-	G.timer[color] -= int64(lapsed.Seconds() * 1000)
+	G.timer[color] -= lapsed
 	if G.timer[color] <= 0 {
-		G.GameOver(color, "Out of time. Used "+strconv.FormatInt(int64(lapsed.Seconds()*1000), 10)+" ms.")
+		G.GameOver(color, "Out of time. Used "+strconv.FormatInt(lapsed, 10)+" ms.")
 		return true
 	}
 	// Convert the notation from the engines notation to pure coordinate notation
 	preparsedMove := move
 	move.Algebraic = InternalizeNotation(G, preparsedMove.Algebraic)
 
-	// TODO: Temporary:
+	// Print the move:
 	if color == WHITE {
 		fmt.Print(len(G.MoveList)/2+1, ". ")
 	}
@@ -608,7 +605,9 @@ func (G *Game) PrintHUD() {
 			case 2:
 				fmt.Print("             ", FormatGraveyard(G)[BLACK])
 			case 0:
-				fmt.Print("Last move: ", G.MoveList[len(G.MoveList)-1].Algebraic)
+				if len(G.MoveList) > 0 {
+					fmt.Print("Last move: ", G.MoveList[len(G.MoveList)-1].Algebraic)
+				}
 			}
 
 			fmt.Print("\n")
@@ -619,7 +618,10 @@ func (G *Game) PrintHUD() {
 	title := G.Player[[]int{1, 0}[toMove]].Name + " (" + []string{"Black", "White"}[toMove] + ")"
 
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
-	pv := G.MoveList[len(G.MoveList)-1].log
+	var pv []string
+	if len(G.MoveList) > 0 {
+		pv = G.MoveList[len(G.MoveList)-1].log
+	}
 	if len(pv)-2 >= 0 {
 		fmt.Print(pv[len(pv)-2])
 	}

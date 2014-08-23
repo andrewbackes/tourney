@@ -120,7 +120,8 @@ func (E *Engine) Send(s string) error {
 	return nil
 }
 
-// Recieve and process commands until a certain command is recieved:
+// Recieve and process commands until a certain command is recieved
+// or after the timeout (milliseconds) is achieved.
 // Returns: last line read, lapsed time, error
 func (E *Engine) Recieve(untilCmd string, timeout int64) (string, int64, error) {
 
@@ -128,53 +129,74 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, int64, error) 
 	var err error
 
 	// Set up the timer:
-	timedout := make(chan struct{})
 	startTime := time.Now()
 	// helper:
 	lapsed := func() int64 {
-		return time.Now().Sub(startTime).Nanoseconds() / 1000
+		return time.Now().Sub(startTime).Nanoseconds() / 1000000
 	}
-	// Start the timer:
-	go func() {
-		if timeout > 0 {
-			<-time.After(time.Duration(timeout) * time.Millisecond)
-			close(timedout)
-		}
-	}()
 
 	// Start recieving from the engine:
 	for {
-		recieved := make(chan string)
-		errChan := make(chan error)
-		go func() {
-			// TODO: determine how demanding this loop is on the system, try to minimize overhead.
-			for {
+		recieved := make(chan string, 1)
+		errChan := make(chan error, 1)
+		/*
+			//idea 1: (i think this has too much overhead)
+				go func() {
+					// TODO: determine how demanding this loop is on the system, try to minimize overhead.
+					for {
 
-				// check for something to read, so this goroutine doesnt just hault:
-				// TODO: can still stall if there is something to read but it doesnt end with a '\n'
-				_, e := E.reader.Peek(1) // < 1 byte to read => e != nil
-				if e == nil {
-					// Somthing to read:
-					if nextline, err := E.reader.ReadString('\n'); err == nil {
-						recieved <- nextline
-						break
-					} else {
-						errChan <- err
-						break
+						// check for something to read, so this goroutine doesnt just hault:
+						// TODO: can still stall if there is something to read but it doesnt end with a '\n'
+						_, e := E.reader.Peek(1) // < 1 byte to read => e != nil
+						if e == nil {
+							// Somthing to read:
+							if nextline, err := E.reader.ReadString('\n'); err == nil {
+								recieved <- nextline
+								break
+							} else {
+								errChan <- err
+								break
+							}
+						} else {
+							// Nothing to read:
+							select {
+							case <-timedout:
+								// stop reading
+								break
+							default:
+								// keep reading
+							}
+						}
 					}
-				} else {
-					// Nothing to read:
-					select {
-					case <-timedout:
-						// stop reading
+					return
+				}()
+		*/
+
+		//idea 2:
+		go func() {
+			// TODO: need a better idea here. ReadString() could hault this goroutine.
+			if nextline, err := E.reader.ReadString('\n'); err == nil {
+				recieved <- nextline
+			} else {
+				errChan <- err
+			}
+		}()
+
+		/*
+			//idea 3:
+			go func() {
+				buf := make([]byte, 1024)
+				for {
+					n, err := E.reader.Read(buf)
+					if n != 0 {
+						recieved <- string(buf[:n])
+					}
+					if err != nil {
 						break
-					default:
-						// keep reading
 					}
 				}
-			}
-			return
-		}()
+			}()
+		*/
 
 		// Since the timer and the reader are in goroutines, wait for:
 		// (1) Something from the engine, (2) Too much time to pass. (3) An error
@@ -186,14 +208,14 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, int64, error) 
 			line = strings.Trim(line, "\n")   // for *nix/bsd
 			// Process the command recieved from the engine:
 			if err = E.Evaluate(line); err != nil {
-				return "", lapsed(), errors.New("Error recieving from engine: " + err.Error())
+				return "", l, errors.New("Error recieving from engine: " + err.Error())
 			}
 			// Check if the recieved command is the one we are waiting for:
 			if strings.Contains(line, untilCmd) {
 				return line, l, nil
 			}
-		case <-timedout:
-			return "", lapsed(), errors.New("Timed out waiting for correct response from engine.")
+		case <-time.After(time.Duration(timeout) * time.Millisecond):
+			return "", lapsed(), errors.New("Timed out waiting for engine to respond.")
 		case e := <-errChan:
 			return "", lapsed(), errors.New("Error recieving from engine: " + e.Error())
 		}
@@ -227,16 +249,27 @@ func (E *Engine) Start() error {
 	E.writer, E.reader = bufio.NewWriter(StdinPipe), bufio.NewReader(StdoutPipe)
 
 	// Start the engine:
-	if err := cmd.Start(); err != nil {
-		return errors.New("Error executing " + E.Path + " - " + err.Error())
+	started := make(chan struct{})
+	errChan := make(chan error)
+	go func() {
+		// Question: Does this force the engine to run in its own thread?
+		if err := cmd.Start(); err != nil {
+			errChan <- err
+			return
+			//return errors.New("Error executing " + E.Path + " - " + err.Error())
+		}
+		close(started)
+	}()
+	select {
+	case <-started:
+	case e := <-errChan:
+		return errors.New("Error executing " + E.Path + " - " + e.Error())
 	}
 
-	// Get the engine all ready:
-	//E.protocol.Initialize(E.reader, E.writer)
+	// Get the engine ready:
 	s, r := E.protocol.Initialize()
 	E.Send(s)
 	E.Recieve(r, 2500)
-
 	E.NewGame()
 
 	// Setup up for when the engine exits:
@@ -262,22 +295,22 @@ func (E *Engine) Shutdown() error {
 }
 
 // The engine should decide what move it wants to make:
-func (E *Engine) Move(timers [2]int64, movesToGo int64) (Move, error) {
+func (E *Engine) Move(timers [2]int64, movesToGo int64) (Move, int64, error) {
 	s, r := E.protocol.Move(timers, movesToGo)
 	E.Send(s)
 	max := timers[WHITE]
 	if timers[BLACK] > max {
 		max = timers[BLACK]
 	}
-	response, _, err := E.Recieve(r, max)
+	response, t, err := E.Recieve(r, max+1000)
 	if err != nil {
-		return Move{}, err
+		return Move{}, t, err
 	}
 
 	// figure out what move was picked:
 	words := strings.Split(response, " ") // bestmove e2e4 ponder e7e5
 	chosenMove := Move{Algebraic: words[1]}
-	return chosenMove, nil
+	return chosenMove, t, nil
 }
 
 // The engine should set its internal board to adjust for the moves far in the game
