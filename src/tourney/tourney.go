@@ -112,6 +112,7 @@ func RunTourney(T *Tourney) error {
 					break
 				}
 				fmt.Println("Success.")
+				fmt.Println("Playing game...")
 				if err := PlayGame(&T.GameList[i]); err != nil {
 					fmt.Println(err.Error())
 					break
@@ -136,23 +137,26 @@ func Save(T *Tourney) error {
 	fmt.Print("Saving '" + T.Event + ".results'... ")
 	if err := SaveResults(T); err != nil {
 		fmt.Println("Failed.", err)
-		return err
+		//return err
+	} else {
+		fmt.Println("Success.")
 	}
-	fmt.Println("Success.")
 	// Save details:
 	fmt.Print("Saving '" + T.Event + ".details'... ")
 	if err := SaveDetails(T); err != nil {
 		fmt.Println("Failed.", err)
-		return err
+		//return err
+	} else {
+		fmt.Println("Success.")
 	}
-	fmt.Println("Success.")
 	// Save PGN:
 	fmt.Print("Saving '" + T.Event + ".pgn'... ")
 	if err := SavePGN(T); err != nil {
 		fmt.Println("Failed.", err)
-		return err
+		//return err
+	} else {
+		fmt.Println("Success.")
 	}
-	fmt.Println("Success.")
 	return nil
 }
 
