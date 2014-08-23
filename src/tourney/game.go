@@ -549,7 +549,7 @@ func (G *Game) Print() {
 func (G *Game) PrintHUD() {
 	toMove := G.toMove()
 	lastMoveSource, lastMoveDestination := uint8(64), uint8(64)
-	if len(G.MoveList) > 0 {
+	if len(G.MoveList) > 0 && G.MoveList[len(G.MoveList)-1].Algebraic != "" {
 		lastMoveSource, lastMoveDestination = getIndex(G.MoveList[len(G.MoveList)-1].Algebraic)
 	}
 	abbrev := [2][6]string{{"P", "N", "B", "R", "Q", "K"}, {"p", "n", "b", "r", "q", "k"}}
