@@ -31,6 +31,7 @@ import (
 	"os"
 	//"strconv"
 	//"strings"
+	"runtime"
 	"sync"
 )
 
@@ -52,7 +53,8 @@ func main() {
 		return
 	*/
 	fmt.Println("\nProject: Tourney Started\n")
-
+	PrintSysStats()
+	fmt.Println()
 	// Check for a lanuch arguement with for a .tourney file
 	// .tourney files contain all of the settings needed
 	// to start a tourney without any terminal input.
@@ -86,7 +88,9 @@ func main() {
 		fmt.Print(prompt)
 		line, _ := inputReader.ReadString('\n')
 		ActiveTourneys, quit = Eval(line, ActiveTourneys, &SelectedIndex, &wg)
+		runtime.Gosched()
 	}
-	fmt.Print("\n")
 	wg.Wait()
+	// DEBUG:
+	fmt.Print("\nGoroutines: ", runtime.NumGoroutine(), "\n")
 }

@@ -14,6 +14,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -201,4 +202,9 @@ func ListActiveTourneys(actT []*Tourney, selT int) {
 	fmt.Println("To see this list again, type 'ls'")
 	fmt.Println("For a list of additional commands, type 'help'\n")
 
+}
+
+func PrintSysStats() {
+	fmt.Print("System: ", runtime.GOMAXPROCS(0), "/", runtime.NumCPU(), " CPUs.")
+	fmt.Println()
 }
