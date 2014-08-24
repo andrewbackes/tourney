@@ -209,7 +209,7 @@ func FormatRecord(record Record) string {
 	str += strings.Repeat(" ", 11)
 	//str += strconv.Itoa(l)
 	//}
-	str += "(" + record.Order + ")\n"
+	str += "(" + record.Order + ")" + fmt.Sprintln()
 	return str
 }
 
@@ -219,14 +219,20 @@ func SummarizeResults(T *Tourney) string {
 
 	matchups := MatchupResults(T)
 	engines := EngineResults(T)
-	matchupSummary := strings.Repeat("=", 80) + "\n   Results by Matchup:\n" + strings.Repeat("=", 80) + "\n"
+	matchupSummary := strings.Repeat("=", 80) + fmt.Sprintln() +
+		"   Results by Matchup:" + fmt.Sprintln() +
+		strings.Repeat("=", 80) + fmt.Sprintln()
+
 	for i, _ := range matchups {
 		if i > 0 && matchups[i].Player.Name != matchups[i-1].Player.Name {
-			matchupSummary += strings.Repeat("-", 80) + "\n"
+			matchupSummary += strings.Repeat("-", 80) + fmt.Sprintln()
 		}
 		matchupSummary += FormatRecord(matchups[i])
 	}
-	eventSummary := strings.Repeat("=", 80) + "\n   Event Summary:\n" + strings.Repeat("=", 80) + "\n"
+	eventSummary := strings.Repeat("=", 80) + fmt.Sprintln() +
+		"   Event Summary:" + fmt.Sprintln() +
+		strings.Repeat("=", 80) + fmt.Sprintln()
+
 	for _, record := range engines {
 		eventSummary += FormatRecord(record)
 	}
@@ -237,13 +243,16 @@ func SummarizeResults(T *Tourney) string {
 			completed++
 		}
 	}
-	eventSummary += strings.Repeat("-", 80) + "\nGames played: " + strconv.Itoa(completed) + "/" + strconv.Itoa(len(T.GameList)) + "\n"
-	return matchupSummary + "\n" + eventSummary + "\n"
+	eventSummary += strings.Repeat("-", 80) + fmt.Sprintln() +
+		"Games played: " + strconv.Itoa(completed) + "/" + strconv.Itoa(len(T.GameList)) + fmt.Sprintln()
+	return matchupSummary + fmt.Sprintln() + eventSummary + fmt.Sprintln()
 }
 
 func SummarizeGames(T *Tourney) string {
 	// Event, Round, Site, Date, White, Black, Result, Details
-	summary := strings.Repeat("=", 80) + "\n   Game History:\n" + strings.Repeat("=", 80) + "\n"
+	summary := strings.Repeat("=", 80) + fmt.Sprintln() +
+		"   Game History:" + fmt.Sprintln() +
+		strings.Repeat("=", 80) + fmt.Sprintln()
 	for _, g := range T.GameList {
 		summary += g.Event + ", " +
 			strconv.Itoa(g.Round) + ", " +
@@ -256,7 +265,7 @@ func SummarizeGames(T *Tourney) string {
 		} else {
 			summary += "*, "
 		}
-		summary += g.ResultDetail + "\n"
+		summary += g.ResultDetail + fmt.Sprintln()
 	}
 	return summary
 }

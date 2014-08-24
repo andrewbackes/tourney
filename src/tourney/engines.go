@@ -199,6 +199,7 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration,
 			}()
 		*/
 		runtime.Gosched() // try to make sure the above goroutine gets priority
+
 		// Since the timer and the reader are in goroutines, wait for:
 		// (1) Something from the engine, (2) Too much time to pass. (3) An error
 		select {
