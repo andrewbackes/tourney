@@ -31,7 +31,6 @@ import (
 	"os"
 	//"strconv"
 	//"strings"
-	"runtime"
 	"sync"
 )
 
@@ -88,7 +87,6 @@ func main() {
 		fmt.Print(prompt)
 		line, _ := inputReader.ReadString('\n')
 		ActiveTourneys, quit = Eval(line, ActiveTourneys, &SelectedIndex, &wg)
-		runtime.Gosched()
 	}
 	wg.Wait()
 	// DEBUG:
