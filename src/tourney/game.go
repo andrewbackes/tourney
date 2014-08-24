@@ -601,9 +601,9 @@ func (G *Game) PrintHUD() {
 					map[bool]string{true: "k", false: "-"}[G.castleRights[BLACK][SHORT]],
 					map[bool]string{true: "q", false: "-"}[G.castleRights[BLACK][LONG]])
 			case 3:
-				fmt.Print("Out of Play: ", FormatGraveyard(G)[WHITE])
+				fmt.Print("In Play: ", FormatPiecesInPlay(G)[WHITE])
 			case 2:
-				fmt.Print("             ", FormatGraveyard(G)[BLACK])
+				fmt.Print("         ", FormatPiecesInPlay(G)[BLACK])
 			case 0:
 				if len(G.MoveList) > 0 {
 					fmt.Print("Last move: ", G.MoveList[len(G.MoveList)-1].Algebraic)
@@ -636,25 +636,29 @@ func (G *Game) PrintHUD() {
 	*/
 }
 
-func FormatGraveyard(G *Game) [2]string {
+func FormatPiecesInPlay(G *Game) [2]string {
 	// Q RR BB NN PPPPPPPP
 	// q rr bb nn pppppppp
-	var gy [2]string
+	var pcs [2]string
 	pieces := [][]string{{"P", "N", "B", "R", "Q", "K"}, {"p", "n", "b", "r", "q", "k"}}
 	counts := []int{8, 2, 2, 2, 1, 1}
+	values := []int{1, 3, 3, 5, 9, 0}
+	var scores [2]int
 	for color := WHITE; color <= BLACK; color++ {
-		for p := PAWN; p < KING; p++ {
+		for p := PAWN; p <= KING; p++ {
 			inplay := int(popcount(G.board.pieceBB[color][p]))
 			dead := counts[p] - inplay
+			scores[color] += (inplay * values[p])
 			if dead < 0 {
 				dead = 0
 			}
-			gy[color] += strings.Repeat(pieces[color][p], dead)
-			gy[color] += strings.Repeat(" ", inplay+1)
+			pcs[color] += strings.Repeat(pieces[color][p], inplay)
+			pcs[color] += strings.Repeat(" ", dead+1)
 		}
+		pcs[color] += " (" + strconv.Itoa(scores[color]) + ")"
 	}
 
-	return gy
+	return pcs
 }
 
 func FormatTimer(ms int64) string {

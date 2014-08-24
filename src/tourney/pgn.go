@@ -51,6 +51,10 @@ func EncodePGN(G *Game) string {
 	pgn += fmt.Sprintln()
 
 	for j, _ := range G.MoveList {
+		if len(G.MoveList[j].log) > 0 && strings.Contains(G.MoveList[j].log[0], "Book Move.") {
+			// dont print book moves, since the FEN tag would mess it up.
+			continue
+		}
 		if j%2 == 0 {
 			pgn += strconv.Itoa((j/2)+1) + ". "
 		}
