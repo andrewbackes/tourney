@@ -63,7 +63,7 @@ type setting struct {
 }
 
 func (E *Engine) Log(label string, record string) {
-	*E.logbuf += fmt.Sprintln("[" + time.Now().Format("01/02/2006 15:04:05") + "][" + E.Name + "][" + label + "]" + record)
+	*E.logbuf += fmt.Sprintln("[" + time.Now().Format("01/02/2006 15:04:05.000") + "][" + E.Name + "][" + label + "]" + record)
 }
 
 func (E *Engine) Evaluate(cmd string) error {

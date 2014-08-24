@@ -395,12 +395,13 @@ func (T *Tourney) Print() {
 	// TODO: test seats
 	var summary string
 	summary = strings.Repeat("=", 80) + "\n Tourney Settings:\n" + strings.Repeat("=", 80) + "\n"
-	summary += " Event:        " + T.Event + "\n"
-	summary += " Site:         " + T.Site + "\n"
-	summary += " Date:         " + T.Date + "\n"
-	summary += " Rounds:       " + strconv.Itoa(T.Rounds) + "\n"
+	summary += " Event:          " + T.Event + "\n"
+	summary += " Site:           " + T.Site + "\n"
+	summary += " Date:           " + T.Date + "\n"
+	summary += " Rounds:         " + strconv.Itoa(T.Rounds) + "\n"
+	summary += " Gauntlet Seats: " + strconv.Itoa(T.TestSeats) + "\n"
 	// TODO: add remaining time for non repeating. use ':'
-	summary += " Time control: " + strconv.FormatInt(T.Moves, 10) + "/" +
+	summary += " Time control:   " + strconv.FormatInt(T.Moves, 10) + "/" +
 		strconv.FormatInt(T.Time, 10) + " +" +
 		strconv.FormatInt(T.BonusTime, 10) + "\n\n"
 

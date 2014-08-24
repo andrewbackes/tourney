@@ -13,7 +13,8 @@
  	-check state before each modifying function and functions that print to
  	the screen
  	-add support for processing nullmoves.
-
+ 	-double check 3 fold and 50 move rules.
+ 	-optimize 3 fold.
 
 *******************************************************************************/
 
@@ -146,8 +147,9 @@ func ExecuteNextTurn(G *Game) bool {
 	}
 	// Adjust time control:
 	G.timer[color] -= lapsed.Nanoseconds() / 1000000
-	if G.timer[color] <= 0 {
-		G.GameOver(color, "Out of time. Used "+strconv.FormatInt(lapsed.Nanoseconds()/1000000, 10)+" ms.")
+	if G.timer[color] < 0 {
+		G.GameOver(color, "Out of time. Used "+strconv.FormatInt(lapsed.Nanoseconds()/1000000, 10)+"ms / "+
+			strconv.FormatInt(G.timer[color]+(lapsed.Nanoseconds()/1000000), 10)+"ms.")
 		return true
 	}
 	// Convert the notation from the engines notation to pure coordinate notation
@@ -770,7 +772,7 @@ func (G *Game) StartLog() error {
 	G.LogBuffer += fmt.Sprintln(G.Event) +
 		fmt.Sprintln("Round ", G.Round) +
 		fmt.Sprintln(G.Player[WHITE].Name, "vs", G.Player[BLACK].Name) +
-		fmt.Sprintln(time.Now().Format("01/02/2006 15:04:05")) +
+		fmt.Sprintln(time.Now().Format("01/02/2006 15:04:05.000")) +
 		fmt.Sprintln("")
 	err = G.AppendLog()
 
