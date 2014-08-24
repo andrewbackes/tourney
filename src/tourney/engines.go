@@ -389,7 +389,6 @@ func (U UCI) Move(timer [2]int64, movesToGo int64) (string, string) {
 	if movesToGo > 0 {
 		goString += " movestogo " + strconv.FormatInt(movesToGo, 10)
 	}
-	//goString += "\n"
 
 	return goString, "bestmove"
 }
