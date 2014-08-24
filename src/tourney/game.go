@@ -23,9 +23,10 @@ import (
 	"errors"
 	"fmt"
 	//"runtime"
+	"os"
 	"strconv"
 	"strings"
-	//"time"
+	"time"
 )
 
 type Color uint8
@@ -72,6 +73,10 @@ type Game struct {
 	// Post game info:
 	Result       Color //WHITE,BLACK,DRAW
 	ResultDetail string
+
+	// Logging:
+	LogFile   *os.File
+	LogBuffer string
 }
 
 /*******************************************************************************
@@ -83,11 +88,13 @@ type Game struct {
 
 func PlayGame(G *Game) error {
 	// Note: opening book is handled in RunTourney()
+	G.StartLog()
+	fmt.Println("Playing Game...")
 	// Start up the engines:
-	if err := G.Player[WHITE].Start(); err != nil {
+	if err := G.Player[WHITE].Start(&G.LogBuffer); err != nil {
 		return err
 	}
-	if err := G.Player[BLACK].Start(); err != nil {
+	if err := G.Player[BLACK].Start(&G.LogBuffer); err != nil {
 		return err
 	}
 	var state Status = RUNNING
@@ -99,6 +106,7 @@ func PlayGame(G *Game) error {
 		}
 		// Play:
 		gameover := ExecuteNextTurn(G)
+		G.AppendLog()
 		if gameover {
 			state = STOPPED
 			break
@@ -116,6 +124,8 @@ func PlayGame(G *Game) error {
 	G.Player[WHITE].Shutdown()
 	G.Player[BLACK].Shutdown()
 
+	G.AppendLog()
+	G.CloseLog()
 	return nil
 }
 
@@ -728,4 +738,56 @@ func (G *Game) isAttacked(square uint, byWho Color) bool {
 		}
 	}
 	return false
+}
+
+/*******************************************************************************
+
+	Game Log:
+
+*******************************************************************************/
+
+func (G *Game) StartLog() error {
+	fmt.Print("Creating log file... ")
+
+	//check if folder exists:
+	if err := os.Mkdir("logs", os.ModePerm); !os.IsExist(err) {
+		return err
+	}
+
+	//check if the file exists:
+	filename := fmt.Sprint("logs/", G.Event, " round ", G.Round, ".log")
+	if _, test := os.Stat(filename); os.IsNotExist(test) {
+		// file doesnt exist
+	} else if test == nil {
+		// file does exist
+		os.Remove(filename)
+	}
+	var err error
+	G.LogFile, err = os.Create(filename)
+	if err != nil {
+		return err
+	}
+
+	// Give header information for the log file:
+	G.LogBuffer += fmt.Sprintln(G.Event) +
+		fmt.Sprintln("Round ", G.Round) +
+		fmt.Sprintln(G.Player[WHITE].Name, "vs", G.Player[BLACK].Name) +
+		fmt.Sprintln(time.Now().Format("01/02/2006 15:04:05")) +
+		fmt.Sprintln("")
+	err = G.AppendLog()
+
+	fmt.Println("Success.")
+	return err
+}
+
+func (G *Game) AppendLog() error {
+	if _, err := G.LogFile.WriteString(G.LogBuffer); err != nil {
+		return err
+	}
+	G.LogBuffer = ""
+	return nil
+}
+
+func (G *Game) CloseLog() error {
+	return G.LogFile.Close()
 }

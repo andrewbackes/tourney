@@ -112,7 +112,6 @@ func RunTourney(T *Tourney) error {
 					break
 				}
 				fmt.Println("Success.")
-				fmt.Println("Playing game...")
 				if err := PlayGame(&T.GameList[i]); err != nil {
 					fmt.Println(err.Error())
 					break

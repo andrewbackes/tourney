@@ -29,7 +29,6 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -50,6 +49,7 @@ type Engine struct {
 	//Private:
 	reader *bufio.Reader
 	writer *bufio.Writer
+	logbuf *string
 
 	protocol Protocoler // should = UCI{} or WINBOARD{}
 	option   map[string]setting
@@ -62,8 +62,12 @@ type setting struct {
 	optMax     string
 }
 
+func (E *Engine) Log(label string, record string) {
+	*E.logbuf += fmt.Sprintln("[" + time.Now().Format("01/02/2006 15:04:05") + "][" + E.Name + "][" + label + "]" + record)
+}
+
 func (E *Engine) Evaluate(cmd string) error {
-	//fmt.Println("<-", cmd)
+	E.Log("->", cmd)
 	if cmd == "" {
 		return nil
 	}
@@ -115,6 +119,7 @@ func getPair(words []string, key string) string {
 
 // Send a command to the engine:
 func (E *Engine) Send(s string) error {
+	E.Log("<-", s)
 	E.writer.WriteString(fmt.Sprintln(s)) // hopefully the line return is OS specific here.
 	E.writer.Flush()
 	//fmt.Print("->", fmt.Sprintln(s))
@@ -226,7 +231,9 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration,
 }
 
 // Set the engine up to be ready to think on its first move:
-func (E *Engine) Start() error {
+func (E *Engine) Start(logbuffer *string) error {
+	E.logbuf = logbuffer
+
 	E.option = make(map[string]setting)
 
 	// Decide which protocol to use:
@@ -382,7 +389,7 @@ func (U UCI) Move(timer [2]int64, movesToGo int64) (string, string) {
 	if movesToGo > 0 {
 		goString += " movestogo " + strconv.FormatInt(movesToGo, 10)
 	}
-	goString += "\n"
+	//goString += "\n"
 
 	return goString, "bestmove"
 }
