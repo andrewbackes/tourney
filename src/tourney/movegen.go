@@ -86,7 +86,7 @@ func (G *Game) MoveGen() []Move {
 		destinations |= pawn_captures[toMove][from] & G.board.Occupied(notToMove)
 		for destinations != 0 {
 			to := bitscan(destinations)
-			p := []string{"Q", "R", "B", "N"}
+			p := []string{"q", "r", "b", "n"}
 			for i := 0; i < 4; i++ {
 				mv := getMove(from, to)
 				mv.Algebraic += p[i]

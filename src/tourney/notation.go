@@ -88,14 +88,14 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 	if matches {
 		parsed := moveToParse[:len(moveToParse)-1]
 		// Some engines dont capitalize the promotion piece:
-		parsed += strings.ToUpper(moveToParse[len(moveToParse)-1:])
+		parsed += strings.ToLower(moveToParse[len(moveToParse)-1:])
 		// some engines dont specify the promotion piece, assume queen:
 		if (parsed[1] == '7' && parsed[3] == '8') || (parsed[1] == '2' && parsed[3] == '1') {
 			if len(parsed) <= 4 {
 				f, _ := getIndex(parsed)
 				_, p := G.board.onSquare(f)
 				if p == PAWN {
-					parsed += "Q"
+					parsed += "q"
 				}
 			}
 		}
@@ -165,7 +165,7 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 		}
 	}
 	*/
-	return origin + destination + promote
+	return origin + destination + strings.ToLower(promote)
 }
 
 func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (string, error) {
@@ -253,7 +253,8 @@ func getPromotion(alg string) Piece {
 	// TODO: accept more notation. Currently only accepts e7e8Q, e7e8=Q, and e7e8/Q
 	if len(alg) > 4 {
 		p := make(map[string]Piece)
-		p = map[string]Piece{"Q": QUEEN, "N": KNIGHT, "B": BISHOP, "R": ROOK}
+		p = map[string]Piece{"Q": QUEEN, "N": KNIGHT, "B": BISHOP, "R": ROOK,
+			"q": QUEEN, "n": KNIGHT, "b": BISHOP, "r": ROOK}
 		return p[string(alg[len(alg)-1])]
 	}
 	return NONE

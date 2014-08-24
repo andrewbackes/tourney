@@ -392,7 +392,7 @@ func (T *Tourney) GenerateGames() {
 
 // Print the settings of the tourney:
 func (T *Tourney) Print() {
-
+	// TODO: test seats
 	var summary string
 	summary = strings.Repeat("=", 80) + "\n Tourney Settings:\n" + strings.Repeat("=", 80) + "\n"
 	summary += " Event:        " + T.Event + "\n"

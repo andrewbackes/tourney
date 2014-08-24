@@ -320,9 +320,7 @@ func (G *Game) GameOver(looser Color, reason string) {
 *******************************************************************************/
 
 func (G *Game) MakeMove(m Move) error {
-	// TODO:	Other notation
 	// TODO: 	Proper error checking along the way
-	//			promotions
 
 	G.history = append(G.history, G.FEN())
 
