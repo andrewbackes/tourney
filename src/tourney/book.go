@@ -9,6 +9,9 @@
  moves from the games in the PGN.
 
  TODO:
+ 	- "Failed: Not enough unique positions" still allows the mirrored game to
+ 	  continue playing. should skip that one also.
+ 	-Count possible openings before playing
  	-adjust for carousel
  	-error handling
 
@@ -70,15 +73,12 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 		return nil
 	}
 	if T.Rounds%2 == 0 && GameIndex%2 == 1 && GameIndex > 0 {
+		if T.BookMoves > 0 && T.GameList[GameIndex-1].StartingFEN == "" {
+			return errors.New("No starting position to mirror.")
+		}
 		if err := CopyStartingPosition(&T.GameList[GameIndex-1], &T.GameList[GameIndex]); err != nil {
 			return err
 		}
-		/*
-			players := T.GameList[GameIndex].Player
-			T.GameList[GameIndex] = T.GameList[GameIndex-1]
-			T.GameList[GameIndex].Player = players
-		*/
-
 		return nil
 	}
 	var dummy Game
