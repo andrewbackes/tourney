@@ -286,7 +286,7 @@ func LoadFile(filename string) (*Tourney, error) {
 			fmt.Println("Failed:", err)
 			return nil, err
 		} else {
-			fmt.Println("Success.")
+			fmt.Println("Success...", len(T.BookPGN), "Openings")
 		}
 	} else {
 		fmt.Println("No opening book specified.")
