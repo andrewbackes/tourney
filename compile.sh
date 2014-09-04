@@ -1,7 +1,5 @@
-cd src/bitboard
-go build
-go install
-cd ../tourney
+export GOPATH=`pwd`
+cd src/tourney
 rm tourney
 go build
 ./tourney

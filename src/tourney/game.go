@@ -517,6 +517,7 @@ func (G *Game) resetTimeControl() {
 	G.timer = [2]int64{G.time, G.time}
 }
 
+// TODO: change this to return a Game not act on one.
 func (G *Game) initialize() error {
 	// Sets up the game so that its ready for white to make the first move
 
@@ -528,6 +529,13 @@ func (G *Game) initialize() error {
 	G.enPassant = 64
 	G.Completed = false
 	return nil
+}
+
+// Work in progress - should replace initialize():
+func NewGame() Game {
+	var g Game
+	g.initialize()
+	return g
 }
 
 /*******************************************************************************

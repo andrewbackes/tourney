@@ -52,7 +52,7 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			label: []string{"settings", "e"},
 			desc:  "Changes the settings of the current tourney.",
 			f: func() {
-				Setup(T[*selected])
+				//Setup(T[*selected])
 			}},
 		{
 			label: []string{"start", "s"},
@@ -76,7 +76,9 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			f: func() {
 				wg.Add(1)
 				go func() {
-					close(T[*selected].Done)
+					if blocks(T[*selected].Done) {
+						close(T[*selected].Done)
+					}
 					wg.Done()
 				}()
 			}},
@@ -129,6 +131,9 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			label: []string{"quit", "q"},
 			desc:  "Quits the program",
 			f: func() {
+				if blocks(T[*selected].Done) {
+					close(T[*selected].Done)
+				}
 				queQuit = true
 			}},
 		{
@@ -146,6 +151,31 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 					fmt.Println("\n\t", c.desc)
 				}
 				fmt.Println()
+			}},
+		{
+			label: []string{"host", "o"},
+			desc:  "Hosts and runs a tourney.",
+			f: func() {
+				wg.Add(1)
+				go func() {
+					T[*selected].Done = make(chan struct{})
+					if err := HostTourney(T[*selected]); err != nil {
+						fmt.Println(err)
+					}
+					wg.Done()
+				}()
+				return
+			}},
+		{
+			label: []string{"connect", "c"},
+			desc:  "Connects to a host running a tourney.",
+			f: func() {
+				wg.Add(1)
+				go func() {
+					ConnectAndPlay("127.0.0.1:9000")
+					wg.Done()
+				}()
+				return
 			}},
 	}
 

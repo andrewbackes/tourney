@@ -89,3 +89,14 @@ func main() {
 	// DEBUG:
 	fmt.Print("\nGoroutines: ", runtime.NumGoroutine(), "\n")
 }
+
+// Helper for common channel usage:
+func blocks(c chan struct{}) bool {
+	// until i can figure out a generic way to do this, this function will only support struct{} type
+	select {
+	case <-c:
+		return false
+	default:
+	}
+	return true
+}
