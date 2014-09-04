@@ -76,8 +76,8 @@ type Game struct {
 	ResultDetail string
 
 	// Logging:
-	LogFile   *os.File
-	LogBuffer string
+	logFile   *os.File
+	logBuffer string
 }
 
 /*******************************************************************************
@@ -92,10 +92,10 @@ func PlayGame(G *Game) error {
 	G.StartLog()
 	fmt.Println("Playing Game...")
 	// Start up the engines:
-	if err := G.Player[WHITE].Start(&G.LogBuffer); err != nil {
+	if err := G.Player[WHITE].Start(&G.logBuffer); err != nil {
 		return err
 	}
-	if err := G.Player[BLACK].Start(&G.LogBuffer); err != nil {
+	if err := G.Player[BLACK].Start(&G.logBuffer); err != nil {
 		return err
 	}
 	var state Status = RUNNING
@@ -771,13 +771,13 @@ func (G *Game) StartLog() error {
 		os.Remove(filename)
 	}
 	var err error
-	G.LogFile, err = os.Create(filename)
+	G.logFile, err = os.Create(filename)
 	if err != nil {
 		return err
 	}
 
 	// Give header information for the log file:
-	G.LogBuffer += fmt.Sprintln(G.Event) +
+	G.logBuffer += fmt.Sprintln(G.Event) +
 		fmt.Sprintln("Round ", G.Round) +
 		fmt.Sprintln(G.Player[WHITE].Name, "vs", G.Player[BLACK].Name) +
 		fmt.Sprintln(time.Now().Format("01/02/2006 15:04:05.000")) +
@@ -789,13 +789,13 @@ func (G *Game) StartLog() error {
 }
 
 func (G *Game) AppendLog() error {
-	if _, err := G.LogFile.WriteString(G.LogBuffer); err != nil {
+	if _, err := G.logFile.WriteString(G.logBuffer); err != nil {
 		return err
 	}
-	G.LogBuffer = ""
+	G.logBuffer = ""
 	return nil
 }
 
 func (G *Game) CloseLog() error {
-	return G.LogFile.Close()
+	return G.logFile.Close()
 }
