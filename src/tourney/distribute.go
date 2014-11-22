@@ -18,12 +18,13 @@
 package main
 
 import (
-	//"bufio"
-	"bytes"
-	"encoding/gob" //TODO: change to json
+	"bufio"
+	//"bytes"
+	"encoding/gob" //TODO: change to gob
 	"fmt"
+	"io"
 	"net"
-	//"os"
+	//"strings"
 )
 
 // Wrapper to send commands and objects back and forth:
@@ -33,11 +34,21 @@ type NetMessage struct {
 }
 
 func Send(what *NetMessage, where net.Conn) {
-	//Note: this works very easily because net.Conn impliments Reader and Writer.
+	// Note: this works very easily because net.Conn impliments Reader and Writer.
 
-	//Encode and write:
-	encoder := gob.NewEncoder(where)
-	encoder.Encode(what)
+	// Define what types of data we can encode:
+	gob.Register(Game{})
+	// Encode and write:
+	//encoder := gob.NewEncoder(where)
+	//err := encoder.Encode(what)
+
+	writer := bufio.NewWriter(where)
+	writer.WriteString("testing")
+	writer.Flush()
+
+	//if err != nil {
+	//	fmt.Println("Error encoding:", err.Error())
+	//}
 }
 
 /*******************************************************************************
@@ -165,20 +176,29 @@ func (CM *ClientManager) ReadAndExec() {
 
 // Listen to a particular socket:
 func (CM *ClientManager) Read(Client *net.Conn) error {
-	// TODO: return when the connection is closed.
-	decoder := gob.NewDecoder(*Client)
-	//for {
-	message := &NetMessage{}
-	//scanner := bufio.NewScanner(*Client)
-	//scanner.Scan()
-	//fmt.Println(scanner.Text())
-	decoder.Decode(message)
-	//CM.Incoming <- &message
-	fmt.Println(message)
-	//g := message.Object.(Game)
-	//fmt.Println(g)
-	//}
+	// TODO: is this loop taxing? YES!!!!!!!!
+	gob.Register(Game{})
+	//decoder := gob.NewDecoder(*Client)
+	reader := bufio.NewReader(*Client)
+	for {
+		fmt.Print(".")
+		if CM.ForcedStop() {
+			return nil
+		}
+		//message := NetMessage{}
+		//err := decoder.Decode(&message)
+		s, err := reader.ReadString('\n')
 
+		if err != nil {
+			if err == io.EOF {
+				//continue
+				//return nil
+			}
+			fmt.Println("Decoding error:", err.Error())
+		}
+		//CM.Incoming <- &message
+		fmt.Println(s)
+	}
 	return nil
 }
 
@@ -229,21 +249,24 @@ func ConnectAndPlay(address string) {
 	//encoder := gob.NewEncoder(os.Stdout)
 	//encoder.Encode(m)
 
-	var network bytes.Buffer //dummy
-	enc := gob.NewEncoder(&network)
-	dec := gob.NewDecoder(&network)
-	gob.Register(Game{})
-	err = enc.Encode(m)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	var m2 NetMessage
-	err = dec.Decode(&m2)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	fmt.Println(m2)
-	//Send(m, host)
+	/*
+		var network bytes.Buffer //dummy
+		enc := gob.NewEncoder(&network)
+		dec := gob.NewDecoder(&network)
+		gob.Register(Game{})
+		err = enc.Encode(m)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		var m2 NetMessage
+		err = dec.Decode(&m2)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Println(m2)
+	*/
+
+	Send(&m, host)
 	//netEncoder := gob.NewEncoder(host)
 	//netEncoder.Encode(m)
 

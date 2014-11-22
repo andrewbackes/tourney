@@ -71,6 +71,13 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 				return
 			}},
 		{
+			label: []string{"broadcast", "b"},
+			desc:  "Broadcasts the currently selected tourney over http port 8000.",
+			f: func() {
+
+				return
+			}},
+		{
 			label: []string{"stop", "p"},
 			desc:  "Stops the tourney after the next game completes.",
 			f: func() {
