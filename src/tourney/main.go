@@ -35,10 +35,6 @@ import (
 	"sync"
 )
 
-type Context struct {
-	Done chan struct{}
-}
-
 func main() {
 
 	// 5r1k/PP6/2p2n2/5P2/6pK/1R1B4/8/2R5 w - - 4 47
@@ -92,4 +88,15 @@ func main() {
 	wg.Wait()
 	// DEBUG:
 	fmt.Print("\nGoroutines: ", runtime.NumGoroutine(), "\n")
+}
+
+// Helper for common channel usage:
+func blocks(c chan struct{}) bool {
+	// until i can figure out a generic way to do this, this function will only support struct{} type
+	select {
+	case <-c:
+		return false
+	default:
+	}
+	return true
 }

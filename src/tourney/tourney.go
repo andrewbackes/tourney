@@ -90,6 +90,10 @@ type Tourney struct {
 	GameList []Game //list of all games in the tourney. populated when the tourney starts
 	//activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later time.
 	Done chan struct{}
+
+	//For distribution:
+	GameQue          chan Game
+	CompletedGameQue chan Game
 }
 
 func RunTourney(T *Tourney) error {
@@ -99,8 +103,8 @@ func RunTourney(T *Tourney) error {
 	for i, _ := range T.GameList {
 		select {
 		case <-T.Done:
-			break
 			//channel closed, so stop.
+			break
 		default:
 			//channel isnt closed, so keep playing
 			fmt.Println("Round", i+1, ":", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
@@ -286,7 +290,7 @@ func LoadFile(filename string) (*Tourney, error) {
 			fmt.Println("Failed:", err)
 			return nil, err
 		} else {
-			fmt.Println("Success.")
+			fmt.Println("Success (", len(T.BookPGN), "Openings ).")
 		}
 	} else {
 		fmt.Println("No opening book specified.")
@@ -418,7 +422,12 @@ func (T *Tourney) Print() {
 	fmt.Println(summary)
 }
 
-// Walks through the settings of a tournament so a .tourney file isnt required.
-func Setup(T *Tourney) {
-
+// Figures out if the tourney is complete:
+func (T *Tourney) Complete() bool {
+	for i, _ := range T.GameList {
+		if !T.GameList[i].Completed {
+			return false
+		}
+	}
+	return true
 }

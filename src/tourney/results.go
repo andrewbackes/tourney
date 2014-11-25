@@ -8,6 +8,9 @@
  Description: Functions that have to do with tourney records. Gathering the
  			  records, formatting, etc.
 
+TODO:
+	-Refactor. Too much similarity between functions. Combine.
+
 *******************************************************************************/
 
 package main
@@ -26,6 +29,19 @@ type Record struct {
 	Draws      int
 	Incomplete int
 	Order      string // w-l-d string. example: 10=11=01
+}
+
+type RecordRollup struct {
+	//TODO: need a high level summary
+	EngineRecords  []Record
+	MatchupRecords []Record
+}
+
+func NewRecordRollup(T *Tourney) *RecordRollup {
+	r := &RecordRollup{}
+	r.EngineRecords = EngineResults(T)
+	r.MatchupRecords = MatchupResults(T)
+	return r
 }
 
 // Returns the scores for each different matchup in the tourney:
