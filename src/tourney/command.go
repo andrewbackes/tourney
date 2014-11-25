@@ -74,7 +74,12 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			label: []string{"broadcast", "b"},
 			desc:  "Broadcasts the currently selected tourney over http port 8000.",
 			f: func() {
-
+				fmt.Println("Broadcasting http on port 8000.")
+				go func() {
+					if err := Broadcast(T[*selected]); err != nil {
+						fmt.Println(err)
+					}
+				}()
 				return
 			}},
 		{
