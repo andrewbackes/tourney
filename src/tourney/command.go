@@ -76,7 +76,7 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			f: func() {
 				fmt.Println("Broadcasting http on port 8000.")
 				go func() {
-					if err := Broadcast(T[*selected]); err != nil {
+					if err := Broadcast(T, selected); err != nil {
 						fmt.Println(err)
 					}
 				}()

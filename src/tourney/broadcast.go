@@ -8,7 +8,9 @@
  Description: Web broadcasting services.
 
  TODO:
+	-need to be able to disable the web server from within the program.
  	-Push move by move in games (Server-Sent).
+
 
 *******************************************************************************/
 
@@ -55,18 +57,19 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 	}
 }
 
-func Broadcast(T *Tourney) error {
+//func Broadcast(T *Tourney) error {
+func Broadcast(TList []*Tourney, Tindex *int) error {
 	//TODO: check that the tourney is valid
 
 	// Summary Requests:
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		renderTourneyPage(w, T)
+		renderTourneyPage(w, TList[*Tindex])
 	})
 
 	// Round Requests:
 	http.HandleFunc("/round/", func(w http.ResponseWriter, req *http.Request) {
 		request, _ := strconv.Atoi(strings.Trim(req.URL.Path[len("/round"):], "/"))
-		renderRoundPage(w, T, request)
+		renderRoundPage(w, TList[*Tindex], request)
 	})
 
 	// Start the server:
