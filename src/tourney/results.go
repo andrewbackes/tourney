@@ -10,6 +10,9 @@
 
 TODO:
 	-Refactor. Too much similarity between functions. Combine.
+	-Rework the result rollup in such a way that the html/template's are more
+	 user friendly.
+	-Use text/templates to display on screen results as well as save to files.
 
 *******************************************************************************/
 
@@ -33,12 +36,14 @@ type Record struct {
 
 type RecordRollup struct {
 	//TODO: need a high level summary
+	Info           *Tourney
 	EngineRecords  []Record
 	MatchupRecords []Record
 }
 
 func NewRecordRollup(T *Tourney) *RecordRollup {
 	r := &RecordRollup{}
+	r.Info = T
 	r.EngineRecords = EngineResults(T)
 	r.MatchupRecords = MatchupResults(T)
 	return r

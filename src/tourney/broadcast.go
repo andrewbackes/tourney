@@ -16,22 +16,40 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
+func renderTemplate(w http.ResponseWriter, page string, obj interface{}) {
+	tmpl, err := template.ParseFiles(page)
+	if err != nil {
+		fmt.Println(err)
+		io.WriteString(w, fmt.Sprint("Error opening '", page, "' - ", err))
+		return
+	}
+	err = tmpl.Execute(w, obj)
+	if err != nil {
+		fmt.Print(err)
+		io.WriteString(w, fmt.Sprint("Error executing parse on '", page, "' - ", err))
+		return
+	}
+}
+
 func renderTourneyPage(w http.ResponseWriter, T *Tourney) {
-	io.WriteString(w, SummarizeResults(T))
-	io.WriteString(w, SummarizeGames(T))
+	//io.WriteString(w, SummarizeResults(T))
+	//io.WriteString(w, SummarizeGames(T))
+	Records := NewRecordRollup(T)
+	renderTemplate(w, "templates/tourney.html", Records)
 }
 
 func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
-
 	if round < len(T.GameList) && round >= 0 {
-		io.WriteString(w, "Round: "+strconv.Itoa(round))
-		io.WriteString(w, fmt.Sprint(T.GameList[round].MoveList))
+		//io.WriteString(w, "Round: "+strconv.Itoa(round))
+		//io.WriteString(w, fmt.Sprint(T.GameList[round].MoveList))
+		renderTemplate(w, "templates/game.html", T.GameList[round])
 	} else {
 		io.WriteString(w, "That is not a valid round in this Tourney.")
 	}

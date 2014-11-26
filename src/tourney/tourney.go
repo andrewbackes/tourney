@@ -18,6 +18,7 @@
  	 Like: 35000-25000-10000
  	-Saving .tourney / .detail / .result / .pgn files when other already exist
 	 should make a xxx1.xxx xxx2.xxx sort of thing.
+	-Use text/template to save result files.
 
  BUGS:
  	-There may be an issue with things like: changing fields in the .tourney
