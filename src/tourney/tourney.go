@@ -12,7 +12,7 @@
  TODO:
  	-Allow for games to be distributed to multiple machines to be played.
  		-Each machine will have to be benchmarked to determine equivalent
- 		 time control parameters.
+ 		 Time control parameters.
  	-More tournament parameters
  	-Formatting results needs to be able to handle big numbers.
  	 Like: 35000-25000-10000
@@ -40,7 +40,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	//"time"
+	//"Time"
 	//"runtime"
 )
 
@@ -68,17 +68,17 @@ type Tourney struct {
 
 	Carousel bool //The order the engines play against eachother
 
-	// Time control (Moves, time, repeating):
-	Moves     int64 // moves per time control
-	Time      int64 // time per time control in milliseconds
-	BonusTime int64 // bonus time added after each move
-	Repeating bool  // restart time after moves hits
+	// Time control (Moves, Time, Repeating):
+	Moves     int64 // Moves per Time control
+	Time      int64 // Time per Time control in milliseconds
+	BonusTime int64 // bonus Time added after each move
+	Repeating bool  // restart Time after Moves hits
 
 	Rounds int //number of games each engine will play
 
 	// Opening book information:
 	BookLocation string // File location of the book
-	BookMoves    int    // Number of moves to use out of the book
+	BookMoves    int    // Number of Moves to use out of the book
 	BookPGN      []Game
 	RandomBook   bool
 
@@ -89,7 +89,7 @@ type Tourney struct {
 	//StateFlow chan Status
 	//Flow     Context
 	GameList []Game //list of all games in the tourney. populated when the tourney starts
-	//activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later time.
+	//activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later Time.
 	Done chan struct{}
 
 	//For distribution:
@@ -348,14 +348,14 @@ func (T *Tourney) GenerateGames() {
 	var def Game
 	def.initialize()
 	def.Event = T.Event
-	def.time = T.Time
-	def.moves = T.Moves
-	def.repeating = T.Repeating
+	def.Time = T.Time
+	def.Moves = T.Moves
+	def.Repeating = T.Repeating
 	def.Completed = false
 	def.resetTimeControl()
-	def.board.Reset()
-	def.castleRights = [2][2]bool{{true, true}, {true, true}}
-	def.enPassant = 64
+	def.Board.Reset()
+	def.CastleRights = [2][2]bool{{true, true}, {true, true}}
+	def.EnPassant = 64
 	def.Completed = false
 
 	for t := 0; t < T.TestSeats; t++ {
@@ -405,7 +405,7 @@ func (T *Tourney) Print() {
 	summary += " Date:           " + T.Date + "\n"
 	summary += " Rounds:         " + strconv.Itoa(T.Rounds) + "\n"
 	summary += " Gauntlet Seats: " + strconv.Itoa(T.TestSeats) + "\n"
-	// TODO: add remaining time for non repeating. use ':'
+	// TODO: add remaining Time for non Repeating. use ':'
 	summary += " Time control:   " + strconv.FormatInt(T.Moves, 10) + "/" +
 		strconv.FormatInt(T.Time, 10) + " +" +
 		strconv.FormatInt(T.BonusTime, 10) + "\n\n"
