@@ -76,13 +76,18 @@ func HostTourney(T *Tourney) error {
 
 	freeworker := <-M.WorkerQue
 
-	game := T.GameList[7]
+	game := T.GameList[20]
 	fmt.Println(game)
 	game.PrintHUD()
 
 	var completedGame Game
 	fmt.Println("Attempting to play game.")
-	freeworker.Call("Worker.PlayGame", game, &completedGame)
+
+	err := freeworker.Call("Worker.PlayGame", game, &completedGame)
+	if err != nil {
+		fmt.Println("Internal error:", err)
+	}
+
 	fmt.Println("Done playing game.")
 
 	fmt.Println(completedGame)

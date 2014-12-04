@@ -196,7 +196,7 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 	// Get all the squares that have our piece on it from the move list:
 	color := G.toMove()
 	var eligableSquares []string
-	bits := G.Board.pieceBB[color][pieceMap[piece]]
+	bits := G.Board.PieceBB[color][pieceMap[piece]]
 	for bits != 0 {
 		bit := bitscan(bits)
 		sq := getAlg(bit)

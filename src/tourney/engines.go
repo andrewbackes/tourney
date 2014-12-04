@@ -402,7 +402,7 @@ func (U UCI) SetBoard(movesSoFar []Move) string {
 
 	var pos string
 	if len(movesSoFar) > 0 {
-		pos = "position startpos Moves " + strings.Join(ml, " ")
+		pos = "position startpos moves " + strings.Join(ml, " ")
 	} else {
 		pos = "position startpos"
 	}

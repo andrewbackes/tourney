@@ -250,8 +250,8 @@ func InsufficientMaterial(G *Game) bool {
 	*/
 
 	loneKing := []bool{
-		G.Board.Occupied(WHITE)&G.Board.pieceBB[WHITE][KING] == G.Board.Occupied(WHITE),
-		G.Board.Occupied(BLACK)&G.Board.pieceBB[BLACK][KING] == G.Board.Occupied(BLACK)}
+		G.Board.Occupied(WHITE)&G.Board.PieceBB[WHITE][KING] == G.Board.Occupied(WHITE),
+		G.Board.Occupied(BLACK)&G.Board.PieceBB[BLACK][KING] == G.Board.Occupied(BLACK)}
 
 	if !loneKing[WHITE] && !loneKing[BLACK] {
 		return false
@@ -265,16 +265,16 @@ func InsufficientMaterial(G *Game) bool {
 				return true
 			}
 			// King vs King & Knight
-			if popcount(G.Board.pieceBB[otherColor][KNIGHT]) == 1 {
-				mask := G.Board.pieceBB[otherColor][KING] | G.Board.pieceBB[otherColor][KNIGHT]
+			if popcount(G.Board.PieceBB[otherColor][KNIGHT]) == 1 {
+				mask := G.Board.PieceBB[otherColor][KING] | G.Board.PieceBB[otherColor][KNIGHT]
 				occuppied := G.Board.Occupied(otherColor)
 				if occuppied&mask == occuppied {
 					return true
 				}
 			}
 			// King vs King & Bishop
-			if popcount(G.Board.pieceBB[otherColor][BISHOP]) == 1 {
-				mask := G.Board.pieceBB[otherColor][KING] | G.Board.pieceBB[otherColor][BISHOP]
+			if popcount(G.Board.PieceBB[otherColor][BISHOP]) == 1 {
+				mask := G.Board.PieceBB[otherColor][KING] | G.Board.PieceBB[otherColor][BISHOP]
 				occuppied := G.Board.Occupied(otherColor)
 				if occuppied&mask == occuppied {
 					return true
@@ -282,13 +282,13 @@ func InsufficientMaterial(G *Game) bool {
 			}
 		}
 		// King vs King & oppoSite bishop
-		kingBishopMask := G.Board.pieceBB[color][KING] | G.Board.pieceBB[color][BISHOP]
-		if (G.Board.Occupied(color)&kingBishopMask == G.Board.Occupied(color)) && (popcount(G.Board.pieceBB[color][BISHOP]) == 1) {
-			mask := G.Board.pieceBB[otherColor][KING] | G.Board.pieceBB[otherColor][BISHOP]
+		kingBishopMask := G.Board.PieceBB[color][KING] | G.Board.PieceBB[color][BISHOP]
+		if (G.Board.Occupied(color)&kingBishopMask == G.Board.Occupied(color)) && (popcount(G.Board.PieceBB[color][BISHOP]) == 1) {
+			mask := G.Board.PieceBB[otherColor][KING] | G.Board.PieceBB[otherColor][BISHOP]
 			occuppied := G.Board.Occupied(otherColor)
-			if (occuppied&mask == occuppied) && (popcount(G.Board.pieceBB[otherColor][BISHOP]) == 1) {
-				color1 := bitscan(G.Board.pieceBB[color][BISHOP]) % 2
-				color2 := bitscan(G.Board.pieceBB[otherColor][BISHOP]) % 2
+			if (occuppied&mask == occuppied) && (popcount(G.Board.PieceBB[otherColor][BISHOP]) == 1) {
+				color1 := bitscan(G.Board.PieceBB[color][BISHOP]) % 2
+				color2 := bitscan(G.Board.PieceBB[otherColor][BISHOP]) % 2
 				if color1 == color2 {
 					return true
 				}
@@ -336,7 +336,7 @@ func (G *Game) MakeMove(m Move) error {
 
 	if capturedPiece != NONE {
 		// remove captured piece:
-		G.Board.pieceBB[capturedColor][capturedPiece] ^= (1 << to)
+		G.Board.PieceBB[capturedColor][capturedPiece] ^= (1 << to)
 		G.FiftyRule = 0
 	}
 
@@ -346,14 +346,14 @@ func (G *Game) MakeMove(m Move) error {
 	}
 
 	//move piece:
-	G.Board.pieceBB[color][piece] ^= ((1 << from) | (1 << to))
+	G.Board.PieceBB[color][piece] ^= ((1 << from) | (1 << to))
 
 	// Castle:
 	if piece == KING {
 		if from == (E1+56*uint8(color)) && (to == (G1 + 56*uint8(color))) {
-			G.Board.pieceBB[color][ROOK] ^= (1 << (H1 + 56*uint8(color))) | (1 << (F1 + 56*uint8(color)))
+			G.Board.PieceBB[color][ROOK] ^= (1 << (H1 + 56*uint8(color))) | (1 << (F1 + 56*uint8(color)))
 		} else if from == (E1+56*uint8(color)) && to == (C1+56*uint8(color)) {
-			G.Board.pieceBB[color][ROOK] ^= (1 << (A1 + 56*uint8(color))) | (1 << (D1 + 56*uint8(color)))
+			G.Board.PieceBB[color][ROOK] ^= (1 << (A1 + 56*uint8(color))) | (1 << (D1 + 56*uint8(color)))
 		}
 	}
 
@@ -373,9 +373,9 @@ func (G *Game) MakeMove(m Move) error {
 		// Handle en Passant capture:
 		if (G.EnPassant != 64) && (to == G.EnPassant) && (int(to)-int(from)%8 != 0) {
 			if color == WHITE {
-				G.Board.pieceBB[BLACK][PAWN] ^= (1 << (to - 8))
+				G.Board.PieceBB[BLACK][PAWN] ^= (1 << (to - 8))
 			} else {
-				G.Board.pieceBB[WHITE][PAWN] ^= (1 << (to + 8))
+				G.Board.PieceBB[WHITE][PAWN] ^= (1 << (to + 8))
 			}
 		}
 
@@ -390,8 +390,8 @@ func (G *Game) MakeMove(m Move) error {
 		promotes := getPromotion(m.Algebraic)
 		// Handle Promotions:
 		if promotes != NONE {
-			G.Board.pieceBB[color][piece] ^= (1 << to)    // remove pawn
-			G.Board.pieceBB[color][promotes] ^= (1 << to) // add promoted piece
+			G.Board.PieceBB[color][piece] ^= (1 << to)    // remove pawn
+			G.Board.PieceBB[color][promotes] ^= (1 << to) // add promoted piece
 		}
 	} else {
 		G.EnPassant = 64
@@ -506,7 +506,7 @@ func (G *Game) LoadFEN(fen string) error {
 		k := parsedBoard[pos:(pos + 1)]
 		_, ok := piece[k]
 		if ok {
-			G.Board.pieceBB[color[k]][piece[k]] |= (1 << uint(63-pos))
+			G.Board.PieceBB[color[k]][piece[k]] |= (1 << uint(63-pos))
 		}
 	}
 	return nil
@@ -578,7 +578,7 @@ func (G *Game) PrintHUD() {
 		blankSquare := true
 		for j := PAWN; j <= KING; j = j + 1 {
 			for color := Color(0); color <= BLACK; color++ {
-				if ((1 << square) & G.Board.pieceBB[color][j]) != 0 {
+				if ((1 << square) & G.Board.PieceBB[color][j]) != 0 {
 					if lastMoveDestination == square {
 						fmt.Print("[", abbrev[color][j], "]")
 					} else {
@@ -664,7 +664,7 @@ func FormatPiecesInPlay(G *Game) [2]string {
 	var scores [2]int
 	for color := WHITE; color <= BLACK; color++ {
 		for p := PAWN; p <= KING; p++ {
-			inplay := int(popcount(G.Board.pieceBB[color][p]))
+			inplay := int(popcount(G.Board.PieceBB[color][p]))
 			dead := counts[p] - inplay
 			scores[color] += (inplay * values[p])
 			if dead < 0 {
@@ -704,7 +704,7 @@ func (G *Game) toMove() Color {
 func (G *Game) isInCheck(toMove Color) bool {
 	// TODO: see isAttacked() notes
 	notToMove := []Color{BLACK, WHITE}[toMove]
-	kingsq := bitscan(G.Board.pieceBB[toMove][KING])
+	kingsq := bitscan(G.Board.PieceBB[toMove][KING])
 	return G.isAttacked(kingsq, notToMove)
 }
 
@@ -715,17 +715,17 @@ func (G *Game) isAttacked(square uint, byWho Color) bool {
 	defender := []Color{BLACK, WHITE}[byWho]
 
 	// other king attacks:
-	if (king_moves[square] & G.Board.pieceBB[byWho][KING]) != 0 {
+	if (king_moves[square] & G.Board.PieceBB[byWho][KING]) != 0 {
 		return true
 	}
 
 	// pawn attacks:
-	if pawn_captures[defender][square]&G.Board.pieceBB[byWho][PAWN] != 0 {
+	if pawn_captures[defender][square]&G.Board.PieceBB[byWho][PAWN] != 0 {
 		return true
 	}
 
 	// knight attacks:
-	if knight_moves[square]&G.Board.pieceBB[byWho][KNIGHT] != 0 {
+	if knight_moves[square]&G.Board.PieceBB[byWho][KNIGHT] != 0 {
 		return true
 	}
 	// diagonal attacks:
@@ -733,7 +733,7 @@ func (G *Game) isAttacked(square uint, byWho Color) bool {
 	scan := [4]func(uint64) uint{BSF, BSF, BSR, BSR}
 	for i := 0; i < 4; i++ {
 		blockerIndex := scan[i](direction[i][square] & G.Board.Occupied(BOTH))
-		if (1<<blockerIndex)&(G.Board.pieceBB[byWho][BISHOP]|G.Board.pieceBB[byWho][QUEEN]) != 0 {
+		if (1<<blockerIndex)&(G.Board.PieceBB[byWho][BISHOP]|G.Board.PieceBB[byWho][QUEEN]) != 0 {
 			return true
 		}
 	}
@@ -741,7 +741,7 @@ func (G *Game) isAttacked(square uint, byWho Color) bool {
 	direction = [4][65]uint64{north, west, south, east}
 	for i := 0; i < 4; i++ {
 		blockerIndex := scan[i](direction[i][square] & G.Board.Occupied(BOTH))
-		if (1<<blockerIndex)&(G.Board.pieceBB[byWho][ROOK]|G.Board.pieceBB[byWho][QUEEN]) != 0 {
+		if (1<<blockerIndex)&(G.Board.PieceBB[byWho][ROOK]|G.Board.PieceBB[byWho][QUEEN]) != 0 {
 			return true
 		}
 	}

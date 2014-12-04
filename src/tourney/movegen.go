@@ -47,7 +47,7 @@ func (G *Game) MoveGen() []Move {
 	notToMove := []Color{BLACK, WHITE}[toMove] // too bad !toMove doesnt work =(
 
 	//Pawns:
-	pieces = G.Board.pieceBB[toMove][PAWN] &^ pawns_spawn[notToMove] //&^ = AND_NOT
+	pieces = G.Board.PieceBB[toMove][PAWN] &^ pawns_spawn[notToMove] //&^ = AND_NOT
 	for pieces != 0 {
 		from := bitscan(pieces)
 
@@ -79,7 +79,7 @@ func (G *Game) MoveGen() []Move {
 		pieces ^= (1 << from)
 	}
 	// Promotions:
-	pieces = G.Board.pieceBB[toMove][PAWN] & pawns_spawn[notToMove]
+	pieces = G.Board.PieceBB[toMove][PAWN] & pawns_spawn[notToMove]
 	for pieces != 0 {
 		from := bitscan(pieces)
 		destinations := pawn_advances[toMove][from] &^ G.Board.Occupied(BOTH)
@@ -98,7 +98,7 @@ func (G *Game) MoveGen() []Move {
 	}
 
 	//Knights:
-	pieces = G.Board.pieceBB[toMove][KNIGHT]
+	pieces = G.Board.PieceBB[toMove][KNIGHT]
 	for pieces != 0 {
 		from := bitscan(pieces)
 		destinations := knight_moves[from] &^ G.Board.Occupied(toMove)
@@ -111,7 +111,7 @@ func (G *Game) MoveGen() []Move {
 	}
 
 	// Bishops/Queens:
-	pieces = G.Board.pieceBB[toMove][BISHOP] | G.Board.pieceBB[toMove][QUEEN]
+	pieces = G.Board.PieceBB[toMove][BISHOP] | G.Board.PieceBB[toMove][QUEEN]
 	direction := [4][65]uint64{ne, nw, se, sw}
 	scan := [4]func(uint64) uint{BSF, BSF, BSR, BSR}
 	for pieces != 0 {
@@ -131,7 +131,7 @@ func (G *Game) MoveGen() []Move {
 	}
 
 	// Rooks/Queens:
-	pieces = G.Board.pieceBB[toMove][ROOK] | G.Board.pieceBB[toMove][QUEEN]
+	pieces = G.Board.PieceBB[toMove][ROOK] | G.Board.PieceBB[toMove][QUEEN]
 	direction = [4][65]uint64{north, west, south, east}
 	scan = [4]func(uint64) uint{BSF, BSF, BSR, BSR}
 	for pieces != 0 {
@@ -151,7 +151,7 @@ func (G *Game) MoveGen() []Move {
 	}
 
 	// Kings:
-	pieces = G.Board.pieceBB[toMove][KING]
+	pieces = G.Board.PieceBB[toMove][KING]
 	{
 		from := bitscan(pieces)
 		destinations := king_moves[from] &^ G.Board.Occupied(toMove)
