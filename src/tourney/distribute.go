@@ -1,3 +1,7 @@
+//
+// DEPRECIATED. REPLACED WITH worker.go AND workmanager.go
+// LEFT IN PROJECT FOR REFERENCE ONLY.
+//
 /*******************************************************************************
 
  Project: Tourney
@@ -17,17 +21,19 @@
 
 package main
 
-import (
-	"bufio"
-	//"bytes"
-	"encoding/gob" //TODO: change to gob
-	"fmt"
-	"io"
-	"net"
-	//"strings"
-)
+//import (
+//"bufio"
+//"bytes"
+//"encoding/gob" //TODO: change to gob
+//"fmt"
+//"io"
+//"net"
+//"strings"
+
+//)
 
 // Wrapper to send commands and objects back and forth:
+/*
 type NetMessage struct {
 	Command string
 	Object  interface{}
@@ -50,13 +56,13 @@ func Send(what *NetMessage, where net.Conn) {
 	//	fmt.Println("Error encoding:", err.Error())
 	//}
 }
-
+*/
 /*******************************************************************************
 
 	Hosting:
 
 *******************************************************************************/
-
+/*
 // Host object:
 type ClientManager struct {
 	List       []net.Conn
@@ -73,8 +79,10 @@ func NewClientManager() *ClientManager {
 	}
 	return CM
 }
-
+*/
 // Primary function:
+
+/*
 func HostTourney(T *Tourney) error {
 
 	// Generate the list of games to pull from:
@@ -111,7 +119,7 @@ func HostTourney(T *Tourney) error {
 
 		// Stop condition:
 		if T.Complete() {
-			// TODO: if the GameQue is empty but there are noncompleted games,
+			// TODO: if the GameQue is empty but there are incomplete games,
 			//		 add the noncompleted games to the que again.
 			if CM.ForcedStop() {
 				close(T.Done) // TODO: this may cause problems with user typing stop?
@@ -122,7 +130,9 @@ func HostTourney(T *Tourney) error {
 
 	return nil
 }
+*/
 
+/*
 // Wait for clients to connect then assign them a game to play.
 func (CM *ClientManager) ListenAndServe(T *Tourney) {
 
@@ -218,6 +228,8 @@ func (CM *ClientManager) ForcedStop() bool {
 	return false
 }
 
+*/
+
 /*******************************************************************************
 
 	Client:
@@ -225,49 +237,52 @@ func (CM *ClientManager) ForcedStop() bool {
 *******************************************************************************/
 
 // Establish a connection to the host, then do what the host says:
+/*
 func ConnectAndPlay(address string) {
 
-	// First connect to the host:
-	fmt.Print("\nConnecting to " + address + "... ")
-	host, err := net.Dial("tcp", address)
+		// First connect to the host:
+		fmt.Print("\nConnecting to " + address + "... ")
+		host, err := net.Dial("tcp", address)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		defer host.Close()
+		fmt.Println("Success.")
+
+		// Second start playing:
+
+		//testing:
+		var g Game
+		g.initialize()
+		m := NetMessage{Command: "NewGame", Object: g}
+
+*/
+//fmt.Println(m.Object)
+
+//fmt.Println("ENCODED:")
+//encoder := gob.NewEncoder(os.Stdout)
+//encoder.Encode(m)
+
+/*
+	var network bytes.Buffer //dummy
+	enc := gob.NewEncoder(&network)
+	dec := gob.NewDecoder(&network)
+	gob.Register(Game{})
+	err = enc.Encode(m)
 	if err != nil {
 		fmt.Println(err.Error())
-		return
 	}
-	defer host.Close()
-	fmt.Println("Success.")
+	var m2 NetMessage
+	err = dec.Decode(&m2)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(m2)
+*/
 
-	// Second start playing:
+//Send(&m, host)
+//netEncoder := gob.NewEncoder(host)
+//netEncoder.Encode(m)
 
-	//testing:
-	var g Game
-	g.initialize()
-	m := NetMessage{Command: "NewGame", Object: g}
-	//fmt.Println(m.Object)
-
-	//fmt.Println("ENCODED:")
-	//encoder := gob.NewEncoder(os.Stdout)
-	//encoder.Encode(m)
-
-	/*
-		var network bytes.Buffer //dummy
-		enc := gob.NewEncoder(&network)
-		dec := gob.NewDecoder(&network)
-		gob.Register(Game{})
-		err = enc.Encode(m)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		var m2 NetMessage
-		err = dec.Decode(&m2)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		fmt.Println(m2)
-	*/
-
-	Send(&m, host)
-	//netEncoder := gob.NewEncoder(host)
-	//netEncoder.Encode(m)
-
-}
+//}

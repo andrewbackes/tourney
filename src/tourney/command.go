@@ -74,7 +74,7 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			label: []string{"broadcast", "b"},
 			desc:  "Broadcasts the currently selected tourney over http port 8000.",
 			f: func() {
-				fmt.Println("Broadcasting http on port 8000.")
+				fmt.Println("Broadcasting http on port 8080.")
 				go func() {
 					if err := Broadcast(T, selected); err != nil {
 						fmt.Println(err)
@@ -183,7 +183,7 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			f: func() {
 				wg.Add(1)
 				go func() {
-					ConnectAndPlay("127.0.0.1:9000")
+					ConnectAndWait("127.0.0.1:9000")
 					wg.Done()
 				}()
 				return

@@ -11,7 +11,6 @@
 	-need to be able to disable the web server from within the program.
  	-Push move by move in games (Server-Sent).
 
-
 *******************************************************************************/
 
 package main
@@ -34,7 +33,7 @@ func renderTemplate(w http.ResponseWriter, page string, obj interface{}) {
 	}
 	err = tmpl.Execute(w, obj)
 	if err != nil {
-		fmt.Print(err)
+		fmt.Println(err)
 		io.WriteString(w, fmt.Sprint("Error executing parse on '", page, "' - ", err))
 		return
 	}
@@ -74,7 +73,7 @@ func Broadcast(TList []*Tourney, Tindex *int) error {
 
 	// Start the server:
 	// TODO: allow the server to be shut down.
-	err := http.ListenAndServe(":8000", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		return err
 	}
