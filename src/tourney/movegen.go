@@ -47,17 +47,17 @@ func (G *Game) MoveGen() []Move {
 	notToMove := []Color{BLACK, WHITE}[toMove] // too bad !toMove doesnt work =(
 
 	//Pawns:
-	pieces = G.board.pieceBB[toMove][PAWN] &^ pawns_spawn[notToMove] //&^ = AND_NOT
+	pieces = G.Board.PieceBB[toMove][PAWN] &^ pawns_spawn[notToMove] //&^ = AND_NOT
 	for pieces != 0 {
 		from := bitscan(pieces)
 
 		//advances:
-		advance := pawn_advances[toMove][from] &^ G.board.Occupied(BOTH)
+		advance := pawn_advances[toMove][from] &^ G.Board.Occupied(BOTH)
 		if advance != 0 {
 			to := bitscan(advance)
 			list = append(list, getMove(from, to))
 
-			advance = pawn_double_advances[toMove][from] &^ G.board.Occupied(BOTH)
+			advance = pawn_double_advances[toMove][from] &^ G.Board.Occupied(BOTH)
 			if advance != 0 {
 				to = bitscan(advance)
 				list = append(list, getMove(from, to))
@@ -66,10 +66,10 @@ func (G *Game) MoveGen() []Move {
 
 		//captures:
 		var enpas uint64
-		if G.enPassant != 64 {
-			enpas = (1 << G.enPassant)
+		if G.EnPassant != 64 {
+			enpas = (1 << G.EnPassant)
 		}
-		captures := pawn_captures[toMove][from] & (G.board.Occupied(notToMove) | enpas)
+		captures := pawn_captures[toMove][from] & (G.Board.Occupied(notToMove) | enpas)
 		for captures != 0 {
 			to := bitscan(captures)
 			list = append(list, getMove(from, to))
@@ -79,11 +79,11 @@ func (G *Game) MoveGen() []Move {
 		pieces ^= (1 << from)
 	}
 	// Promotions:
-	pieces = G.board.pieceBB[toMove][PAWN] & pawns_spawn[notToMove]
+	pieces = G.Board.PieceBB[toMove][PAWN] & pawns_spawn[notToMove]
 	for pieces != 0 {
 		from := bitscan(pieces)
-		destinations := pawn_advances[toMove][from] &^ G.board.Occupied(BOTH)
-		destinations |= pawn_captures[toMove][from] & G.board.Occupied(notToMove)
+		destinations := pawn_advances[toMove][from] &^ G.Board.Occupied(BOTH)
+		destinations |= pawn_captures[toMove][from] & G.Board.Occupied(notToMove)
 		for destinations != 0 {
 			to := bitscan(destinations)
 			p := []string{"q", "r", "b", "n"}
@@ -98,10 +98,10 @@ func (G *Game) MoveGen() []Move {
 	}
 
 	//Knights:
-	pieces = G.board.pieceBB[toMove][KNIGHT]
+	pieces = G.Board.PieceBB[toMove][KNIGHT]
 	for pieces != 0 {
 		from := bitscan(pieces)
-		destinations := knight_moves[from] &^ G.board.Occupied(toMove)
+		destinations := knight_moves[from] &^ G.Board.Occupied(toMove)
 		for destinations != 0 {
 			to := bitscan(destinations)
 			list = append(list, getMove(from, to))
@@ -111,16 +111,16 @@ func (G *Game) MoveGen() []Move {
 	}
 
 	// Bishops/Queens:
-	pieces = G.board.pieceBB[toMove][BISHOP] | G.board.pieceBB[toMove][QUEEN]
+	pieces = G.Board.PieceBB[toMove][BISHOP] | G.Board.PieceBB[toMove][QUEEN]
 	direction := [4][65]uint64{ne, nw, se, sw}
 	scan := [4]func(uint64) uint{BSF, BSF, BSR, BSR}
 	for pieces != 0 {
 		from := bitscan(pieces)
 		for i := 0; i < 4; i++ {
 			destinations := direction[i][from]
-			blockerIndex := scan[i](destinations & G.board.Occupied(BOTH))
+			blockerIndex := scan[i](destinations & G.Board.Occupied(BOTH))
 			destinations ^= direction[i][blockerIndex]
-			destinations &^= G.board.Occupied(toMove)
+			destinations &^= G.Board.Occupied(toMove)
 			for destinations != 0 {
 				to := bitscan(destinations)
 				list = append(list, getMove(from, to))
@@ -131,16 +131,16 @@ func (G *Game) MoveGen() []Move {
 	}
 
 	// Rooks/Queens:
-	pieces = G.board.pieceBB[toMove][ROOK] | G.board.pieceBB[toMove][QUEEN]
+	pieces = G.Board.PieceBB[toMove][ROOK] | G.Board.PieceBB[toMove][QUEEN]
 	direction = [4][65]uint64{north, west, south, east}
 	scan = [4]func(uint64) uint{BSF, BSF, BSR, BSR}
 	for pieces != 0 {
 		from := bitscan(pieces)
 		for i := 0; i < 4; i++ {
 			destinations := direction[i][from]
-			blockerIndex := scan[i](destinations & G.board.Occupied(BOTH))
+			blockerIndex := scan[i](destinations & G.Board.Occupied(BOTH))
 			destinations ^= direction[i][blockerIndex]
-			destinations &^= G.board.Occupied(toMove)
+			destinations &^= G.Board.Occupied(toMove)
 			for destinations != 0 {
 				to := bitscan(destinations)
 				list = append(list, getMove(from, to))
@@ -151,18 +151,18 @@ func (G *Game) MoveGen() []Move {
 	}
 
 	// Kings:
-	pieces = G.board.pieceBB[toMove][KING]
+	pieces = G.Board.PieceBB[toMove][KING]
 	{
 		from := bitscan(pieces)
-		destinations := king_moves[from] &^ G.board.Occupied(toMove)
+		destinations := king_moves[from] &^ G.Board.Occupied(toMove)
 		for destinations != 0 {
 			to := bitscan(destinations)
 			list = append(list, getMove(from, to))
 			destinations ^= (1 << to)
 		}
 		// Castles:
-		if G.castleRights[toMove][SHORT] == true {
-			if BSR(east[from]&G.board.Occupied(BOTH)) == []uint{H1, H8}[toMove] {
+		if G.CastleRights[toMove][SHORT] == true {
+			if BSR(east[from]&G.Board.Occupied(BOTH)) == []uint{H1, H8}[toMove] {
 				if (G.isAttacked([]uint{F1, F8}[toMove], notToMove) == false) &&
 					(G.isAttacked([]uint{G1, G8}[toMove], notToMove) == false) &&
 					(G.isAttacked([]uint{E1, E8}[toMove], notToMove) == false) {
@@ -170,8 +170,8 @@ func (G *Game) MoveGen() []Move {
 				}
 			}
 		}
-		if G.castleRights[toMove][LONG] == true {
-			if BSF(west[from]&G.board.Occupied(BOTH)) == []uint{A1, A8}[toMove] {
+		if G.CastleRights[toMove][LONG] == true {
+			if BSF(west[from]&G.Board.Occupied(BOTH)) == []uint{A1, A8}[toMove] {
 				if (G.isAttacked([]uint{D1, D8}[toMove], notToMove) == false) &&
 					(G.isAttacked([]uint{C1, C8}[toMove], notToMove) == false) &&
 					(G.isAttacked([]uint{E1, E8}[toMove], notToMove) == false) {

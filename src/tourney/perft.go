@@ -159,7 +159,7 @@ func divide(G Game, depth int) {
 
 func isCastle(G *Game, m Move) bool {
 	from, _ := getIndex(m.Algebraic)
-	_, p := G.board.onSquare(from)
+	_, p := G.Board.onSquare(from)
 	if p == KING {
 		if (m.Algebraic == "e1g1") || (m.Algebraic == "e1c1") || (m.Algebraic == "e8g8") || (m.Algebraic == "e8c8") {
 			return true
@@ -170,7 +170,7 @@ func isCastle(G *Game, m Move) bool {
 
 func isCapture(G *Game, m Move) bool {
 	_, to := getIndex(m.Algebraic)
-	_, cap := G.board.onSquare(to)
+	_, cap := G.Board.onSquare(to)
 	return (cap != NONE)
 }
 
@@ -180,12 +180,12 @@ func isPromotion(G *Game, m Move) bool {
 }
 
 func isEnPassant(G *Game, m Move) bool {
-	if G.enPassant == 64 {
+	if G.EnPassant == 64 {
 		return false
 	}
 	from, to := getIndex(m.Algebraic)
-	_, p := G.board.onSquare(from)
-	return (p == PAWN) && (to == G.enPassant) && ((from-to)%8 != 0)
+	_, p := G.Board.onSquare(from)
+	return (p == PAWN) && (to == G.EnPassant) && ((from-to)%8 != 0)
 }
 
 func toInt(b bool) uint64 {

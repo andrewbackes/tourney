@@ -105,7 +105,7 @@ type Board struct {
 	// this includes all bitboards
 
 	// it was turning into too much of a pain to use the type BB:
-	pieceBB [2][6]uint64 //[player][piece]
+	PieceBB [2][6]uint64 //[player][piece]
 
 }
 
@@ -122,7 +122,7 @@ func (B *Board) Print() {
 		blankSquare := true
 		for j := PAWN; j <= KING; j = j + 1 {
 			for color := Color(0); color <= BLACK; color++ {
-				if ((1 << square) & B.pieceBB[color][j]) != 0 {
+				if ((1 << square) & B.PieceBB[color][j]) != 0 {
 					fmt.Print(" ", abbrev[color][j], " ")
 					blankSquare = false
 				}
@@ -140,20 +140,20 @@ func (B *Board) Print() {
 }
 
 func (B *Board) Clear() {
-	B.pieceBB = [2][6]uint64{}
+	B.PieceBB = [2][6]uint64{}
 }
 
 func (B *Board) Reset() {
 	// puts the pieces in their starting/newgame positions
 	for color := uint(0); color < 2; color = color + 1 {
 		//Pawns first:
-		B.pieceBB[color][PAWN] = 255 << (8 + (color * 8 * 5))
+		B.PieceBB[color][PAWN] = 255 << (8 + (color * 8 * 5))
 		//Then the rest of the pieces:
-		B.pieceBB[color][KNIGHT] = (1 << (B1 + (color * 8 * 7))) ^ (1 << (G1 + (color * 8 * 7)))
-		B.pieceBB[color][BISHOP] = (1 << (C1 + (color * 8 * 7))) ^ (1 << (F1 + (color * 8 * 7)))
-		B.pieceBB[color][ROOK] = (1 << (A1 + (color * 8 * 7))) ^ (1 << (H1 + (color * 8 * 7)))
-		B.pieceBB[color][QUEEN] = (1 << (D1 + (color * 8 * 7)))
-		B.pieceBB[color][KING] = (1 << (E1 + (color * 8 * 7)))
+		B.PieceBB[color][KNIGHT] = (1 << (B1 + (color * 8 * 7))) ^ (1 << (G1 + (color * 8 * 7)))
+		B.PieceBB[color][BISHOP] = (1 << (C1 + (color * 8 * 7))) ^ (1 << (F1 + (color * 8 * 7)))
+		B.PieceBB[color][ROOK] = (1 << (A1 + (color * 8 * 7))) ^ (1 << (H1 + (color * 8 * 7)))
+		B.PieceBB[color][QUEEN] = (1 << (D1 + (color * 8 * 7)))
+		B.PieceBB[color][KING] = (1 << (E1 + (color * 8 * 7)))
 	}
 }
 
@@ -163,7 +163,7 @@ func (B *Board) onSquare(square uint8) (Color, Piece) {
 	// returns the piece on that square
 	for c := WHITE; c <= BLACK; c++ {
 		for p := PAWN; p <= KING; p++ {
-			if (B.pieceBB[c][p] & (1 << square)) != 0 {
+			if (B.PieceBB[c][p] & (1 << square)) != 0 {
 				return c, p
 			}
 		}
@@ -175,9 +175,9 @@ func (B *Board) Occupied(c Color) uint64 {
 	var mask uint64
 	for p := PAWN; p <= KING; p++ {
 		if c == BOTH {
-			mask |= B.pieceBB[WHITE][p] | B.pieceBB[BLACK][p]
+			mask |= B.PieceBB[WHITE][p] | B.PieceBB[BLACK][p]
 		} else {
-			mask |= B.pieceBB[c][p]
+			mask |= B.PieceBB[c][p]
 		}
 	}
 	return mask

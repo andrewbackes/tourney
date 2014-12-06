@@ -2,7 +2,7 @@
 
  Project: Tourney
 
- Module: moves
+ Module: Moves
  Description: holds the move object and methods for interacting with it.
  	Eventually, engine data/logs will be tied into this?
 

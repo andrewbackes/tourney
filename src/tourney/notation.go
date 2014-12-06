@@ -93,7 +93,7 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 		if (parsed[1] == '7' && parsed[3] == '8') || (parsed[1] == '2' && parsed[3] == '1') {
 			if len(parsed) <= 4 {
 				f, _ := getIndex(parsed)
-				_, p := G.board.onSquare(f)
+				_, p := G.Board.onSquare(f)
 				if p == PAWN {
 					parsed += "q"
 				}
@@ -196,7 +196,7 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 	// Get all the squares that have our piece on it from the move list:
 	color := G.toMove()
 	var eligableSquares []string
-	bits := G.board.pieceBB[color][pieceMap[piece]]
+	bits := G.Board.PieceBB[color][pieceMap[piece]]
 	for bits != 0 {
 		bit := bitscan(bits)
 		sq := getAlg(bit)
@@ -283,7 +283,7 @@ func getAlg(index uint) string {
 
 func TestNotation() {
 	var G Game
-	G.board.Reset()
+	G.Board.Reset()
 
 	G.LoadFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
 	G.Print()

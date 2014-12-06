@@ -128,12 +128,12 @@ func (E *Engine) Send(s string) error {
 
 // Recieve and process commands until a certain command is recieved
 // or after the timeout (milliseconds) is achieved.
-// Returns: last line read, lapsed time, error
+// Returns: last line read, lapsed Time, error
 func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration, error) {
 
 	var err error
 
-	// Set up the timer:
+	// Set up the Timer:
 	startTime := time.Now()
 	// helper:
 	type rec struct {
@@ -205,8 +205,8 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration,
 		*/
 		//runtime.Gosched() // try to make sure the above goroutine gets priority
 
-		// Since the timer and the reader are in goroutines, wait for:
-		// (1) Something from the engine, (2) Too much time to pass. (3) An error
+		// Since the Timer and the reader are in goroutines, wait for:
+		// (1) Something from the engine, (2) Too much Time to pass. (3) An error
 		select {
 		case line := <-recieved:
 			//l := lapsed()
@@ -304,8 +304,8 @@ func (E *Engine) Shutdown() error {
 }
 
 // The engine should decide what move it wants to make:
-func (E *Engine) Move(timers [2]int64, movesToGo int64) (Move, time.Duration, error) {
-	s, r := E.protocol.Move(timers, movesToGo)
+func (E *Engine) Move(timers [2]int64, MovesToGo int64) (Move, time.Duration, error) {
+	s, r := E.protocol.Move(timers, MovesToGo)
 	E.Send(s)
 	max := timers[WHITE]
 	if timers[BLACK] > max {
@@ -322,7 +322,7 @@ func (E *Engine) Move(timers [2]int64, movesToGo int64) (Move, time.Duration, er
 	return chosenMove, t, nil
 }
 
-// The engine should set its internal board to adjust for the moves far in the game
+// The engine should set its internal Board to adjust for the Moves far in the game
 func (E *Engine) Set(movesSoFar []Move) error {
 	s := E.protocol.SetBoard(movesSoFar)
 	err := E.Send(s)
@@ -345,7 +345,7 @@ func (E *Engine) Ping() error {
 type Protocoler interface {
 	Initialize() (string, string)
 	Quit() string
-	Move(timers [2]int64, movesToGo int64) (string, string)
+	Move(timers [2]int64, MovesToGo int64) (string, string)
 	SetBoard(moveSoFar []Move) string
 	NewGame() string
 	Ping() (string, string)
@@ -377,17 +377,17 @@ func (U UCI) Quit() string {
 	return "quit"
 }
 
-func (U UCI) Move(timer [2]int64, movesToGo int64) (string, string) {
+func (U UCI) Move(Timer [2]int64, MovesToGo int64) (string, string) {
 	goString := "go"
 
-	if timer[WHITE] > 0 {
-		goString += " wtime " + strconv.FormatInt(timer[WHITE], 10)
+	if Timer[WHITE] > 0 {
+		goString += " wtime " + strconv.FormatInt(Timer[WHITE], 10)
 	}
-	if timer[BLACK] > 0 {
-		goString += " btime " + strconv.FormatInt(timer[BLACK], 10)
+	if Timer[BLACK] > 0 {
+		goString += " btime " + strconv.FormatInt(Timer[BLACK], 10)
 	}
-	if movesToGo > 0 {
-		goString += " movestogo " + strconv.FormatInt(movesToGo, 10)
+	if MovesToGo > 0 {
+		goString += " movestogo " + strconv.FormatInt(MovesToGo, 10)
 	}
 
 	return goString, "bestmove"

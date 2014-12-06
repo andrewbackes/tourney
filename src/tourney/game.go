@@ -52,22 +52,22 @@ type Game struct {
 	Site        string
 	Date        string
 	Round       int
-	time        int64
-	moves       int64
-	repeating   bool
+	Time        int64
+	Moves       int64
+	Repeating   bool
 	Player      [2]Engine // white=0,black=1
 	StartingFEN string    // first position out of the book
 
 	// Control info:
-	timer     [2]int64 //the game clock for each side. milliseconds.
-	movesToGo int64    //moves until time control
+	Timer     [2]int64 //the game clock for each side. milliseconds.
+	MovesToGo int64    //moves until time control
 
 	// Game run time info:
-	board        Board
-	fiftyRule    uint64
-	history      []string // FEN of every known position so far.
-	enPassant    uint8
-	castleRights [2][2]bool
+	Board        Board
+	FiftyRule    uint64
+	History      []string // FEN of every known position so far.
+	EnPassant    uint8
+	CastleRights [2][2]bool
 	MoveList     []Move //move history
 	Completed    bool   // TODO:  change this to reflect how the game ended. time, checkmate, adjunction, etc
 
@@ -114,8 +114,8 @@ func PlayGame(G *Game) error {
 		}
 
 		if G.toMove() == WHITE {
-			G.movesToGo -= 1
-			if G.movesToGo == 0 && G.repeating == true {
+			G.MovesToGo -= 1
+			if G.MovesToGo == 0 && G.Repeating == true {
 				G.resetTimeControl()
 			}
 		}
@@ -140,16 +140,16 @@ func ExecuteNextTurn(G *Game) bool {
 		return true
 	}
 	// Request a move from the engine:
-	engineMove, lapsed, err := G.Player[color].Move(G.timer, G.movesToGo)
+	engineMove, lapsed, err := G.Player[color].Move(G.Timer, G.MovesToGo)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
 	}
 	// Adjust time control:
-	G.timer[color] -= lapsed.Nanoseconds() / 1000000
-	if G.timer[color] < 0 {
+	G.Timer[color] -= lapsed.Nanoseconds() / 1000000
+	if G.Timer[color] < 0 {
 		G.GameOver(color, "Out of time. Used "+strconv.FormatInt(lapsed.Nanoseconds()/1000000, 10)+"ms / "+
-			strconv.FormatInt(G.timer[color]+(lapsed.Nanoseconds()/1000000), 10)+"ms.")
+			strconv.FormatInt(G.Timer[color]+(lapsed.Nanoseconds()/1000000), 10)+"ms.")
 		return true
 	}
 	// Convert the notation from the engines notation to pure coordinate notation
@@ -216,21 +216,21 @@ func contains(list []Move, move Move) bool {
 }
 
 func FiftyMoveDraw(G *Game) bool {
-	return G.fiftyRule == 100
+	return G.FiftyRule == 100
 }
 
 func ThreeFold(G *Game) bool {
 	// TODO: Can this be optimized? very very slow right now.
 	// maybe sort them alphabetically first.
 	// should go backwards instead, as many times as in the fiftyMove count.
-	for i := 0; i < len(G.history); i++ {
-		fen := G.history[i]
+	for i := 0; i < len(G.History); i++ {
+		fen := G.History[i]
 		fenSplit := strings.Split(fen, " ")
 		fenPrefix := fenSplit[0] + " " + fenSplit[1] + " " + fenSplit[2] + " " + fenSplit[3]
-		for j := i + 1; j < len(G.history); j++ {
-			if strings.HasPrefix(G.history[j], fenPrefix) {
-				for k := j + 1; k < len(G.history); k++ {
-					if strings.HasPrefix(G.history[k], fenPrefix) {
+		for j := i + 1; j < len(G.History); j++ {
+			if strings.HasPrefix(G.History[j], fenPrefix) {
+				for k := j + 1; k < len(G.History); k++ {
+					if strings.HasPrefix(G.History[k], fenPrefix) {
 						return true
 					}
 				}
@@ -250,8 +250,8 @@ func InsufficientMaterial(G *Game) bool {
 	*/
 
 	loneKing := []bool{
-		G.board.Occupied(WHITE)&G.board.pieceBB[WHITE][KING] == G.board.Occupied(WHITE),
-		G.board.Occupied(BLACK)&G.board.pieceBB[BLACK][KING] == G.board.Occupied(BLACK)}
+		G.Board.Occupied(WHITE)&G.Board.PieceBB[WHITE][KING] == G.Board.Occupied(WHITE),
+		G.Board.Occupied(BLACK)&G.Board.PieceBB[BLACK][KING] == G.Board.Occupied(BLACK)}
 
 	if !loneKing[WHITE] && !loneKing[BLACK] {
 		return false
@@ -265,30 +265,30 @@ func InsufficientMaterial(G *Game) bool {
 				return true
 			}
 			// King vs King & Knight
-			if popcount(G.board.pieceBB[otherColor][KNIGHT]) == 1 {
-				mask := G.board.pieceBB[otherColor][KING] | G.board.pieceBB[otherColor][KNIGHT]
-				occuppied := G.board.Occupied(otherColor)
+			if popcount(G.Board.PieceBB[otherColor][KNIGHT]) == 1 {
+				mask := G.Board.PieceBB[otherColor][KING] | G.Board.PieceBB[otherColor][KNIGHT]
+				occuppied := G.Board.Occupied(otherColor)
 				if occuppied&mask == occuppied {
 					return true
 				}
 			}
 			// King vs King & Bishop
-			if popcount(G.board.pieceBB[otherColor][BISHOP]) == 1 {
-				mask := G.board.pieceBB[otherColor][KING] | G.board.pieceBB[otherColor][BISHOP]
-				occuppied := G.board.Occupied(otherColor)
+			if popcount(G.Board.PieceBB[otherColor][BISHOP]) == 1 {
+				mask := G.Board.PieceBB[otherColor][KING] | G.Board.PieceBB[otherColor][BISHOP]
+				occuppied := G.Board.Occupied(otherColor)
 				if occuppied&mask == occuppied {
 					return true
 				}
 			}
 		}
 		// King vs King & oppoSite bishop
-		kingBishopMask := G.board.pieceBB[color][KING] | G.board.pieceBB[color][BISHOP]
-		if (G.board.Occupied(color)&kingBishopMask == G.board.Occupied(color)) && (popcount(G.board.pieceBB[color][BISHOP]) == 1) {
-			mask := G.board.pieceBB[otherColor][KING] | G.board.pieceBB[otherColor][BISHOP]
-			occuppied := G.board.Occupied(otherColor)
-			if (occuppied&mask == occuppied) && (popcount(G.board.pieceBB[otherColor][BISHOP]) == 1) {
-				color1 := bitscan(G.board.pieceBB[color][BISHOP]) % 2
-				color2 := bitscan(G.board.pieceBB[otherColor][BISHOP]) % 2
+		kingBishopMask := G.Board.PieceBB[color][KING] | G.Board.PieceBB[color][BISHOP]
+		if (G.Board.Occupied(color)&kingBishopMask == G.Board.Occupied(color)) && (popcount(G.Board.PieceBB[color][BISHOP]) == 1) {
+			mask := G.Board.PieceBB[otherColor][KING] | G.Board.PieceBB[otherColor][BISHOP]
+			occuppied := G.Board.Occupied(otherColor)
+			if (occuppied&mask == occuppied) && (popcount(G.Board.PieceBB[otherColor][BISHOP]) == 1) {
+				color1 := bitscan(G.Board.PieceBB[color][BISHOP]) % 2
+				color2 := bitscan(G.Board.PieceBB[otherColor][BISHOP]) % 2
 				if color1 == color2 {
 					return true
 				}
@@ -324,36 +324,36 @@ func (G *Game) GameOver(looser Color, reason string) {
 func (G *Game) MakeMove(m Move) error {
 	// TODO: 	Proper error checking along the way
 
-	G.history = append(G.history, G.FEN())
+	G.History = append(G.History, G.FEN())
 
-	G.fiftyRule += 1
+	G.FiftyRule += 1
 
 	G.MoveList = append(G.MoveList, m)
 
 	from, to := getIndex(m.Algebraic)
 
-	capturedColor, capturedPiece := G.board.onSquare(to)
+	capturedColor, capturedPiece := G.Board.onSquare(to)
 
 	if capturedPiece != NONE {
 		// remove captured piece:
-		G.board.pieceBB[capturedColor][capturedPiece] ^= (1 << to)
-		G.fiftyRule = 0
+		G.Board.PieceBB[capturedColor][capturedPiece] ^= (1 << to)
+		G.FiftyRule = 0
 	}
 
-	color, piece := G.board.onSquare(from)
+	color, piece := G.Board.onSquare(from)
 	if color == NEITHER || piece == NONE {
 		return errors.New("Illegal Move.")
 	}
 
 	//move piece:
-	G.board.pieceBB[color][piece] ^= ((1 << from) | (1 << to))
+	G.Board.PieceBB[color][piece] ^= ((1 << from) | (1 << to))
 
 	// Castle:
 	if piece == KING {
 		if from == (E1+56*uint8(color)) && (to == (G1 + 56*uint8(color))) {
-			G.board.pieceBB[color][ROOK] ^= (1 << (H1 + 56*uint8(color))) | (1 << (F1 + 56*uint8(color)))
+			G.Board.PieceBB[color][ROOK] ^= (1 << (H1 + 56*uint8(color))) | (1 << (F1 + 56*uint8(color)))
 		} else if from == (E1+56*uint8(color)) && to == (C1+56*uint8(color)) {
-			G.board.pieceBB[color][ROOK] ^= (1 << (A1 + 56*uint8(color))) | (1 << (D1 + 56*uint8(color)))
+			G.Board.PieceBB[color][ROOK] ^= (1 << (A1 + 56*uint8(color))) | (1 << (D1 + 56*uint8(color)))
 		}
 	}
 
@@ -361,40 +361,40 @@ func (G *Game) MakeMove(m Move) error {
 	for side := SHORT; side <= LONG; side++ {
 		if piece == KING || //king moves
 			(piece == ROOK && from == [2][2]uint8{{H1, A1}, {H8, A8}}[color][side]) {
-			G.castleRights[color][side] = false
+			G.CastleRights[color][side] = false
 		}
 		if to == [2][2]uint8{{H8, A8}, {H1, A1}}[color][side] {
-			G.castleRights[[]Color{BLACK, WHITE}[color]][side] = false
+			G.CastleRights[[]Color{BLACK, WHITE}[color]][side] = false
 		}
 	}
 
 	if piece == PAWN {
-		G.fiftyRule = 0
+		G.FiftyRule = 0
 		// Handle en Passant capture:
-		if (G.enPassant != 64) && (to == G.enPassant) && (int(to)-int(from)%8 != 0) {
+		if (G.EnPassant != 64) && (to == G.EnPassant) && (int(to)-int(from)%8 != 0) {
 			if color == WHITE {
-				G.board.pieceBB[BLACK][PAWN] ^= (1 << (to - 8))
+				G.Board.PieceBB[BLACK][PAWN] ^= (1 << (to - 8))
 			} else {
-				G.board.pieceBB[WHITE][PAWN] ^= (1 << (to + 8))
+				G.Board.PieceBB[WHITE][PAWN] ^= (1 << (to + 8))
 			}
 		}
 
 		// Set en Passant:
 		//if (((from / 8) + 1) == []uint8{2, 7}[color]) && (((to / 8) + 1) == []uint8{3, 6}[color]) {
 		if int(from)-int(to) == 16 || int(from)-int(to) == -16 {
-			G.enPassant = uint8(int(from) + []int{8, -8}[color]) // type change fiasco! could crash.
+			G.EnPassant = uint8(int(from) + []int{8, -8}[color]) // type change fiasco! could crash.
 		} else {
-			G.enPassant = 64
+			G.EnPassant = 64
 		}
 
 		promotes := getPromotion(m.Algebraic)
 		// Handle Promotions:
 		if promotes != NONE {
-			G.board.pieceBB[color][piece] ^= (1 << to)    // remove pawn
-			G.board.pieceBB[color][promotes] ^= (1 << to) // add promoted piece
+			G.Board.PieceBB[color][piece] ^= (1 << to)    // remove pawn
+			G.Board.PieceBB[color][promotes] ^= (1 << to) // add promoted piece
 		}
 	} else {
-		G.enPassant = 64
+		G.EnPassant = 64
 	}
 
 	return nil
@@ -410,7 +410,7 @@ func (G *Game) FEN() string {
 	var board string
 	// put what is on each square into a squence (including blanks):
 	for i := int(63); i >= 0; i-- {
-		c, p := G.board.onSquare(uint8(i))
+		c, p := G.Board.onSquare(uint8(i))
 		board += piece[c][p]
 		if i%8 == 0 && i > 0 {
 			board += "/"
@@ -427,7 +427,7 @@ func (G *Game) FEN() string {
 	castles := [][]string{{"K", "Q"}, {"k", "q"}}
 	for c := WHITE; c <= BLACK; c++ {
 		for side := SHORT; side <= LONG; side++ {
-			if G.castleRights[c][side] {
+			if G.CastleRights[c][side] {
 				rights += castles[c][side]
 			}
 		}
@@ -437,13 +437,13 @@ func (G *Game) FEN() string {
 	}
 	// en Passant:
 	var enPas string
-	if G.enPassant != 64 {
-		enPas = getAlg(uint(G.enPassant))
+	if G.EnPassant != 64 {
+		enPas = getAlg(uint(G.EnPassant))
 	} else {
 		enPas = "-"
 	}
 	// Moves and 50 move rule
-	fifty := strconv.Itoa(int(G.fiftyRule / 2))
+	fifty := strconv.Itoa(int(G.FiftyRule / 2))
 	move := strconv.Itoa(int(len(G.MoveList)/2) + 1)
 	// all together:
 	fen := board + " " + turn + " " + rights + " " + enPas + " " + fifty + " " + move
@@ -465,19 +465,19 @@ func (G *Game) LoadFEN(fen string) error {
 	}
 
 	// 50 Move Rule:
-	G.fiftyRule, _ = strconv.ParseUint(words[4], 10, 0)
-	G.fiftyRule = (G.fiftyRule * 2) + map[string]uint64{"w": 0, "b": 1}[words[1]] //since internally we store half moves
+	G.FiftyRule, _ = strconv.ParseUint(words[4], 10, 0)
+	G.FiftyRule = (G.FiftyRule * 2) + map[string]uint64{"w": 0, "b": 1}[words[1]] //since internally we store half moves
 
 	// Castling Rights:
-	G.castleRights = [2][2]bool{
+	G.CastleRights = [2][2]bool{
 		{strings.Contains(words[2], "K"), strings.Contains(words[2], "Q")},
 		{strings.Contains(words[2], "k"), strings.Contains(words[2], "q")}}
 
 	// en Passant:
-	G.enPassant = 64
+	G.EnPassant = 64
 	if words[3] != "-" {
 		t, _ := strconv.ParseUint(words[3], 10, 0)
-		G.enPassant = uint8(t)
+		G.EnPassant = uint8(t)
 	}
 
 	// Board position:
@@ -494,7 +494,7 @@ func (G *Game) LoadFEN(fen string) error {
 		"Q": WHITE, "q": BLACK,
 		"K": WHITE, "k": BLACK}
 
-	G.board.Clear()
+	G.Board.Clear()
 	board := words[0]
 	// remove the /'s and replace the numbers with that many spaces:
 	parsedBoard := strings.Replace(board, "/", "", 9)
@@ -506,15 +506,15 @@ func (G *Game) LoadFEN(fen string) error {
 		k := parsedBoard[pos:(pos + 1)]
 		_, ok := piece[k]
 		if ok {
-			G.board.pieceBB[color[k]][piece[k]] |= (1 << uint(63-pos))
+			G.Board.PieceBB[color[k]][piece[k]] |= (1 << uint(63-pos))
 		}
 	}
 	return nil
 }
 
 func (G *Game) resetTimeControl() {
-	G.movesToGo = G.moves
-	G.timer = [2]int64{G.time, G.time}
+	G.MovesToGo = G.Moves
+	G.Timer = [2]int64{G.Time, G.Time}
 }
 
 // TODO: change this to return a Game not act on one.
@@ -524,9 +524,9 @@ func (G *Game) initialize() error {
 	// TODO: this assumes a fresh unstarted game.
 	G.resetTimeControl()
 	//G.toMove = WHITE
-	G.board.Reset()
-	G.castleRights = [2][2]bool{{true, true}, {true, true}}
-	G.enPassant = 64
+	G.Board.Reset()
+	G.CastleRights = [2][2]bool{{true, true}, {true, true}}
+	G.EnPassant = 64
 	G.Completed = false
 	return nil
 }
@@ -546,18 +546,18 @@ func NewGame() Game {
 
 func (G *Game) Print() {
 	// TODO: this should instead take in *Game as an arguement
-	G.board.Print()
+	G.Board.Print()
 	fmt.Print([]string{"White", "Black"}[G.toMove()], " to move. ")
-	if G.enPassant != 64 {
-		fmt.Print("Enpassant: ", getAlg(uint(G.enPassant)), ". ")
+	if G.EnPassant != 64 {
+		fmt.Print("Enpassant: ", getAlg(uint(G.EnPassant)), ". ")
 	} else {
 		fmt.Print("Enpassant: ", "none. ")
 	}
 	fmt.Print("Castling Rights: ",
-		map[bool]string{true: "K", false: "-"}[G.castleRights[WHITE][SHORT]],
-		map[bool]string{true: "Q", false: "-"}[G.castleRights[WHITE][LONG]],
-		map[bool]string{true: "k", false: "-"}[G.castleRights[BLACK][SHORT]],
-		map[bool]string{true: "q", false: "-"}[G.castleRights[BLACK][LONG]])
+		map[bool]string{true: "K", false: "-"}[G.CastleRights[WHITE][SHORT]],
+		map[bool]string{true: "Q", false: "-"}[G.CastleRights[WHITE][LONG]],
+		map[bool]string{true: "k", false: "-"}[G.CastleRights[BLACK][SHORT]],
+		map[bool]string{true: "q", false: "-"}[G.CastleRights[BLACK][LONG]])
 	fmt.Print("\n")
 }
 
@@ -578,7 +578,7 @@ func (G *Game) PrintHUD() {
 		blankSquare := true
 		for j := PAWN; j <= KING; j = j + 1 {
 			for color := Color(0); color <= BLACK; color++ {
-				if ((1 << square) & G.board.pieceBB[color][j]) != 0 {
+				if ((1 << square) & G.Board.PieceBB[color][j]) != 0 {
 					if lastMoveDestination == square {
 						fmt.Print("[", abbrev[color][j], "]")
 					} else {
@@ -600,24 +600,24 @@ func (G *Game) PrintHUD() {
 			fmt.Print(strings.Repeat(" ", 6))
 			switch square / 8 {
 			case 7:
-				formattedTimer := []string{"WHITE " + FormatTimer(G.timer[WHITE]), "BLACK " + FormatTimer(G.timer[BLACK])}
+				formattedTimer := []string{"WHITE " + FormatTimer(G.Timer[WHITE]), "BLACK " + FormatTimer(G.Timer[BLACK])}
 				formattedTimer[toMove] = "[" + formattedTimer[toMove] + "]"
 				fmt.Print(formattedTimer[WHITE], strings.Repeat(" ", 3), formattedTimer[BLACK])
 			case 6:
-				fmt.Print("Move #: ", len(G.MoveList)/2, "    (Moves Remaining: ", G.movesToGo, ")")
+				fmt.Print("Move #: ", len(G.MoveList)/2, "    (Moves Remaining: ", G.MovesToGo, ")")
 
 			case 5:
-				if G.enPassant != 64 {
-					fmt.Print("Enpassant: ", getAlg(uint(G.enPassant)))
+				if G.EnPassant != 64 {
+					fmt.Print("Enpassant: ", getAlg(uint(G.EnPassant)))
 				} else {
 					fmt.Print("Enpassant: ", "None")
 				}
 			case 4:
 				fmt.Print("Castling Rights: ",
-					map[bool]string{true: "K", false: "-"}[G.castleRights[WHITE][SHORT]],
-					map[bool]string{true: "Q", false: "-"}[G.castleRights[WHITE][LONG]],
-					map[bool]string{true: "k", false: "-"}[G.castleRights[BLACK][SHORT]],
-					map[bool]string{true: "q", false: "-"}[G.castleRights[BLACK][LONG]])
+					map[bool]string{true: "K", false: "-"}[G.CastleRights[WHITE][SHORT]],
+					map[bool]string{true: "Q", false: "-"}[G.CastleRights[WHITE][LONG]],
+					map[bool]string{true: "k", false: "-"}[G.CastleRights[BLACK][SHORT]],
+					map[bool]string{true: "q", false: "-"}[G.CastleRights[BLACK][LONG]])
 			case 3:
 				fmt.Print("In Play: ", FormatPiecesInPlay(G)[WHITE])
 			case 2:
@@ -664,7 +664,7 @@ func FormatPiecesInPlay(G *Game) [2]string {
 	var scores [2]int
 	for color := WHITE; color <= BLACK; color++ {
 		for p := PAWN; p <= KING; p++ {
-			inplay := int(popcount(G.board.pieceBB[color][p]))
+			inplay := int(popcount(G.Board.PieceBB[color][p]))
 			dead := counts[p] - inplay
 			scores[color] += (inplay * values[p])
 			if dead < 0 {
@@ -704,7 +704,7 @@ func (G *Game) toMove() Color {
 func (G *Game) isInCheck(toMove Color) bool {
 	// TODO: see isAttacked() notes
 	notToMove := []Color{BLACK, WHITE}[toMove]
-	kingsq := bitscan(G.board.pieceBB[toMove][KING])
+	kingsq := bitscan(G.Board.PieceBB[toMove][KING])
 	return G.isAttacked(kingsq, notToMove)
 }
 
@@ -715,33 +715,33 @@ func (G *Game) isAttacked(square uint, byWho Color) bool {
 	defender := []Color{BLACK, WHITE}[byWho]
 
 	// other king attacks:
-	if (king_moves[square] & G.board.pieceBB[byWho][KING]) != 0 {
+	if (king_moves[square] & G.Board.PieceBB[byWho][KING]) != 0 {
 		return true
 	}
 
 	// pawn attacks:
-	if pawn_captures[defender][square]&G.board.pieceBB[byWho][PAWN] != 0 {
+	if pawn_captures[defender][square]&G.Board.PieceBB[byWho][PAWN] != 0 {
 		return true
 	}
 
 	// knight attacks:
-	if knight_moves[square]&G.board.pieceBB[byWho][KNIGHT] != 0 {
+	if knight_moves[square]&G.Board.PieceBB[byWho][KNIGHT] != 0 {
 		return true
 	}
 	// diagonal attacks:
 	direction := [4][65]uint64{nw, ne, sw, se}
 	scan := [4]func(uint64) uint{BSF, BSF, BSR, BSR}
 	for i := 0; i < 4; i++ {
-		blockerIndex := scan[i](direction[i][square] & G.board.Occupied(BOTH))
-		if (1<<blockerIndex)&(G.board.pieceBB[byWho][BISHOP]|G.board.pieceBB[byWho][QUEEN]) != 0 {
+		blockerIndex := scan[i](direction[i][square] & G.Board.Occupied(BOTH))
+		if (1<<blockerIndex)&(G.Board.PieceBB[byWho][BISHOP]|G.Board.PieceBB[byWho][QUEEN]) != 0 {
 			return true
 		}
 	}
 	// straight attacks:
 	direction = [4][65]uint64{north, west, south, east}
 	for i := 0; i < 4; i++ {
-		blockerIndex := scan[i](direction[i][square] & G.board.Occupied(BOTH))
-		if (1<<blockerIndex)&(G.board.pieceBB[byWho][ROOK]|G.board.pieceBB[byWho][QUEEN]) != 0 {
+		blockerIndex := scan[i](direction[i][square] & G.Board.Occupied(BOTH))
+		if (1<<blockerIndex)&(G.Board.PieceBB[byWho][ROOK]|G.Board.PieceBB[byWho][QUEEN]) != 0 {
 			return true
 		}
 	}
@@ -758,7 +758,10 @@ func (G *Game) StartLog() error {
 	fmt.Print("Creating log file... ")
 
 	//check if folder exists:
-	if err := os.Mkdir("logs", os.ModePerm); !os.IsExist(err) {
+	//if err := os.Mkdir("logs", os.ModePerm); !os.IsExist(err) {
+	//	return err
+	//}
+	if err := os.MkdirAll("logs", os.ModePerm); err != nil {
 		return err
 	}
 

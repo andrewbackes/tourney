@@ -8,6 +8,10 @@
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/15/2014
 
+TODO:
+	-Need to prevent the user from using commands that both write to the same
+	 object. Like RunTourney() and HostTourney()
+
 */
 
 package main
@@ -74,9 +78,9 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			label: []string{"broadcast", "b"},
 			desc:  "Broadcasts the currently selected tourney over http port 8000.",
 			f: func() {
-				fmt.Println("Broadcasting http on port 8000.")
+				fmt.Println("Broadcasting http on port 8080.")
 				go func() {
-					if err := Broadcast(T[*selected]); err != nil {
+					if err := Broadcast(T, selected); err != nil {
 						fmt.Println(err)
 					}
 				}()
@@ -111,7 +115,7 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			label: []string{"load", "l"},
 			desc:  "Loads a .tourney file.",
 			f: func() {
-				// loads the file and moves the selected tourney to the new one.
+				// loads the file and Moves the selected tourney to the new one.
 				filename := strings.Replace(command, words[0]+" ", "", 1)
 				filename = strings.Trim(filename, "\r\n") // for windows
 				filename = strings.Trim(filename, "\n")   // for *nix
@@ -183,7 +187,18 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			f: func() {
 				wg.Add(1)
 				go func() {
-					ConnectAndPlay("127.0.0.1:9000")
+					ConnectAndWait("127.0.0.1:9000")
+					wg.Done()
+				}()
+				return
+			}},
+		{
+			label: []string{"dowork"},
+			desc:  "Connects to dirty-bit.com and becomes a worker.",
+			f: func() {
+				wg.Add(1)
+				go func() {
+					WorkForDirtyBit()
 					wg.Done()
 				}()
 				return

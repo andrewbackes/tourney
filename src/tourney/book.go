@@ -14,6 +14,7 @@
  	-Count possible openings before playing
  	-adjust for carousel
  	-error handling
+ 	-Consolidate locations of error handling.
 
 *******************************************************************************/
 
@@ -21,7 +22,7 @@ package main
 
 import (
 	"errors"
-	//"fmt"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"strings"
@@ -57,6 +58,7 @@ func CopyStartingPosition(From *Game, To *Game) error {
 
 // Plays the opening from the pgn book for a single game:
 func PlayOpening(T *Tourney, GameIndex int) error {
+	LogComment := "Book Move." //what to say in the comments for the book moves.
 
 	// Helper function:
 	alreadyUsed := func(n string) bool {
@@ -70,8 +72,16 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 
 	rand.Seed(time.Now().Unix())
 	if T.GameList[GameIndex].Completed {
+		fmt.Println("Game already played.") //TODO: consolidate locaions of error handling.
 		return nil
 	}
+	// Check if the opening has already been played on this game:
+	if len(T.GameList[GameIndex].MoveList) > 0 {
+		// TODO: better checking!
+		fmt.Println("Opening already played.") //TODO: consolidate locaions of error handling.
+		return nil
+	}
+
 	if T.Rounds%2 == 0 && GameIndex%2 == 1 && GameIndex > 0 {
 		if T.BookMoves > 0 && T.GameList[GameIndex-1].StartingFEN == "" {
 			return errors.New("No starting position to mirror.")
@@ -106,7 +116,7 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 			mv := b.MoveList[j].Algebraic
 			mv = StripAnnotations(mv)
 			mv = InternalizeNotation(&dummy, mv)
-			dummy.MakeMove(Move{Algebraic: mv, log: []string{"Book Move."}})
+			dummy.MakeMove(Move{Algebraic: mv, log: []string{LogComment}})
 		}
 		alreadyListed = alreadyUsed(dummy.FEN())
 		attempts++
