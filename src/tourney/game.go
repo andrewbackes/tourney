@@ -758,7 +758,10 @@ func (G *Game) StartLog() error {
 	fmt.Print("Creating log file... ")
 
 	//check if folder exists:
-	if err := os.Mkdir("logs", os.ModePerm); !os.IsExist(err) {
+	//if err := os.Mkdir("logs", os.ModePerm); !os.IsExist(err) {
+	//	return err
+	//}
+	if err := os.MkdirAll("logs", os.ModePerm); err != nil {
 		return err
 	}
 

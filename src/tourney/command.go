@@ -8,6 +8,10 @@
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/15/2014
 
+TODO:
+	-Need to prevent the user from using commands that both write to the same
+	 object. Like RunTourney() and HostTourney()
+
 */
 
 package main
@@ -184,6 +188,17 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 				wg.Add(1)
 				go func() {
 					ConnectAndWait("127.0.0.1:9000")
+					wg.Done()
+				}()
+				return
+			}},
+		{
+			label: []string{"dowork"},
+			desc:  "Connects to dirty-bit.com and becomes a worker.",
+			f: func() {
+				wg.Add(1)
+				go func() {
+					WorkForDirtyBit()
 					wg.Done()
 				}()
 				return

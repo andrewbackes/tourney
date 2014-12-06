@@ -10,6 +10,8 @@
  essentially modify the data feild "state" which is read by playLoop().
 
  TODO:
+ 	- Rename Tourney.Done to something more descriptive, likve ForceQuit or
+ 	  something.
  	-Allow for games to be distributed to multiple machines to be played.
  		-Each machine will have to be benchmarked to determine equivalent
  		 Time control parameters.
