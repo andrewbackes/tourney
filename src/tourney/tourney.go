@@ -10,7 +10,7 @@
  essentially modify the data feild "state" which is read by playLoop().
 
  TODO:
- 	- Rename Tourney.Done to something more descriptive, likve ForceQuit or
+ 	- Rename Tourney.Done to something more descriptive, like ForceQuit or
  	  something.
  	-Allow for games to be distributed to multiple machines to be played.
  		-Each machine will have to be benchmarked to determine equivalent
@@ -37,7 +37,7 @@ package main
 import (
 	//"bufio"
 	"encoding/json"
-	//"errors"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -95,8 +95,8 @@ type Tourney struct {
 	Done chan struct{}
 
 	//For distribution:
-	GameQue          chan Game
-	CompletedGameQue chan Game
+	//GameQue          chan Game
+	//CompletedGameQue chan Game
 }
 
 func RunTourney(T *Tourney) error {
@@ -308,6 +308,18 @@ func LoadFile(filename string) (*Tourney, error) {
 	} else {
 		fmt.Println("Nothing to load.")
 	}
+
+	// verify engines:
+	// BUG: gamelist is already generated at this point.
+	/*
+		fmt.Print("Verifying file integrity of engines... ")
+		if err := T.VerifyEngineIntegrity(); err != nil {
+			fmt.Println("Failed:", err)
+		} else {
+			fmt.Println("Success.")
+		}
+	*/
+
 	return T, nil
 }
 
@@ -433,4 +445,19 @@ func (T *Tourney) Complete() bool {
 		}
 	}
 	return true
+}
+
+func (T *Tourney) VerifyEngineIntegrity() error {
+	// After the tourney is loaded and the engine paths are defined,
+	// this goes through and MD5 checks the engine files against what was
+	// previously ran. If it is a fresh tourney, then it saves the MD5
+	// sums of the engines to check against later.
+
+	for i, _ := range T.Engines {
+		if err := T.Engines[i].ValidateEngineFile(); err != nil {
+			return errors.New(fmt.Sprint(T.Engines[i].Path, "-", err))
+		}
+	}
+
+	return nil
 }

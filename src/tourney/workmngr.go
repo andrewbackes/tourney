@@ -86,10 +86,17 @@ func (M *WorkManager) ListenForWorkers() {
 }
 
 func (M *WorkManager) RemotelyPlayGame(W *Worker, GameToPlay Game) {
+	//TODO: are there 3 copies of the game at this point!? fix this!
+
 	fmt.Println("Round", GameToPlay.Round, "being played by", W.Address)
 	var CompletedGame Game
-	//WorkerRPC := rpc.NewClient(*Worker)
 	GameToPlay.Site = fmt.Sprint(W.Address)
+
+	// Make sure MD5 sums are set:
+	GameToPlay.Player[0].ValidateEngineFile()
+	GameToPlay.Player[1].ValidateEngineFile()
+
+	// Start playing:
 	err := W.RPC.Call("Worker.PlayGame", GameToPlay, &CompletedGame)
 	if err != nil {
 		fmt.Println("Error remotely playing game:", err)
@@ -97,11 +104,7 @@ func (M *WorkManager) RemotelyPlayGame(W *Worker, GameToPlay Game) {
 	}
 	fmt.Println("Round", CompletedGame.Round, "completed.")
 
-	// DEBUG ONLY!
-	fmt.Println("ENGINE PATH:", CompletedGame.Player[0].Path)
-	fmt.Println("MOVE COUNT:", len(CompletedGame.MoveList))
-	// ***********
-
+	// Que the completed game for reconsiliation:
 	M.CompletedGames <- CompletedGame
 	fmt.Println(W.Address, "added to the worker que.")
 	M.WorkerQue <- W
@@ -129,7 +132,7 @@ GAMESYNC:
 
 func ServeEngineFiles() {
 	// TODO: customizable ports
-	FilePath := "/Users/Andrew/Documents/Engines"
+	FilePath := "/Users/Andrew/Documents/"
 	fmt.Println("Serving game engines on port 9001")
 	http.ListenAndServe(":9001", http.FileServer(http.Dir(FilePath)))
 }

@@ -28,6 +28,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -45,6 +46,7 @@ type Engine struct {
 	Name     string
 	Path     string // file location
 	Protocol string // = "UCI" or "WINBOARD"
+	MD5      string
 
 	//Private:
 	reader *bufio.Reader
@@ -60,6 +62,32 @@ type setting struct {
 	optDefault string
 	optMin     string
 	optMax     string
+}
+
+func (E *Engine) ValidateEngineFile() error {
+	// First decides if the file exists.
+	// Compares the checksum to the md5 sum that is stored in memory.
+	// If nothing has been stored, then it saves this checksum.
+	// Returns true when they match or it was previously blank.
+
+	// Existence:
+	if _, err := os.Stat(E.Path); os.IsNotExist(err) {
+		return err
+	}
+
+	// Check sum:
+	if checksum, err := GetMD5(E.Path); err != nil {
+		return err
+	} else {
+		if E.MD5 == "" {
+			// md5 has not been previously checked
+			E.MD5 = checksum
+		} else if E.MD5 != checksum {
+			return errors.New("MD5 mismatch")
+		}
+	}
+
+	return nil
 }
 
 func (E *Engine) Log(label string, record string) {
