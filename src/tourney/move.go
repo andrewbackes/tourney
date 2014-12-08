@@ -13,9 +13,14 @@
 
 package main
 
+const MATESCORE int = 2147483647
+
 type Move struct {
 	Algebraic string
 	log       []string
+	Depth     int
+	Score     int
+	Time      int
 }
 
 func getMove(from uint, to uint) Move {
@@ -23,4 +28,11 @@ func getMove(from uint, to uint) Move {
 	var r Move
 	r.Algebraic = getAlg(from) + getAlg(to)
 	return r
+}
+
+func MateIn(number int) int {
+	if number < 0 {
+		return (-MATESCORE) - number
+	}
+	return MATESCORE - number
 }

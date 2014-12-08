@@ -5,14 +5,14 @@
 	</head>
 	<body>
 		
-		<h1>{{ .Info.Event }}</h1>
+		<h1>{{ $event := .Info.Event }}{{ $event }}</h1>
 		<h2>Info</h2>
 
 		<!-- Parameters -->
 		<table>
 			<tr>
 				<th>Event</th>
-				<td>{{ .Info.Event }}</td>
+				<td>{{ $event }}</td>
 			</tr>
 			<tr>
 				<th>Site</th>
@@ -60,14 +60,23 @@
 				<td>{{ .Player.Name }}</td>
 				<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
 				<td>{{ .Incomplete }}</td>
-				<td></td>
-				<td></td>
+				<td><script>
+						var score = {{.Wins}} + ({{.Draws}}*0.5);
+						document.write(score);
+					</script>
+				</td>
+				<td><script>
+						var games_played = {{.Wins}} + {{.Losses}} + {{.Draws}};
+						document.write( Math.round((score/games_played)*10000)/100 );
+						document.write("%")
+					</script>
+				</td>
 			</tr>
 			{{ end }}
 		</table>
 
 		<!-- Matchups -->
-		<h2>Matchups</h2>
+		<h2>Matchup Overview</h2>
 		<table>
 			<tr>
 				<th>Engine</th>
@@ -82,9 +91,17 @@
 				<td>{{ .Player.Name }}</td>
 				<td>{{ .Opponent.Name }}</td>
 				<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
-				<td>{{ .Incomplete }}</td>
-				<td></td>
-				<td></td>
+				<td><script>
+						var score = {{.Wins}} + ({{.Draws}}*0.5);
+						document.write(score);
+					</script>
+				</td>
+				<td><script>
+						var games_played = {{.Wins}} + {{.Losses}} + {{.Draws}};
+						document.write( Math.round((score/games_played)*10000)/100 );
+						document.write("%")
+					</script>
+				</td>
 			</tr>
 			{{ end }}
 		</table>
@@ -97,16 +114,26 @@
 				<th>White</th>
 				<th>Black</th>
 				<th>Result</th>
-				<th>Condition</th>
+				<th>Ending Condition</th>
+				<th>View</th>
+				<th>Details</th>
+				<th>Log</th>
+				<th>Worker</th>
 			</tr>
 			{{ range .Info.GameList }}
 			<tr>
-				<td><a href="round/{{ .Round }}">{{ .Round }}</a></td>
+				<td>{{ .Round }}</a></td>
 				<td>{{ (index .Player 0).Name }}</td>
 				<td>{{ (index .Player 1).Name }}</td>
-				<td>{{ .Result }}
-				</td>
-				<td>{{ .ResultDetail }}</td>
+				<script>if({{.Completed}}) {
+						document.write('<td>');
+						document.write(["1-0","0-1","1/2-1/2"][{{ .Result }}]);
+						document.write('</td><td>{{ .ResultDetail }}</td><td><a href="viewer/{{ .Round }}">View</a></td><td><a href="round/{{ .Round }}">Details</a></td><td><a href="logs/{{ $event }} round {{ .Round }}.log">Log</a></td>');
+					} else {
+						document.write('<td></td><td></td><td></td><td></td><td></td>');
+					}
+				</script>
+				<td>{{ .Site }}</td>
 			</tr>
 			{{ end }}
 		</table>

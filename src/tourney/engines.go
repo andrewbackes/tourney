@@ -163,7 +163,7 @@ func (E *Engine) Send(s string) error {
 
 // Recieve and process commands until a certain command is recieved
 // or after the timeout (milliseconds) is achieved.
-// Returns: last line read, lapsed Time, error
+// Returns: engine output, lapsed Time, error
 func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration, error) {
 
 	//var err error
@@ -191,40 +191,34 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration,
 		// (1) Something from the engine, (2) Too much Time to pass. (3) An error
 		select {
 		case line := <-recieved:
-			//l := lapsed()
-
 			// keep track of the total output from the engine:
 			output += line.data
 
 			// Take off line return bytes:
 			line.data = strings.Trim(line.data, "\r\n") // for windows
 			line.data = strings.Trim(line.data, "\n")   // for *nix/bsd
-			// Process the command recieved from the engine:
-			//if err := E.Evaluate(line.data); err != nil {
-			//	return "", line.timestamp.Sub(startTime), errors.New("Error recieving from engine: " + err.Error())
-			//}
 
 			// Log this line of engine output:
 			E.Log("->", line)
 
 			// Check if the recieved command is the one we are waiting for:
 			if strings.Contains(line.data, untilCmd) {
-				return line.data, line.timestamp.Sub(startTime), nil
+				return output, line.timestamp.Sub(startTime), nil
 			}
 
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
 			description := "Timed out waiting for engine to respond."
 			E.Log("ERROR", rec{time.Now(), description})
-			return "", time.Now().Sub(startTime), errors.New(description)
+			return output, time.Now().Sub(startTime), errors.New(description)
 
 		case e := <-errChan:
 			description := "Error recieving from engine: " + e.Error()
 			E.Log("ERROR", rec{time.Now(), description})
-			return "", time.Now().Sub(startTime), errors.New(description)
+			return output, time.Now().Sub(startTime), errors.New(description)
 
 		}
 	}
-	return "", time.Now().Sub(startTime), nil
+	return output, time.Now().Sub(startTime), nil //this should never occur
 }
 
 // Set the engine up to be ready to think on its first move:
@@ -276,6 +270,7 @@ func (E *Engine) Start(logbuffer *string) error {
 	s, r := E.protocol.Initialize()
 	E.Send(s)
 	E.Recieve(r, 2500)
+	// TODO: evaluate output. This should set up the options for the engine.
 	E.NewGame()
 
 	// Setup up for when the engine exits:
@@ -314,9 +309,7 @@ func (E *Engine) Move(timers [2]int64, MovesToGo int64) (Move, time.Duration, er
 	}
 
 	// figure out what move was picked:
-	words := strings.Split(response, " ") // bestmove e2e4 ponder e7e5
-	chosenMove := Move{Algebraic: words[1]}
-	return chosenMove, t, nil
+	return E.protocol.ExtractMove(response), t, nil
 }
 
 // The engine should set its internal Board to adjust for the Moves far in the game
@@ -346,6 +339,8 @@ type Protocoler interface {
 	SetBoard(moveSoFar []Move) string
 	NewGame() string
 	Ping() (string, string)
+
+	ExtractMove(string) Move
 }
 
 type UCI struct{}
@@ -405,6 +400,51 @@ func (U UCI) SetBoard(movesSoFar []Move) string {
 	}
 
 	return pos
+}
+
+func (U UCI) ExtractMove(output string) Move {
+	// figure out what move was picked:
+	//lines := strings.Split(response, "\n")
+	//words := strings.Split(lines[len(lines)-2], " ") // bestmove e2e4 ponder e7e5
+	//chosenMove := Move{Algebraic: words[1]}
+
+	// TODO: REFACTOR: this replace also happens in Engine.Recieve()
+	output = strings.Replace(output, "\n\r", " ", -1)
+	output = strings.Replace(output, "\n", " ", -1)
+	words := strings.Split(output, " ")
+
+	// Helper function:
+	LastValueOf := func(key string) string {
+		//returns the word after the word given as an arg
+		for i := len(words) - 1; i >= 0; i-- {
+			if words[i] == key {
+				if i+1 <= len(words)-1 {
+					return words[i+1]
+				}
+			}
+		}
+		return ""
+	}
+
+	d, _ := strconv.Atoi(LastValueOf("depth"))
+	t, _ := strconv.Atoi(LastValueOf("time")) // TODO: doing this way may only give the time for this depth
+	skey := LastValueOf("score")              // ex: score cp 112   but it could be:   score mate 7
+
+	var sval int
+	if skey == "cp" {
+		sval, _ = strconv.Atoi(LastValueOf(skey))
+	} else if skey == "mate" {
+		sval, _ = strconv.Atoi(LastValueOf(skey))
+		sval = MateIn(sval)
+	}
+
+	return (Move{
+		Algebraic: LastValueOf("bestmove"),
+		Depth:     d,
+		Time:      t,
+		Score:     sval,
+	})
+
 }
 
 /*******************************************************************************

@@ -8,11 +8,19 @@
 		<h2>Move List</h2>
 		<table>
 			<tr>
+				<th>#</th>
 				<th>Move</th>
+				<th>Score</th>
+				<th>Depth</th>
+				<th>Time</th>
 			</tr>
-			{{ range .MoveList }}
+			{{ range $i, $v := .MoveList }}
 			<tr>
-				<td>{{ .Algebraic }}</td>
+				<td><script> if( ({{$i}}/2)%1==0 ) { document.write({{$i}}/2 +1); } </script></td>
+				<td><script> if( ({{$i}}/2)%1!=0 ) { document.write(" ... "); } </script>{{ .Algebraic }}</td>
+				<td>{{ .Score }}</td>
+				<td>{{ .Depth }}</td>
+				<td>{{ .Time }}</td>
 			</tr>
 			{{ end }}
 		</table>

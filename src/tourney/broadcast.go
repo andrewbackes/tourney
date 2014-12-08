@@ -10,6 +10,7 @@
  TODO:
 	-need to be able to disable the web server from within the program.
  	-Push move by move in games (Server-Sent).
+ 	-Have a 'compare pv' view where the moves are lined up on top of eachother.
 
 *******************************************************************************/
 
@@ -50,7 +51,7 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 	if round < len(T.GameList) && round >= 0 {
 		//io.WriteString(w, "Round: "+strconv.Itoa(round))
 		//io.WriteString(w, fmt.Sprint(T.GameList[round].MoveList))
-		renderTemplate(w, "templates/game.html", T.GameList[round])
+		renderTemplate(w, "templates/game.html", T.GameList[round-1])
 		//renderTemplate(w, "templates/viewer.html", T.GameList[round])
 	} else {
 		io.WriteString(w, "That is not a valid round in this Tourney.")
@@ -59,7 +60,7 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 
 func renderGameViewer(w http.ResponseWriter, T *Tourney, round int) {
 	if round < len(T.GameList) && round >= 0 {
-		renderTemplate(w, "templates/viewer.html", T.GameList[round])
+		renderTemplate(w, "templates/viewer.html", T.GameList[round-1])
 	} else {
 		io.WriteString(w, "That is not a valid round in this Tourney.")
 	}
@@ -85,8 +86,11 @@ func Broadcast(TList []*Tourney, Tindex *int) error {
 		request, _ := strconv.Atoi(strings.Trim(req.URL.Path[len("/viewer"):], "/"))
 		renderGameViewer(w, TList[*Tindex], request)
 	})
-	// Image files:
+	// Image files for Game Viewer:
 	http.Handle("/viewer/pieces/", http.StripPrefix("/viewer/pieces/", http.FileServer(http.Dir("templates/pieces"))))
+
+	// Log Requests:
+	http.Handle("/logs/", http.FileServer(http.Dir("./")))
 
 	// Start the server:
 	// TODO: allow the server to be shut down.
