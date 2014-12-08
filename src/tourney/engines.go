@@ -35,6 +35,12 @@ import (
 	"time"
 )
 
+// helper:
+type rec struct {
+	timestamp time.Time
+	data      string
+}
+
 /*******************************************************************************
 
 	General Engine Functionality:
@@ -90,12 +96,13 @@ func (E *Engine) ValidateEngineFile() error {
 	return nil
 }
 
-func (E *Engine) Log(label string, record string) {
-	*E.logbuf += fmt.Sprintln("[" + time.Now().Format("01/02/2006 15:04:05.000") + "][" + E.Name + "][" + label + "]" + record)
+func (E *Engine) Log(label string, record rec) {
+	*E.logbuf += fmt.Sprintln("[" + record.timestamp.Format("01/02/2006 15:04:05.000") + "][" + E.Name + "][" + label + "]" + record.data)
 }
 
+// INCOMPLETE:
 func (E *Engine) Evaluate(cmd string) error {
-	E.Log("->", cmd)
+	//E.Log("->", rec{time.Now(), cmd})
 	if cmd == "" {
 		return nil
 	}
@@ -147,7 +154,7 @@ func getPair(words []string, key string) string {
 
 // Send a command to the engine:
 func (E *Engine) Send(s string) error {
-	E.Log("<-", s)
+	E.Log("<-", rec{time.Now(), s})
 	E.writer.WriteString(fmt.Sprintln(s)) // hopefully the line return is OS specific here.
 	E.writer.Flush()
 	//fmt.Print("->", fmt.Sprintln(s))
@@ -159,100 +166,62 @@ func (E *Engine) Send(s string) error {
 // Returns: last line read, lapsed Time, error
 func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration, error) {
 
-	var err error
+	//var err error
+	var output string //engine's output
 
 	// Set up the Timer:
 	startTime := time.Now()
-	// helper:
-	type rec struct {
-		data      string
-		timestamp time.Time
-	}
 
 	// Start recieving from the engine:
 	for {
 		recieved := make(chan rec, 1)
 		errChan := make(chan error, 1)
-		/*
-			//idea 1: (i think this has too much overhead)
-				go func() {
-					// TODO: determine how demanding this loop is on the system, try to minimize overhead.
-					for {
 
-						// check for something to read, so this goroutine doesnt just hault:
-						// TODO: can still stall if there is something to read but it doesnt end with a '\n'
-						_, e := E.reader.Peek(1) // < 1 byte to read => e != nil
-						if e == nil {
-							// Somthing to read:
-							if nextline, err := E.reader.ReadString('\n'); err == nil {
-								recieved <- nextline
-								break
-							} else {
-								errChan <- err
-								break
-							}
-						} else {
-							// Nothing to read:
-							select {
-							case <-timedout:
-								// stop reading
-								break
-							default:
-								// keep reading
-							}
-						}
-					}
-					return
-				}()
-		*/
-
-		//idea 2:
+		//TODO: Redesign neccessary
 		go func() {
 			// TODO: need a better idea here. ReadString() could hault this goroutine.
 			if nextline, err := E.reader.ReadString('\n'); err == nil {
-				recieved <- rec{nextline, time.Now()}
+				recieved <- rec{time.Now(), nextline}
 			} else {
 				errChan <- err
 			}
 		}()
-
-		/*
-			//idea 3:
-			go func() {
-				buf := make([]byte, 1024)
-				for {
-					n, err := E.reader.Read(buf)
-					if n != 0 {
-						recieved <- string(buf[:n])
-					}
-					if err != nil {
-						break
-					}
-				}
-			}()
-		*/
-		//runtime.Gosched() // try to make sure the above goroutine gets priority
 
 		// Since the Timer and the reader are in goroutines, wait for:
 		// (1) Something from the engine, (2) Too much Time to pass. (3) An error
 		select {
 		case line := <-recieved:
 			//l := lapsed()
+
+			// keep track of the total output from the engine:
+			output += line.data
+
 			// Take off line return bytes:
 			line.data = strings.Trim(line.data, "\r\n") // for windows
 			line.data = strings.Trim(line.data, "\n")   // for *nix/bsd
 			// Process the command recieved from the engine:
-			if err = E.Evaluate(line.data); err != nil {
-				return "", line.timestamp.Sub(startTime), errors.New("Error recieving from engine: " + err.Error())
-			}
+			//if err := E.Evaluate(line.data); err != nil {
+			//	return "", line.timestamp.Sub(startTime), errors.New("Error recieving from engine: " + err.Error())
+			//}
+
+			// Log this line of engine output:
+			E.Log("->", line)
+
 			// Check if the recieved command is the one we are waiting for:
 			if strings.Contains(line.data, untilCmd) {
 				return line.data, line.timestamp.Sub(startTime), nil
 			}
+
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
-			return "", time.Now().Sub(startTime), errors.New("Timed out waiting for engine to respond.")
+			description := "Timed out waiting for engine to respond."
+			E.Log("ERROR", rec{time.Now(), description})
+			return "", time.Now().Sub(startTime), errors.New(description)
+
 		case e := <-errChan:
-			return "", time.Now().Sub(startTime), errors.New("Error recieving from engine: " + e.Error())
+			description := "Error recieving from engine: " + e.Error()
+			E.Log("ERROR", rec{time.Now(), description})
+			return "", time.Now().Sub(startTime), errors.New(description)
+
 		}
 	}
 	return "", time.Now().Sub(startTime), nil

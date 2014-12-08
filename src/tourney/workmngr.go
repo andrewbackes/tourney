@@ -132,7 +132,7 @@ GAMESYNC:
 
 func ServeEngineFiles() {
 	// TODO: customizable ports
-	FilePath := "/Users/Andrew/Documents/"
+	FilePath := "/Users/Andrew/Documents/Engines"
 	fmt.Println("Serving game engines on port 9001")
 	http.ListenAndServe(":9001", http.FileServer(http.Dir(FilePath)))
 }

@@ -110,9 +110,9 @@ func RunTourney(T *Tourney) error {
 			break
 		default:
 			//channel isnt closed, so keep playing
-			fmt.Println("Round", i+1, ":", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
+			fmt.Print("Round ", i+1, ": ", T.GameList[i].Player[WHITE].Name, " vs ", T.GameList[i].Player[BLACK].Name)
 			if !T.GameList[i].Completed {
-				fmt.Println("Game started.")
+				fmt.Println("\nGame started.")
 				fmt.Print("Playing from opening book... ")
 				if err := PlayOpening(T, i); err != nil {
 					fmt.Println("Failed:", err.Error())
@@ -130,6 +130,8 @@ func RunTourney(T *Tourney) error {
 				if err := Save(T); err != nil {
 					return err
 				}
+			} else {
+				fmt.Print(" -> ", []string{"1-0", "0-1", "1/2-1/2"}[T.GameList[i].Result], " - ", T.GameList[i].ResultDetail, "\n")
 			}
 		}
 	}

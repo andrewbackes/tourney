@@ -51,6 +51,15 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 		//io.WriteString(w, "Round: "+strconv.Itoa(round))
 		//io.WriteString(w, fmt.Sprint(T.GameList[round].MoveList))
 		renderTemplate(w, "templates/game.html", T.GameList[round])
+		//renderTemplate(w, "templates/viewer.html", T.GameList[round])
+	} else {
+		io.WriteString(w, "That is not a valid round in this Tourney.")
+	}
+}
+
+func renderGameViewer(w http.ResponseWriter, T *Tourney, round int) {
+	if round < len(T.GameList) && round >= 0 {
+		renderTemplate(w, "templates/viewer.html", T.GameList[round])
 	} else {
 		io.WriteString(w, "That is not a valid round in this Tourney.")
 	}
@@ -70,6 +79,14 @@ func Broadcast(TList []*Tourney, Tindex *int) error {
 		request, _ := strconv.Atoi(strings.Trim(req.URL.Path[len("/round"):], "/"))
 		renderRoundPage(w, TList[*Tindex], request)
 	})
+
+	// Game Viewer:
+	http.HandleFunc("/viewer/", func(w http.ResponseWriter, req *http.Request) {
+		request, _ := strconv.Atoi(strings.Trim(req.URL.Path[len("/viewer"):], "/"))
+		renderGameViewer(w, TList[*Tindex], request)
+	})
+	// Image files:
+	http.Handle("/viewer/pieces/", http.StripPrefix("/viewer/pieces/", http.FileServer(http.Dir("templates/pieces"))))
 
 	// Start the server:
 	// TODO: allow the server to be shut down.
