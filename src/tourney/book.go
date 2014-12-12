@@ -29,6 +29,8 @@ import (
 	"time"
 )
 
+const BOOKMOVE string = "Book Move"
+
 func LoadBook(T *Tourney) error {
 	// Check for pgn type:
 	// TODO: check based on file contents not file name
@@ -58,7 +60,6 @@ func CopyStartingPosition(From *Game, To *Game) error {
 
 // Plays the opening from the pgn book for a single game:
 func PlayOpening(T *Tourney, GameIndex int) error {
-	LogComment := "Book Move." //what to say in the comments for the book moves.
 
 	// Helper function:
 	alreadyUsed := func(n string) bool {
@@ -116,7 +117,7 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 			mv := b.MoveList[j].Algebraic
 			mv = StripAnnotations(mv)
 			mv = InternalizeNotation(&dummy, mv)
-			dummy.MakeMove(Move{Algebraic: mv, log: []string{LogComment}})
+			dummy.MakeMove(Move{Algebraic: mv, Comment: BOOKMOVE})
 		}
 		alreadyListed = alreadyUsed(dummy.FEN())
 		attempts++

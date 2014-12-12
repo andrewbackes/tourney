@@ -24,6 +24,8 @@ import (
 
 // Turns Game structs into PGN
 func EncodePGN(G *Game) string {
+	// TODO: Test needed. Changed code about Move.log without testing. See below.
+
 	var pgn string
 	tags := [][]string{
 		{"Event", G.Event},
@@ -51,7 +53,9 @@ func EncodePGN(G *Game) string {
 	pgn += fmt.Sprintln()
 
 	for j, _ := range G.MoveList {
-		if len(G.MoveList[j].log) > 0 && strings.Contains(G.MoveList[j].log[0], "Book Move.") {
+		// TODO: replaced this code without testing:
+		//if len(G.MoveList[j].log) > 0 && strings.Contains(G.MoveList[j].log[0], "Book Move.") {
+		if G.MoveList[j].Comment == BOOKMOVE {
 			// dont print book moves, since the FEN tag would mess it up.
 			continue
 		}

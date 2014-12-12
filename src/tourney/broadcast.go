@@ -12,6 +12,10 @@
  	-Push move by move in games (Server-Sent).
  	-Have a 'compare pv' view where the moves are lined up on top of eachother.
 
+ BUGS:
+ 	-executing Broadcast() more than once crashes.
+ 	-executing Broadcast() then loading a tourney crashes on web requests.
+
 *******************************************************************************/
 
 package main

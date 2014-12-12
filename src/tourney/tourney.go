@@ -21,11 +21,15 @@
  	-Saving .tourney / .detail / .result / .pgn files when other already exist
 	 should make a xxx1.xxx xxx2.xxx sort of thing.
 	-Use text/template to save result files.
+	-saved files should mimic the .tourney file name, not the event name.
+	-previous tourney data file should be .data not .details
 
  BUGS:
  	-There may be an issue with things like: changing fields in the .tourney
  	 file when there is already a .details file. Because when the details are
  	 loaded, there may be a different number of games.
+ 	-Already played openings.
+ 	-Error handleing in RunTourney() incorrectly uses break
 
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/16/2014
@@ -270,7 +274,7 @@ func LoadFile(filename string) (*Tourney, error) {
 	tourneyFile, err := os.Open(filename)
 	defer tourneyFile.Close()
 	if err != nil {
-		fmt.Println("Failed:", filename, ",", err.Error())
+		fmt.Println("Failed to open:", filename, ",", err.Error())
 		return nil, err
 	}
 	// Make the object:
@@ -280,7 +284,7 @@ func LoadFile(filename string) (*Tourney, error) {
 	// Try to decode the file:
 	jsonParser := json.NewDecoder(tourneyFile)
 	if err = jsonParser.Decode(T); err != nil {
-		fmt.Println("Failed:", err.Error())
+		fmt.Println("Failed to decode:", err.Error())
 		return nil, err
 	}
 
@@ -292,7 +296,7 @@ func LoadFile(filename string) (*Tourney, error) {
 	if T.BookLocation != "" {
 		fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
 		if err := LoadBook(T); err != nil {
-			fmt.Println("Failed:", err)
+			fmt.Println("Failed to load opening book:", err)
 			return nil, err
 		} else {
 			fmt.Println("Success (", len(T.BookPGN), "Openings ).")

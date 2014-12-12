@@ -98,8 +98,8 @@ func PlayGame(G *Game) error {
 	if err := G.Player[BLACK].Start(&G.logBuffer); err != nil {
 		return err
 	}
-	var state Status = RUNNING
 
+	var state Status = RUNNING
 	for state == RUNNING {
 		if state == STOPPED {
 			// More clean up code here.
@@ -140,7 +140,7 @@ func ExecuteNextTurn(G *Game) bool {
 		return true
 	}
 	// Request a move from the engine:
-	engineMove, lapsed, err := G.Player[color].Move(G.Timer, G.MovesToGo)
+	engineMove, lapsed, err := G.Player[color].Move(G.Timer, G.MovesToGo, color)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
@@ -636,13 +636,13 @@ func (G *Game) PrintHUD() {
 	title := G.Player[[]int{1, 0}[toMove]].Name + " (" + []string{"Black", "White"}[toMove] + ")"
 
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
-	var pv []string
-	if len(G.MoveList) > 0 {
-		pv = G.MoveList[len(G.MoveList)-1].log
-	}
-	if len(pv)-2 >= 0 {
-		fmt.Print(pv[len(pv)-2])
-	}
+	//var pv []string
+	//if len(G.MoveList) > 0 {
+	//	pv = G.MoveList[len(G.MoveList)-1].log
+	//}
+	//if len(pv)-2 >= 0 {
+	//	fmt.Print(pv[len(pv)-2])
+	//}
 	title = G.Player[toMove].Name + " (" + []string{"White", "Black"}[toMove] + ")"
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
 	/*

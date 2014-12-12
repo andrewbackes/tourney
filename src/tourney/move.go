@@ -15,9 +15,11 @@ package main
 
 const MATESCORE int = 2147483647
 
+// TODO: Mate scores should be indicated as 100000 + N for "mate in N moves", and -100000 - N for "mated in N moves".
+
 type Move struct {
 	Algebraic string
-	log       []string
+	Comment   string
 	Depth     int
 	Score     int
 	Time      int
