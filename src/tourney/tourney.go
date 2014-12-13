@@ -30,6 +30,7 @@
  	 loaded, there may be a different number of games.
  	-Already played openings.
  	-Error handleing in RunTourney() incorrectly uses break
+ 	-if you delete the log folder, the first log file doesnt get created.
 
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/16/2014

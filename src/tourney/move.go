@@ -13,16 +13,20 @@
 
 package main
 
-const MATESCORE int = 2147483647
+const MATESCORE int = 100000
 
 // TODO: Mate scores should be indicated as 100000 + N for "mate in N moves", and -100000 - N for "mated in N moves".
 
 type Move struct {
 	Algebraic string
+	Ponder    string
 	Comment   string
-	Depth     int
-	Score     int
-	Time      int
+	//Depth     int
+	//Score     int
+	//Time      int
+	//Nodes     int
+	//Pv        string
+	Evaluation []EvaluationData
 }
 
 func getMove(from uint, to uint) Move {
@@ -32,9 +36,9 @@ func getMove(from uint, to uint) Move {
 	return r
 }
 
-func MateIn(number int) int {
-	if number < 0 {
-		return (-MATESCORE) - number
+func MateIn(MovesTillMate int) int {
+	if MovesTillMate < 0 {
+		return MovesTillMate - MATESCORE
 	}
-	return MATESCORE - number
+	return MovesTillMate + MATESCORE
 }

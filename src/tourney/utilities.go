@@ -120,6 +120,9 @@ func isNumber(s string) bool {
 	//	return unicode.IsDigit(rune(s[0]))
 	//}
 	//return unicode.IsDigit(rune(s[0])) && isNumber(s[1:])
+	if len(s) == 0 {
+		return false
+	}
 	if s[0] != '-' && !unicode.IsDigit(rune(s[0])) {
 		return false
 	}

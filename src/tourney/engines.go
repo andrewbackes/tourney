@@ -11,8 +11,7 @@
  executables stdio so other Engine methods can interact with the executable.
 
 TODO:
-	-Error checking for it engine path exists and if it opens okay
-	-WinBoard protocoler
+	-Error checking for if engine path exists and if it opens okay
 	-Engines need to take options for hashtable size, multithreading, pondering,
 	opening book, and a few other bare minimums.
 	-Fix the bug where >> >> >> >> ... keeps looping sometimes.
@@ -71,6 +70,17 @@ type Setting struct {
 	Type  string
 	Min   string
 	Max   string
+}
+
+type EvaluationData struct {
+	Depth      int
+	Seldepth   int
+	Score      int
+	Lowerbound bool
+	Upperbound bool
+	Time       int
+	Nodes      int
+	Pv         string
 }
 
 func (E *Engine) ValidateEngineFile() error {
@@ -424,44 +434,131 @@ func (U UCI) RegisterEngineOptions(output string, options map[string]Setting) {
 	}
 }
 
-func (U UCI) ExtractMove(output string) Move {
+func parseInfo(line string) EvaluationData {
+	// ex: info depth 120 seldepth 2 time 10 nodes 6792 nps 679200 multipv 1 score mate 1 pv c5d7
+	// ex: info multipv 1 depth 4 score mate -5 time 4 nodes 7159 hashfull 321 pv f5f4 d7d4 f4g3 d4e3 g3g4 e3f3 g4g5 c5e6 g5h6 f8h8
+	// ex: info multipv 1 depth 9 score cp -1261 upperbound time 7 nodes 11461 hashfull 286 pv h7g7 d2h6 g7f7 h6f8 f7e6 f8c8 e6e5 c8c5 e5e6 c5d6 e6f7 h8h7 f7g8 d6e7 h4e1 g1h2 e1h4 g2h3 h4f4 h2g2
 
-	// TODO: REFACTOR: this replace also happens in Engine.Recieve()
-	output = strings.Replace(output, "\n\r", " ", -1)
-	output = strings.Replace(output, "\n", " ", -1)
-	words := strings.Split(output, " ")
+	if !strings.HasPrefix(line, "info") {
+		return EvaluationData{}
+	}
 
-	// Helper function:
-	LastValueOf := func(key string) string {
-		//returns the word after the word given as an arg
-		for i := len(words) - 1; i >= 0; i-- {
-			if words[i] == key {
-				if i+1 <= len(words)-1 {
-					return words[i+1]
+	words := strings.Split(line, " ")
+
+	var d, sd, n, t, s int
+	var l, u bool
+	var pv string
+
+	for i := 1; i < len(words)-1; i++ {
+		switch words[i] {
+		case "depth":
+			d, _ = strconv.Atoi(words[i+1])
+		case "seldepth":
+			sd, _ = strconv.Atoi(words[i+1])
+		case "nodes":
+			n, _ = strconv.Atoi(words[i+1])
+		case "time":
+			t, _ = strconv.Atoi(words[i+1])
+		case "score":
+			if i+2 < len(words) {
+				if words[i+1] == "cp" {
+					s, _ = strconv.Atoi(words[i+2])
+				} else if words[i+1] == "mate" {
+					s, _ = strconv.Atoi(words[i+2])
+					s = MateIn(s)
+				}
+			}
+			if i+3 < len(words) {
+				l = (words[i+3] == "lowerbound")
+				u = (words[i+3] == "upperbound")
+			}
+		case "pv":
+			for j := i + 1; j < len(words); j++ {
+				if isMove(words[j]) {
+					pv += words[j] + " "
+				} else {
+					break
 				}
 			}
 		}
-		return ""
 	}
 
-	d, _ := strconv.Atoi(LastValueOf("depth")) // TODO: error handlingL what if this isnt an int!?
-	t, _ := strconv.Atoi(LastValueOf("time"))  // TODO: doing this way may only give the time for this depth
-	skey := LastValueOf("score")               // ex: score cp 112   but it could be:   score mate 7
+	return EvaluationData{Depth: d, Seldepth: sd, Nodes: n, Score: s, Upperbound: u, Lowerbound: l, Time: t, Pv: pv}
+}
 
-	var sval int
-	if skey == "cp" {
-		sval, _ = strconv.Atoi(LastValueOf(skey))
-	} else if skey == "mate" {
-		sval, _ = strconv.Atoi(LastValueOf(skey))
-		sval = MateIn(sval)
+func (U UCI) ExtractMove(output string) Move {
+
+	output = strings.Replace(output, "\r", "", -1)
+	lines := strings.Split(output, "\n")
+	mv := Move{}
+	for _, line := range lines {
+		eval := parseInfo(line)
+		if eval.Depth != 0 {
+			mv.Evaluation = append(mv.Evaluation, eval)
+		}
+		if strings.HasPrefix(line, "bestmove") {
+			words := strings.Split(line, " ")
+			if len(words) >= 2 {
+				mv.Algebraic = words[1]
+			}
+			if len(words) >= 4 && words[2] == "ponder" {
+				mv.Ponder = words[3]
+			}
+		}
 	}
+	return mv
 
-	return (Move{
-		Algebraic: LastValueOf("bestmove"),
-		Depth:     d,
-		Time:      t,
-		Score:     sval,
-	})
+	/*
+		// TODO: REFACTOR: this replace also happens in Engine.Recieve()
+		output = strings.Replace(output, "\n\r", " ", -1)
+		output = strings.Replace(output, "\n", " ", -1)
+
+		words := strings.Split(output, " ")
+
+		// Helper functions:
+		LastNValuesOf := func(key string, N int) string {
+			for i := len(words) - 1; i >= 0; i-- {
+				if words[i] == key {
+					if i+N <= len(words)-1 {
+						return strings.Join(words[i+1:i+N+1], " ")
+					}
+				}
+			}
+			return ""
+		}
+		LastValueOf := func(key string) string {
+			//returns the word after the word given as an arg
+			return LastNValuesOf(key, 1)
+		}
+
+		// ***
+
+		keys := []string{"depth", "time", "nodes"}
+		values := [4]int{0, 0, 0, 0}
+		for i, key := range keys {
+			temp := LastValueOf(key)
+			if isNumber(temp) {
+				values[i], _ = strconv.Atoi(temp)
+			}
+		}
+		skey := LastValueOf("score")
+		var sval int
+		if skey == "cp" {
+			sval, _ = strconv.Atoi(LastValueOf(skey))
+		} else if skey == "mate" {
+			sval, _ = strconv.Atoi(LastValueOf(skey))
+			sval = MateIn(sval)
+		}
+
+		return (Move{
+			Algebraic: LastValueOf("bestmove"),
+			Depth:     values[0],
+			Time:      values[1],
+			Nodes:     values[2],
+			Score:     sval,
+			Pv:        LastNValuesOf("pv", values[0]),
+		})
+	*/
 
 }
 
@@ -572,10 +669,8 @@ func (W WINBOARD) ExtractMove(output string) Move {
 	}
 
 	return (Move{
-		Algebraic: m,
-		Depth:     d,
-		Time:      t,
-		Score:     s,
+		Algebraic:  m,
+		Evaluation: []EvaluationData{EvaluationData{Depth: d, Time: t, Score: s}},
 	})
 }
 

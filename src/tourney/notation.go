@@ -22,35 +22,7 @@
 
 /*
 
-WINBOARD ERROR 12/10/14:
-
-Playing Game...
-5. c4d5 Error: index out of range.
-rnbqk2r/ppp1ppbp/5np1/3P4/3P4/6P1/PP2PPBP/RNBQK1NR b KQkq - 0 5
-
-   +---+---+---+---+---+---+---+---+
- 8 | r | n | b | q | k |   |   | r |      WHITE 00:01.640   [BLACK 00:02.000]
-   +---+---+---+---+---+---+---+---+
- 7 | p | p | p |   | p | p | b | p |      Move #: 4    (Moves Remaining: 40)
-   +---+---+---+---+---+---+---+---+
- 6 |   |   |   |   |   | n | p |   |      Enpassant: None
-   +---+---+---+---+---+---+---+---+
- 5 |   |   |   |[P]|   |   |   |   |      Castling Rights: KQkq
-   +---+---+---+---+---+---+---+---+
- 4 |   |   |[ ]| P |   |   |   |   |      In Play: PPPPPPPP NN BB RR Q K  (39)
-   +---+---+---+---+---+---+---+---+
- 3 |   |   |   |   |   |   | P |   |               ppppppp  nn bb rr q k  (38)
-   +---+---+---+---+---+---+---+---+
- 2 | P | P |   |   | P | P | B | P |
-   +---+---+---+---+---+---+---+---+
- 1 | R | N | B | Q | K |   | N | R |      Last move: c4d5
-   +---+---+---+---+---+---+---+---+
-     a   b   c   d   e   f   g   h
-------------------------------Crafty 23.4 (White)------------------------------
-------------------------------Gaviota 1.0 (Black)------------------------------
-panic: runtime error: index out of range
-
-
+TODO: is this still a bug?
 
 BUG:
 
@@ -299,6 +271,24 @@ func getAlg(index uint) string {
 	r = string(file) + string(rank)
 
 	return r
+}
+
+// Decides if a string is a chess move or not.
+func isMove(s string) bool {
+
+	PCN := "^([a-h][1-8])([a-h][1-8])([QBNRqbnr]?)$"
+	matches, _ := regexp.MatchString(PCN, s)
+	if matches {
+		return true
+	}
+
+	SAN := "^([BKNPQR]?)([a-h]?)([0-9]?)([x=]?)([BKNPQR]|[a-h][1-8])([+#]?)$"
+	matches, _ = regexp.MatchString(SAN, s)
+	if matches {
+		return true
+	}
+
+	return false
 }
 
 /*******************************************************************************
