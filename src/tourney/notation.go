@@ -276,6 +276,10 @@ func getAlg(index uint) string {
 // Decides if a string is a chess move or not.
 func isMove(s string) bool {
 
+	if s == "O-O" || s == "O-O-O" || s == "0000" {
+		return true
+	}
+
 	PCN := "^([a-h][1-8])([a-h][1-8])([QBNRqbnr]?)$"
 	matches, _ := regexp.MatchString(PCN, s)
 	if matches {

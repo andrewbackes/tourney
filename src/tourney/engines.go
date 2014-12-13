@@ -483,7 +483,7 @@ func parseInfo(line string) EvaluationData {
 		}
 	}
 
-	return EvaluationData{Depth: d, Seldepth: sd, Nodes: n, Score: s, Upperbound: u, Lowerbound: l, Time: t, Pv: pv}
+	return EvaluationData{Depth: d, Seldepth: sd, Nodes: n, Score: s, Upperbound: u, Lowerbound: l, Time: t, Pv: strings.Trim(pv, " ")}
 }
 
 func (U UCI) ExtractMove(output string) Move {
@@ -633,45 +633,58 @@ func (W *WINBOARD) Move(Timer [2]int64, MovesToGo int64, EngineColor Color) (str
 	return goString, "move"
 }
 
+func parsePost(line string) EvaluationData {
+	// ply score time nodes pv
+	// ex: 6    11       0      5118 Qd5 9.Bf4 Nc6 10.e3 Bg4 11.a3 [TT]
+	// ex: 8&     66    1    20536   d1e2  e8e7  e2e3  e7e6  e3d4  g7g5  a2a4  f7f5
+
+	fields := strings.Fields(line)
+
+	var d, s, t, n int
+	var l, u bool
+	var pv string
+	var err error
+
+	if len(fields) >= 4 {
+		if d, err = strconv.Atoi(fields[0]); err != nil {
+			d, _ = strconv.Atoi(fields[0][:len(fields[0])-1])
+		}
+		s, _ = strconv.Atoi(fields[1])
+		t, _ = strconv.Atoi(fields[2])
+		n, _ = strconv.Atoi(fields[3])
+	}
+	for i := 4; i < len(fields); i++ {
+		pv += fields[i] + " "
+	}
+	pv = strings.Trim(pv, " ")
+	if len(pv) > 1 {
+		l = (pv[len(pv)-1] == '!')
+		u = (pv[len(pv)-1] == '?')
+	}
+
+	return EvaluationData{Depth: d, Score: s, Upperbound: u, Lowerbound: l, Time: t, Nodes: n, Pv: pv}
+}
+
 func (W WINBOARD) ExtractMove(output string) Move {
 
-	// TODO: REFACTOR: this replace also happens in Engine.Recieve()
 	output = strings.Replace(output, "\r", " ", -1)
 	lines := strings.Split(output, "\n")
-
-	var d, s, t int
-	var m string
+	mv := Move{}
 	for _, line := range lines {
-		fields := strings.Fields(line)
-		if fields[0] == "move" {
-			if len(fields) > 1 {
-				m = fields[1]
+		if strings.HasPrefix(line, "move") {
+			words := strings.Split(line, " ")
+			if len(words) >= 2 {
+				mv.Algebraic = words[1]
 			}
 			break
-		}
-		// ply score time nodes pv
-		// ex: 6    11       0      5118 Qd5 9.Bf4 Nc6 10.e3 Bg4 11.a3 [TT]
-		// ex: 8&     66    1    20536   d1e2  e8e7  e2e3  e7e6  e3d4  g7g5  a2a4  f7f5
-		if len(fields) >= 4 {
-			if isNumber(fields[0]) {
-				d, _ = strconv.Atoi(fields[0])
-			} else if isNumber(fields[0][:len(fields[0])-1]) {
-				// accounts for the case of 8& or 8.
-				d, _ = strconv.Atoi(fields[0][:len(fields[0])-1])
-			}
-			if isNumber(fields[1]) {
-				s, _ = strconv.Atoi(fields[1])
-			}
-			if isNumber(fields[2]) {
-				t, _ = strconv.Atoi(fields[2])
+		} else {
+			eval := parsePost(line)
+			if eval.Depth != 0 {
+				mv.Evaluation = append(mv.Evaluation, eval)
 			}
 		}
 	}
-
-	return (Move{
-		Algebraic:  m,
-		Evaluation: []EvaluationData{EvaluationData{Depth: d, Time: t, Score: s}},
-	})
+	return mv
 }
 
 func (W *WINBOARD) RegisterEngineOptions(output string, options map[string]Setting) {

@@ -1,10 +1,10 @@
 <!-- Template for game summary -->
 <html>
 	<head>
-		<title>Round {{ .Round }}</title>
+		<title>Round {{ $r := .Round }}{{$r}}</title>
 	</head>
 	<body>
-		<h1>Round {{ .Round }}</h1>
+		<h1>Round {{ $r }}</h1>
 		<h2>Move List</h2>
 		<table>
 			<tr>
@@ -13,14 +13,18 @@
 				<th>Score</th>
 				<th>Depth</th>
 				<th>Time</th>
+				<th>Nodes</th>
+				<th>Pv</th>
 			</tr>
 			{{ range $i, $v := .MoveList }}
 			<tr>
 				<td><script> if( ({{$i}}/2)%1==0 ) { document.write({{$i}}/2 +1); } </script></td>
-				<td><script> if( ({{$i}}/2)%1!=0 ) { document.write(" ... "); } </script>{{ .Algebraic }}</td>
+				<td><script> if( ({{$i}}/2)%1!=0 ) { document.write(" ... "); } </script> <a href="/round/{{ $r}}/ply/{{$i}}">{{ .Algebraic }}</a></td>
 				<td>{{ .Score }}</td>
 				<td>{{ .Depth }}</td>
 				<td>{{ .Time }}</td>
+				<td>{{ .Nodes }}</td>
+				<td>{{ .Pv }}</td>
 			</tr>
 			{{ end }}
 		</table>

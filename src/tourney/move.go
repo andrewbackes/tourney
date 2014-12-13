@@ -15,19 +15,49 @@ package main
 
 const MATESCORE int = 100000
 
-// TODO: Mate scores should be indicated as 100000 + N for "mate in N moves", and -100000 - N for "mated in N moves".
-
 type Move struct {
-	Algebraic string
-	Ponder    string
-	Comment   string
-	//Depth     int
-	//Score     int
-	//Time      int
-	//Nodes     int
-	//Pv        string
+	Algebraic  string
+	Ponder     string
+	Comment    string
 	Evaluation []EvaluationData
 }
+
+func (M *Move) Depth() int {
+	if len(M.Evaluation) > 0 {
+		return M.Evaluation[len(M.Evaluation)-1].Depth
+	}
+	return 0
+}
+
+func (M *Move) Pv() string {
+	if len(M.Evaluation) > 0 {
+		return M.Evaluation[len(M.Evaluation)-1].Pv
+	}
+	return ""
+}
+
+func (M *Move) Score() int {
+	if len(M.Evaluation) > 0 {
+		return M.Evaluation[len(M.Evaluation)-1].Score
+	}
+	return 0
+}
+
+func (M *Move) Time() int {
+	if len(M.Evaluation) > 0 {
+		return M.Evaluation[len(M.Evaluation)-1].Time
+	}
+	return 0
+}
+
+func (M *Move) Nodes() int {
+	if len(M.Evaluation) > 0 {
+		return M.Evaluation[len(M.Evaluation)-1].Nodes
+	}
+	return 0
+}
+
+// *******************************************************************
 
 func getMove(from uint, to uint) Move {
 	// makes a move object from the to/from square index

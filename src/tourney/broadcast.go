@@ -11,6 +11,7 @@
 	-need to be able to disable the web server from within the program.
  	-Push move by move in games (Server-Sent).
  	-Have a 'compare pv' view where the moves are lined up on top of eachother.
+ 	-a search log file for move function.
 
  BUGS:
  	-executing Broadcast() more than once crashes.
@@ -62,6 +63,14 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 	}
 }
 
+func renderPlyPage(w http.ResponseWriter, T *Tourney, round, ply int) {
+	if round < len(T.GameList) && round >= 0 {
+		renderTemplate(w, "templates/ply.html", T.GameList[round-1].MoveList[ply])
+	} else {
+		io.WriteString(w, "That is not a valid ply of a round in this Tourney.")
+	}
+}
+
 func renderGameViewer(w http.ResponseWriter, T *Tourney, round int) {
 	if round < len(T.GameList) && round >= 0 {
 		renderTemplate(w, "templates/viewer.html", T.GameList[round-1])
@@ -81,8 +90,17 @@ func Broadcast(TList *[]*Tourney, Tindex *int) error {
 
 	// Round Requests:
 	http.HandleFunc("/round/", func(w http.ResponseWriter, req *http.Request) {
-		request, _ := strconv.Atoi(strings.Trim(req.URL.Path[len("/round"):], "/"))
-		renderRoundPage(w, (*TList)[*Tindex], request)
+		request := strings.Trim(req.URL.Path[len("/round"):], "/")
+		words := strings.Split(request, "/")
+		if len(words) == 1 {
+			// just the round is being requested:
+			round, _ := strconv.Atoi(words[0])
+			renderRoundPage(w, (*TList)[*Tindex], round)
+		} else if len(words) >= 3 && words[1] == "ply" {
+			round, _ := strconv.Atoi(words[0])
+			ply, _ := strconv.Atoi(words[2])
+			renderPlyPage(w, (*TList)[*Tindex], round, ply)
+		}
 	})
 
 	// Game Viewer:

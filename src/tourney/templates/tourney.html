@@ -67,7 +67,11 @@
 				</td>
 				<td><script>
 						var games_played = {{.Wins}} + {{.Losses}} + {{.Draws}};
-						document.write( Math.round((score/games_played)*10000)/100 );
+						if(games_played>0){
+							document.write( Math.round((score/games_played)*10000)/100 );
+						} else {
+							document.write("-");
+						}
 						document.write("%")
 					</script>
 				</td>
@@ -98,7 +102,11 @@
 				</td>
 				<td><script>
 						var games_played = {{.Wins}} + {{.Losses}} + {{.Draws}};
-						document.write( Math.round((score/games_played)*10000)/100 );
+						if(games_played>0){
+							document.write( Math.round((score/games_played)*10000)/100 );
+						} else {
+							document.write("-");
+						}
 						document.write("%")
 					</script>
 				</td>
