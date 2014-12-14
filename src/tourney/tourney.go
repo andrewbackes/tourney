@@ -121,11 +121,13 @@ func RunTourney(T *Tourney) error {
 				fmt.Print("Playing from opening book... ")
 				if err := PlayOpening(T, i); err != nil {
 					fmt.Println("Failed:", err.Error())
+					T.GameList[i].ResultDetail = "Failed: " + err.Error()
 					break
 				}
 				fmt.Println("Success.")
 				if err := PlayGame(&T.GameList[i]); err != nil {
 					fmt.Println(err.Error())
+					T.GameList[i].ResultDetail = "Failed: " + err.Error()
 					break
 				}
 				fmt.Println("Game stopped.")

@@ -77,7 +77,7 @@ import (
 	"strings"
 )
 
-func InternalizeNotation(G *Game, moveToParse string) string {
+func InternalizeNotation(G *Game, moveToParse string) (string, error) {
 	// Converts Standard Algebraic Notation (SAN) to Pure Coordinate Notation (PCN)
 	// Examples of PCN are: e2e4 (and) e7e8Q
 
@@ -101,19 +101,19 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 				}
 			}
 		}
-		return parsed
+		return parsed, nil
 	}
 	// Check for null move:
 	if moveToParse == "0000" {
-		return moveToParse
+		return moveToParse, nil
 	}
 
 	// Check for castling:
 	if moveToParse == "O-O" {
-		return []string{"e1g1", "e8g8"}[G.toMove()]
+		return []string{"e1g1", "e8g8"}[G.toMove()], nil
 	}
 	if moveToParse == "O-O-O" {
-		return []string{"e1c1", "e8c8"}[G.toMove()]
+		return []string{"e1c1", "e8c8"}[G.toMove()], nil
 	}
 
 	// First check for an ambiguous promotion:
@@ -126,10 +126,11 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 
 	matched := r.FindStringSubmatch(moveToParse)
 	if len(matched) == 0 {
-		fmt.Println("Error: index out of range.")
-		fmt.Println(G.FEN())
-		fmt.Println(moveToParse)
-		G.PrintHUD()
+		//fmt.Println("Error: index out of range.")
+		//fmt.Println(G.FEN())
+		//fmt.Println(moveToParse)
+		//G.PrintHUD()
+		return moveToParse, errors.New("Error parsing move from engine: '" + moveToParse + "'")
 	}
 	// For the sake of sanity, lets name some stuff:
 	piece := matched[1]
@@ -158,6 +159,7 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 		fmt.Println(G.FEN())
 		fmt.Println(moveToParse)
 		G.PrintHUD()
+		return moveToParse, errors.New("Error finding source square of move: '" + moveToParse + "'")
 	}
 
 	// Some engines dont tell you to promote to queen, so assume so in that case:
@@ -167,7 +169,7 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 		}
 	}
 	*/
-	return origin + destination + strings.ToLower(promote)
+	return origin + destination + strings.ToLower(promote), nil
 }
 
 func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (string, error) {

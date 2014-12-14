@@ -117,6 +117,10 @@ func (E *Engine) Log(label string, record rec) {
 	//fmt.Println("[" + record.timestamp.Format("01/02/2006 15:04:05.000") + "][" + E.Name + "][" + label + "]" + record.data)
 }
 
+func (E *Engine) LogError(description string) {
+	E.Log("ERROR", rec{time.Now(), description})
+}
+
 // Send a command to the engine:
 func (E *Engine) Send(s string) error {
 	E.Log("<-", rec{time.Now(), s})
@@ -143,11 +147,13 @@ func (E *Engine) Start(logbuffer *string) error {
 	// Setup the pipes to communicate with the engine:
 	StdinPipe, errIn := cmd.StdinPipe()
 	if errIn != nil {
-		return errors.New("Error Initializing Engine: can not establish in pipe.")
+		E.LogError("Initializing Engine:" + errIn.Error())
+		return errors.New("Error Initializing Engine: can not establish inward pipe.")
 	}
 	StdoutPipe, errOut := cmd.StdoutPipe()
 	if errOut != nil {
-		return errors.New("Error Initializing Engine: can not establish out pipe.")
+		E.LogError("Initializing Engine:" + errOut.Error())
+		return errors.New("Error Initializing Engine: can not establish outward pipe.")
 	}
 	E.writer, E.reader = bufio.NewWriter(StdinPipe), bufio.NewReader(StdoutPipe)
 
@@ -166,23 +172,17 @@ func (E *Engine) Start(logbuffer *string) error {
 	select {
 	case <-started:
 	case e := <-errChan:
-		return errors.New("Error executing " + E.Path + " - " + e.Error())
+		E.LogError("Starting Engine:" + e.Error())
+		return errors.New("Error starting engine:" + e.Error())
 	}
 
 	// Get the engine ready:
 	if err := E.Initialize(); err != nil {
-		E.Log("ERROR", rec{time.Now(), "Initializing Engine: " + err.Error()})
+		E.LogError("Initializing Engine: " + err.Error())
 		return err
 	}
 
-	/*
-		// DEBUG:
-		for k, v := range E.options {
-			E.Log("OPTION", rec{time.Now(), fmt.Sprint("Registering engine option ", k, v)})
-		}
-	*/
-
-	E.NewGame()
+	//E.NewGame()
 
 	// Setup up for when the engine exits:
 	go func() {
@@ -209,6 +209,8 @@ func (E *Engine) Initialize() error {
 	// Listen to what options the engine says it supports.
 	E.supportedOptions = make(map[string]Setting)
 	E.protocol.RegisterEngineOptions(output, E.supportedOptions)
+
+	E.Ping()
 
 	return nil
 }
@@ -254,20 +256,23 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration,
 			E.Log("->", line)
 
 			// Check if the recieved command is the one we are waiting for:
-			for _, v := range strings.Split(line.data, " ") {
-				if v == untilCmd {
-					return output, line.timestamp.Sub(startTime), nil
+			/*
+				for _, v := range strings.Split(line.data, " ") {
+					if v == untilCmd {
+						return output, line.timestamp.Sub(startTime), nil
+					}
 				}
+			*/
+			if (len(line.data) >= len(untilCmd)) && (line.data[:len(untilCmd)] == untilCmd || line.data[len(line.data)-len(untilCmd):] == untilCmd) {
+				return output, line.timestamp.Sub(startTime), nil
 			}
 
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
 			description := "Timed out waiting for engine to respond."
-			E.Log("ERROR", rec{time.Now(), description})
 			return output, time.Now().Sub(startTime), errors.New(description)
 
 		case e := <-errChan:
 			description := "Error recieving from engine: " + e.Error()
-			E.Log("ERROR", rec{time.Now(), description})
 			return output, time.Now().Sub(startTime), errors.New(description)
 
 		}
@@ -275,9 +280,8 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration,
 	return output, time.Now().Sub(startTime), nil //this should never occur
 }
 
-func (E *Engine) NewGame() error {
-	//E.protocol.New(E.reader, E.writer)
-	E.Send(E.protocol.NewGame())
+func (E *Engine) NewGame(Time, Moves int64) error {
+	E.Send(E.protocol.NewGame(Time, Moves))
 	return nil
 }
 
@@ -299,6 +303,7 @@ func (E *Engine) Move(timers [2]int64, MovesToGo int64, EngineColor Color) (Move
 	response, t, err := E.Recieve(r, max+1000)
 
 	if err != nil {
+		E.LogError("Requesting move: " + err.Error())
 		return Move{}, t, err
 	}
 
@@ -316,7 +321,7 @@ func (E *Engine) Set(movesSoFar []Move) error {
 func (E *Engine) Ping() error {
 	s, r := E.protocol.Ping(1)
 	E.Send(s)
-	_, _, err := E.Recieve(r, -1)
+	_, _, err := E.Recieve(r, 2000)
 	return err
 }
 
@@ -331,7 +336,7 @@ type Protocoler interface {
 	Quit() string
 	Move(timers [2]int64, MovesToGo int64, EngineColor Color) (string, string)
 	SetBoard(moveSoFar []Move) string
-	NewGame() string
+	NewGame(Time, Moves int64) string
 	Ping(int) (string, string)
 
 	ExtractMove(string) Move
@@ -355,7 +360,7 @@ func (U UCI) Initialize() (string, string) {
 	return "uci", "uciok"
 }
 
-func (U UCI) NewGame() string {
+func (U UCI) NewGame(Time, Moves int64) string {
 	return "ucinewgame"
 }
 
@@ -497,7 +502,7 @@ func (U UCI) ExtractMove(output string) Move {
 			mv.Evaluation = append(mv.Evaluation, eval)
 		}
 		if strings.HasPrefix(line, "bestmove") {
-			words := strings.Split(line, " ")
+			words := strings.Fields(line)
 			if len(words) >= 2 {
 				mv.Algebraic = words[1]
 			}
@@ -576,8 +581,9 @@ func (W WINBOARD) Initialize() (string, string) {
 	return "xboard\nprotover 2", "done=1"
 }
 
-func (W WINBOARD) NewGame() string {
-	return "new\nrandom\npost\nhard\neasy\ncomputer"
+func (W WINBOARD) NewGame(Time, Moves int64) string {
+	level := "level " + strconv.FormatInt(Moves, 10) + " " + strconv.FormatInt((Time/1000)/60, 10) + ":" + strconv.FormatInt((Time/1000)%60, 10) + " 0\n"
+	return "new\nrandom\n" + level + "post\nhard\neasy\ncomputer"
 }
 
 func (W *WINBOARD) SetBoard(movesSoFar []Move) string {
@@ -613,7 +619,7 @@ func (W *WINBOARD) SetBoard(movesSoFar []Move) string {
 }
 
 func (W WINBOARD) Ping(N int) (string, string) {
-	return "ping" + strconv.Itoa(N), "pong" + strconv.Itoa(N)
+	return "ping " + strconv.Itoa(N), "pong " + strconv.Itoa(N)
 }
 
 func (W WINBOARD) Quit() string {
@@ -623,8 +629,9 @@ func (W WINBOARD) Quit() string {
 func (W *WINBOARD) Move(Timer [2]int64, MovesToGo int64, EngineColor Color) (string, string) {
 	var goString string
 
-	goString += "time " + strconv.FormatInt(Timer[EngineColor], 10) + "\n"
-	goString += "otim " + strconv.FormatInt(Timer[[]int{1, 0}[EngineColor]], 10) + "\n"
+	// Note: remember that winboard uses centiseconds
+	goString += "time " + strconv.FormatInt(Timer[EngineColor]/10, 10) + "\n"
+	goString += "otim " + strconv.FormatInt(Timer[[]int{1, 0}[EngineColor]]/10, 10) + "\n"
 	if W.features["colors"] == "1" {
 		goString += []string{"white\n", "black\n"}[EngineColor]
 	}
@@ -672,7 +679,8 @@ func (W WINBOARD) ExtractMove(output string) Move {
 	mv := Move{}
 	for _, line := range lines {
 		if strings.HasPrefix(line, "move") {
-			words := strings.Split(line, " ")
+			words := strings.Fields(line)
+			//words := strings.Split(line, " ")
 			if len(words) >= 2 {
 				mv.Algebraic = words[1]
 			}

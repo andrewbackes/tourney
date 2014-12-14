@@ -99,6 +99,9 @@ func PlayGame(G *Game) error {
 		return err
 	}
 
+	G.Player[WHITE].NewGame(G.Time, G.Moves)
+	G.Player[BLACK].NewGame(G.Time, G.Moves)
+
 	var state Status = RUNNING
 	for state == RUNNING {
 		if state == STOPPED {
@@ -154,7 +157,11 @@ func ExecuteNextTurn(G *Game) bool {
 	}
 	// Convert the notation from the engines notation to pure coordinate notation
 	parsedMove := engineMove
-	parsedMove.Algebraic = InternalizeNotation(G, parsedMove.Algebraic)
+	parsedMove.Algebraic, err = InternalizeNotation(G, parsedMove.Algebraic)
+	if err != nil {
+		G.GameOver(color, err.Error())
+		return true
+	}
 
 	// Print the move:
 	if color == WHITE {
@@ -789,6 +796,11 @@ func (G *Game) StartLog() error {
 
 	fmt.Println("Success.")
 	return err
+}
+
+func (G *Game) Log(label string, record rec) {
+	G.logBuffer += fmt.Sprintln("[" + record.timestamp.Format("01/02/2006 15:04:05.000") + "][GAME][" + label + "]" + record.data)
+
 }
 
 func (G *Game) AppendLog() error {

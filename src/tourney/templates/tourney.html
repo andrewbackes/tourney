@@ -48,6 +48,7 @@
 		<h2>Results</h2>
 		<table>
 			<tr>
+				<th>#</th>
 				<th>Engine</th>
 				<th>W-L-D</th>
 				<th>Incomplete</th>
@@ -55,8 +56,9 @@
 				<th>Win %</th>
 			</tr>
 
-			{{ range .EngineRecords }}
+			{{ range $i, $v := .EngineRecords }}
 			<tr>
+				<td><script> document.write({{$i}}+1);</script></td>
 				<td>{{ .Player.Name }}</td>
 				<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
 				<td>{{ .Incomplete }}</td>
@@ -133,7 +135,7 @@
 				<td>{{ .Round }}</a></td>
 				<td>{{ (index .Player 0).Name }}</td>
 				<td>{{ (index .Player 1).Name }}</td>
-				<script>if({{.Completed}}) {
+				<script>if({{.Completed}} || ({{ .ResultDetail }}!="") ) {
 						document.write('<td>');
 						document.write(["1-0","0-1","1/2-1/2"][{{ .Result }}]);
 						document.write('</td><td>{{ .ResultDetail }}</td><td><a href="viewer/{{ .Round }}">View</a></td><td><a href="round/{{ .Round }}">Details</a></td><td><a href="logs/{{ $event }} round {{ .Round }}.log">Log</a></td>');

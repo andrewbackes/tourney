@@ -31,6 +31,10 @@ import (
 
 const BOOKMOVE string = "Book Move"
 
+// **********************
+
+// **********************
+
 func LoadBook(T *Tourney) error {
 	// Check for pgn type:
 	// TODO: check based on file contents not file name
@@ -116,7 +120,11 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 			}
 			mv := b.MoveList[j].Algebraic
 			mv = StripAnnotations(mv)
-			mv = InternalizeNotation(&dummy, mv)
+			var err error
+			mv, err = InternalizeNotation(&dummy, mv)
+			if err != nil {
+				return errors.New("Book notation error: '" + err.Error())
+			}
 			dummy.MakeMove(Move{Algebraic: mv, Comment: BOOKMOVE})
 		}
 		alreadyListed = alreadyUsed(dummy.FEN())
