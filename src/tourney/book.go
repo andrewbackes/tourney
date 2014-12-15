@@ -32,7 +32,110 @@ import (
 const BOOKMOVE string = "Book Move"
 
 // **********************
+// NEW CODE:
+// **********************
 
+type BookPosition struct {
+	Weight   int
+	MoveList []Move
+}
+
+type Book struct {
+	FromFilename string
+	Positions    []map[string]BookPosition
+}
+
+func NewBook(PGNFilename string, MaxMoves int) *Book {
+	book := &Book{
+		FromFilename: PGNFilename,
+		Positions:    make([]map[string]BookPosition, MaxMoves),
+	}
+	for m := 0; m < MaxMoves; m++ {
+		book.Positions[m] = make(map[string]BookPosition)
+	}
+	return book
+}
+
+func NewBookPosition(Moves []Move) *BookPosition {
+	return &BookPosition{
+		Weight:   1,
+		MoveList: Moves,
+	}
+}
+
+// for use in the fmt package:
+func (B Book) String() string {
+	var s, l, w string
+	s += fmt.Sprint("Moves#\tFEN\n")
+	for i, _ := range B.Positions {
+		sum := 0
+		l += fmt.Sprint("len([", i, "])=", len(B.Positions[i]), "; ")
+		for k, v := range B.Positions[i] {
+			sum += v.Weight
+			for _, m := range v.MoveList {
+				s += m.Algebraic + " "
+			}
+			s += fmt.Sprint(" (x", v.Weight, ") = [", i, "][", k, "]\n")
+		}
+		w += fmt.Sprint("weight([", i, "])=", sum, "; ")
+	}
+
+	return s + l + "\n" + w + "\n"
+}
+
+func BuildBook(PGNfilename string, MoveNumber int) (*Book, error) {
+	book := NewBook(PGNfilename, MoveNumber)
+
+	// load the pgn games:
+	PGN, err := LoadPGN(PGNfilename)
+	if err != nil {
+		return nil, err
+	}
+
+	// go through each game in the pgn. get the fen at each move.
+	// save the movelist
+
+	for i, _ := range *PGN {
+		dummyGame := NewGame()
+		for ply := 1; ply <= 2*MoveNumber; ply += 2 {
+			//check if this game has enough moves made:
+			if len((*PGN)[i].MoveList) < ply+1 {
+				break
+			}
+			//white move:
+			wmv, err := InternalizeNotation(&dummyGame, StripAnnotations((*PGN)[i].MoveList[ply-1].Algebraic))
+			if err != nil {
+				break
+			}
+			if err := dummyGame.MakeMove(Move{Algebraic: wmv}); err != nil {
+				break
+			}
+			//black move:
+			bmv, err := InternalizeNotation(&dummyGame, StripAnnotations((*PGN)[i].MoveList[ply].Algebraic))
+			if err != nil {
+				break
+			}
+			if err := dummyGame.MakeMove(Move{Algebraic: bmv}); err != nil {
+				break
+			}
+			//get fen:
+			fen := dummyGame.FEN()
+			//add it to our book:
+			if value, exists := book.Positions[ply/2][fen]; exists {
+				value.Weight++
+				book.Positions[ply/2][fen] = value
+			} else {
+				book.Positions[ply/2][fen] = *NewBookPosition(dummyGame.MoveList)
+			}
+		}
+		//break //temporary
+	}
+
+	return book, nil
+}
+
+// **********************
+// OLD CODE:
 // **********************
 
 func LoadBook(T *Tourney) error {
@@ -47,6 +150,7 @@ func LoadBook(T *Tourney) error {
 	}
 	return nil
 }
+
 func CopyStartingPosition(From *Game, To *Game) error {
 	To.StartingFEN = From.StartingFEN
 	//Play the moves until the FEN matches the starting FEN:

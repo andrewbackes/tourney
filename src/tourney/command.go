@@ -203,6 +203,25 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 				}()
 				return
 			}},
+		{
+			label: []string{"build"},
+			desc:  "Build an opening book from a PGN.",
+			f: func() {
+				var filename string
+				if len(words) > 1 {
+					filename = words[1]
+				} else {
+					filename = "Kasparov.pgn" // TEMPORARY
+				}
+				fmt.Print("Building opening book from '", filename, "'...\n")
+				if b, err := BuildBook(filename, 4); err == nil {
+					fmt.Println("Success.")
+					fmt.Println(*b)
+				} else {
+					fmt.Println("Failed:", err.Error())
+				}
+				return
+			}},
 	}
 
 	//helper:

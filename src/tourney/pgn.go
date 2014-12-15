@@ -8,6 +8,7 @@
  Description: PGN tools
 
  TODO:
+ 		-return as *[]Game not []Game
  		-finish tags: ELO, time, timecontrol
  		-reading PGN with split \n probably has some consequences with \r\n
 
@@ -16,11 +17,26 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"strconv"
 	"strings"
 )
+
+//Load the contents of a PGN file into memory:
+func LoadPGN(filename string) (*[]Game, error) {
+	if !strings.HasSuffix(filename, ".pgn") {
+		return nil, errors.New("Invalid PGN file.")
+	}
+	pgn, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	PGN := DecodePGN(string(pgn))
+	return &PGN, nil
+}
 
 // Turns Game structs into PGN
 func EncodePGN(G *Game) string {
