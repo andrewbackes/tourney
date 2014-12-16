@@ -6,7 +6,7 @@
  Description: holds the move object and methods for interacting with it.
  	Eventually, engine data/logs will be tied into this?
 
- Author(s): Andrew Backes, Daniel Sparks
+ Author(s): Andrew Backes
  Created: 7/16/2014
 
 */
@@ -31,7 +31,12 @@ func (M *Move) Depth() int {
 
 func (M *Move) Pv() string {
 	if len(M.Evaluation) > 0 {
-		return M.Evaluation[len(M.Evaluation)-1].Pv
+		// look for the last PV that was stored:
+		for i := len(M.Evaluation) - 1; i >= 0; i-- {
+			if M.Evaluation[i].Pv != "" {
+				return M.Evaluation[i].Pv
+			}
+		}
 	}
 	return ""
 }

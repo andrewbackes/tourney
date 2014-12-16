@@ -60,6 +60,8 @@ const (
 )
 
 type Tourney struct {
+	filename string
+
 	// Predetermined Settings for a tourney:
 	Event string //identifier for this tournament. Unique may be better?
 	Site  string
@@ -68,9 +70,9 @@ type Tourney struct {
 	Engines []Engine // which engines are playing in the tournament
 
 	// The following will determine gauntlet, multigauntlet, roundrobin
-	// 		if testSeats=1 then normal gauntlet (for the first engine)
-	// 		if testSeats=#Engines then its roundrobine
-	// 		if testSeats=2 then the first 2 engines will be multigauntlet
+	// 		if TestSeats=1 then normal gauntlet (for the first engine)
+	// 		if TestSeats=#Engines then its roundrobine
+	// 		if TestSeats=2 then the first 2 engines will be multigauntlet
 	TestSeats int
 
 	Carousel bool //The order the engines play against eachother
@@ -146,7 +148,7 @@ func RunTourney(T *Tourney) error {
 					break
 				}
 				fmt.Println("Game stopped.")
-				T.GameList[i].PrintHUD()
+				//T.GameList[i].PrintHUD()
 
 				// Save progress:
 				if err := Save(T); err != nil {
@@ -164,7 +166,6 @@ func RunTourney(T *Tourney) error {
 
 func Save(T *Tourney) error {
 	// Save results:
-	fmt.Print("Saving '" + T.Event + ".results'... ")
 	if err := SaveResults(T); err != nil {
 		fmt.Println("Failed.", err)
 		//return err
@@ -172,15 +173,13 @@ func Save(T *Tourney) error {
 		fmt.Println("Success.")
 	}
 	// Save details:
-	fmt.Print("Saving '" + T.Event + ".details'... ")
-	if err := SaveDetails(T); err != nil {
+	if err := SaveData(T); err != nil {
 		fmt.Println("Failed.", err)
 		//return err
 	} else {
 		fmt.Println("Success.")
 	}
 	// Save PGN:
-	fmt.Print("Saving '" + T.Event + ".pgn'... ")
 	if err := SavePGN(T); err != nil {
 		fmt.Println("Failed.", err)
 		//return err
@@ -192,7 +191,8 @@ func Save(T *Tourney) error {
 
 func SaveResults(T *Tourney) error {
 	//check if the file exists:
-	filename := T.Event + ".results"
+	filename := T.filename + ".results"
+	fmt.Print("Saving '" + filename + "'... ")
 	//var file *os.File
 	//var err error
 	if _, test := os.Stat(filename); os.IsNotExist(test) {
@@ -209,9 +209,10 @@ func SaveResults(T *Tourney) error {
 	return err
 }
 
-func SaveDetails(T *Tourney) error {
+func SaveData(T *Tourney) error {
 	//check if the file exists:
-	filename := T.Event + ".details"
+	filename := T.filename + ".data"
+	fmt.Print("Saving '" + filename + "'... ")
 	var file *os.File
 	var err error
 	if _, er := os.Stat(filename); os.IsNotExist(er) {
@@ -239,7 +240,8 @@ func SaveDetails(T *Tourney) error {
 // Saves the completed games in pgn format:
 func SavePGN(T *Tourney) error {
 	//check if the file exists:
-	filename := T.Event + ".pgn"
+	filename := T.filename + ".pgn"
+	fmt.Print("Saving '" + filename + "'... ")
 	if _, test := os.Stat(filename); os.IsNotExist(test) {
 		// file doesnt exist
 	} else if test == nil {
@@ -260,7 +262,7 @@ func SavePGN(T *Tourney) error {
 }
 
 func LoadPreviousResults(T *Tourney) (bool, error) {
-	filename := T.Event + ".details"
+	filename := T.filename + ".data"
 	var err error
 	if _, err = os.Stat(filename); os.IsNotExist(err) {
 		// file doesnt exist
@@ -305,6 +307,8 @@ func LoadFile(filename string) (*Tourney, error) {
 		fmt.Println("Failed to decode:", err.Error())
 		return nil, err
 	}
+	// Record the filename for use in saving.
+	T.filename = strings.TrimSuffix(filename, ".tourney")
 
 	// Create the game list:
 	T.GenerateGames()
