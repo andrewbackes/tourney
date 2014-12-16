@@ -1,16 +1,13 @@
 /*******************************************************************************
 
  Project: Tourney
- Author(s): Andrew Backes, Daniel Sparks
+ Author(s): Andrew Backes
  Created: 8/8/2014
 
  Module: Book
- Description: Opening Book. Right now it loads a pgn and plays the first few
- moves from the games in the PGN.
+ Description: Opening Book. Loads a PGN file into a Book object.
 
  TODO:
- 	- "Failed: Not enough unique positions" still allows the mirrored game to
- 	  continue playing. should skip that one also.
  	-Count possible openings before playing
  	-adjust for carousel
  	-error handling
@@ -21,21 +18,19 @@
 package main
 
 import (
-	"errors"
+	//"errors"
 	"fmt"
-	"io/ioutil"
-	"math/rand"
-	"strings"
-	"time"
+	//"io/ioutil"
+	//"math/rand"
+	"strconv"
+	//"strings"
+	//"time"
 )
 
 const BOOKMOVE string = "Book Move"
 
-// **********************
-// NEW CODE:
-// **********************
-
 type BookPosition struct {
+	Index    int
 	Weight   int
 	MoveList []Move
 }
@@ -43,12 +38,14 @@ type BookPosition struct {
 type Book struct {
 	FromFilename string
 	Positions    []map[string]BookPosition
+	Iterator     [][]string //keys
 }
 
 func NewBook(PGNFilename string, MaxMoves int) *Book {
 	book := &Book{
 		FromFilename: PGNFilename,
 		Positions:    make([]map[string]BookPosition, MaxMoves),
+		Iterator:     make([][]string, MaxMoves),
 	}
 	for m := 0; m < MaxMoves; m++ {
 		book.Positions[m] = make(map[string]BookPosition)
@@ -56,34 +53,69 @@ func NewBook(PGNFilename string, MaxMoves int) *Book {
 	return book
 }
 
+func (B *Book) Iterate() {
+	for i, _ := range B.Positions {
+		for k, _ := range B.Positions[i] {
+			B.Iterator[i] = append(B.Iterator[i], k)
+			value := B.Positions[i][k]
+			value.Index = len(B.Iterator[i]) - 1
+			B.Positions[i][k] = value
+		}
+		// TODO: sort by weight. then reassign the index's
+	}
+}
+
 func NewBookPosition(Moves []Move) *BookPosition {
 	return &BookPosition{
+		Index:    0,
 		Weight:   1,
 		MoveList: Moves,
 	}
 }
 
-// for use in the fmt package:
+// For use in the fmt package. Tell's Print how to display the Book
+// object.
 func (B Book) String() string {
 	var s, l, w string
 	s += fmt.Sprint("Moves#\tFEN\n")
-	for i, _ := range B.Positions {
-		sum := 0
-		l += fmt.Sprint("len([", i, "])=", len(B.Positions[i]), "; ")
-		for k, v := range B.Positions[i] {
-			sum += v.Weight
+	for i, _ := range B.Iterator {
+		weightSum := 0
+		l += fmt.Sprint("len([", i, "])=", len(B.Iterator[i]), "; ")
+		//for k, v := range B.Positions[i] {
+		for _, k := range B.Iterator[i] {
+			v := B.Positions[i][k]
+			weightSum += v.Weight
+			s += strconv.Itoa(v.Index) + ".\t"
 			for _, m := range v.MoveList {
 				s += m.Algebraic + " "
 			}
 			s += fmt.Sprint(" (x", v.Weight, ") = [", i, "][", k, "]\n")
 		}
-		w += fmt.Sprint("weight([", i, "])=", sum, "; ")
+		w += fmt.Sprint("weight([", i, "])=", weightSum, "; ")
 	}
 
 	return s + l + "\n" + w + "\n"
 }
 
+// Tries to load the json version of the book that would have been built
+// by this pgn file's name. When it can't find it or it is invalid
+// somehow, then it builds a new json verion based on the pgn.
+func LoadOrBuildBook(PGNfilename string, MoveNumber int) (*Book, error) {
+	// TODO: complete this function.
+
+	// try to load internal format of book:
+
+	// if not build it:
+	return BuildBook(PGNfilename, MoveNumber)
+
+	// save what was built.
+
+}
+
+// Load the PGN file into a Book object:
 func BuildBook(PGNfilename string, MoveNumber int) (*Book, error) {
+	fmt.Print("Building Opening Book...")
+
 	book := NewBook(PGNfilename, MoveNumber)
 
 	// load the pgn games:
@@ -128,16 +160,47 @@ func BuildBook(PGNfilename string, MoveNumber int) (*Book, error) {
 				book.Positions[ply/2][fen] = *NewBookPosition(dummyGame.MoveList)
 			}
 		}
-		//break //temporary
 	}
+	book.Iterate()
 
 	return book, nil
 }
+
+func (B *Book) uniquePositions(BookMoves int) int {
+	return len(B.Positions[BookMoves-1])
+}
+
+/*
+// figure out if there are enough unique positions in the opening book
+// for each matchup to get a different one.
+func EnoughPositionsInBook(T *Tourney, B *Book) bool {
+	// TODO: This function does not work as intended!!!
+	// 		 ex: 3 rounds, repeating, mirroring.
+
+	if T.RepeatOpenings {
+		roundsAsWhite := T.Rounds / 2
+		if T.Rounds%2 == 1 {
+			roundsAsWhite = (T.Rounds + 1) / 2
+		}
+		if T.BookMirroring {
+			return (B.uniquePositions(T.BookMoves) >= roundsAsWhite)
+		}
+		return (B.uniquePositions(T.BookMoves) >= T.Rounds)
+	}
+	maxUniqueRounds := len(T.GameList)
+	if T.BookMirroring && T.Rounds > 1 {
+		maxUniqueRounds += (maxUniqueRounds % 2)
+		maxUniqueRounds = maxUniqueRounds / 2
+	}
+	return B.uniquePositions(T.BookMoves) >= maxUniqueRounds
+}
+*/
 
 // **********************
 // OLD CODE:
 // **********************
 
+/*
 func LoadBook(T *Tourney) error {
 	// Check for pgn type:
 	// TODO: check based on file contents not file name
@@ -165,9 +228,11 @@ func CopyStartingPosition(From *Game, To *Game) error {
 	}
 	return nil
 }
+*/
 
+/*
 // Plays the opening from the pgn book for a single game:
-func PlayOpening(T *Tourney, GameIndex int) error {
+func PlayOpeningOLD(T *Tourney, GameIndex int) error {
 
 	// Helper function:
 	alreadyUsed := func(n string) bool {
@@ -236,92 +301,8 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 	}
 	T.GameList[GameIndex] = dummy
 	T.GameList[GameIndex].StartingFEN = dummy.FEN()
-	/*
-		if T.Rounds%2 == 0 && !T.GameList[GameIndex+1].Completed {
-			dummy.Player = T.GameList[GameIndex+1].Player
-			T.GameList[GameIndex+1] = dummy
-			T.GameList[GameIndex+1].StartingFEN = dummy.FEN()
-			GameIndex++
-			// DEBUG:
-			//fmt.Println(dummy.FEN())
-		}
-	*/
-	// DEBUG:
-	//fmt.Println(dummy.FEN())
 
 	// TODO : This will not work for for non-Carousel
-
-	return nil
-}
-
-/*
-// Play each game in the tourney enough to get out of the book:
-func PlayOpenings(T *Tourney) error {
-
-	// Helper function:
-	alreadyUsed := func(n string) bool {
-		for i, _ := range T.GameList {
-			if n == T.GameList[i].StartingFEN {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Pick which games from the book pgn to use:
-	rand.Seed(time.Now().Unix())
-
-	//for i, _ := range T.GameList {
-	for i := 0; i < len(T.GameList); i++ {
-		if T.GameList[i].Completed {
-			continue
-		}
-		var dummy Game
-		alreadyListed := true // hack to get the for loop to go at least once
-		// Loop until a unique FEN is found:
-		attempts := 0
-		for alreadyListed {
-			// escape if going infinite:
-			if attempts > len(T.BookPGN) {
-				return errors.New("Not enough unique positions in the opening book.")
-			}
-			// pick a game from the book to use:
-			var index int = i
-			if T.RandomBook {
-				index = rand.Intn(len(T.BookPGN))
-			}
-			// play out the opening on a dummy game:
-			dummy = T.GameList[i]
-			for j := 0; j < 2*T.BookMoves; j++ {
-				b := &T.BookPGN[index]
-				// make sure we dont try to play more moves than what is in the book:
-				if j >= len(b.MoveList) {
-					break
-				}
-				mv := b.MoveList[j].Algebraic
-				mv = StripAnnotations(mv)
-				mv = InternalizeNotation(&dummy, mv)
-				dummy.MakeMove(Move{Algebraic: mv, log: []string{"Book Move."}})
-			}
-			alreadyListed = alreadyUsed(dummy.FEN())
-			attempts++
-		}
-		T.GameList[i] = dummy
-		T.GameList[i].StartingFEN = dummy.FEN()
-		if T.Rounds%2 == 0 && !T.GameList[i+1].Completed {
-			dummy.Player = T.GameList[i+1].Player
-			T.GameList[i+1] = dummy
-			T.GameList[i+1].StartingFEN = dummy.FEN()
-			i++
-			// DEBUG:
-			//fmt.Println(dummy.FEN())
-		}
-		// DEBUG:
-		//fmt.Println(dummy.FEN())
-
-		// TODO : This will not work for for non-Carousel
-
-	}
 
 	return nil
 }

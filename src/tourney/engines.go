@@ -83,6 +83,10 @@ type EvaluationData struct {
 	Pv         string
 }
 
+func (E *Engine) Equals(E2 *Engine) bool {
+	return (E.Name == E2.Name) && (E.Path == E2.Path) && (E.Protocol == E2.Protocol)
+}
+
 func (E *Engine) ValidateEngineFile() error {
 	// First decides if the file exists.
 	// Compares the checksum to the md5 sum that is stored in memory.

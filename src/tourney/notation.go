@@ -22,6 +22,31 @@
 
 /*
 
+BUG as of 12/15/2014:
+
+Notation: Can not find source square.
+r1bqk2r/pppn1pbp/3p2p1/5p2/2PP4/2N1P1P1/PP3PBP/R2QK1NR b KQkq - 1 8
+Nge2
+   +---+---+---+---+---+---+---+---+
+ 8 | r |   | b | q | k |   |   | r |      WHITE 00:00.000   [BLACK 00:00.000]
+   +---+---+---+---+---+---+---+---+
+ 7 | p | p | p | n |   | p | b | p |      Move #: 7    (Moves Remaining: 0)
+   +---+---+---+---+---+---+---+---+
+ 6 |   |   |   | p |   |   | p |   |      Enpassant: None
+   +---+---+---+---+---+---+---+---+
+ 5 |   |   |   |   |   | p |   |   |      Castling Rights: KQkq
+   +---+---+---+---+---+---+---+---+
+ 4 |   |   | P | P |   |   |   |   |      In Play: PPPPPPPP NN B  RR Q K  (36)
+   +---+---+---+---+---+---+---+---+
+ 3 |   |   | N |   | P |   | P |   |               pppppppp n  bb rr q k  (36)
+   +---+---+---+---+---+---+---+---+
+ 2 | P | P |   |   |   | P |[B]| P |
+   +---+---+---+---+---+---+---+---+
+ 1 | R |   |   | Q | K |[ ]| N | R |      Last move: f1g2
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+
+
 TODO: is this still a bug?
 
 BUG:

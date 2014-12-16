@@ -74,6 +74,7 @@ type Tourney struct {
 	TestSeats int
 
 	Carousel bool //The order the engines play against eachother
+	Rounds   int  //number of games each engine will play
 
 	// Time control (Moves, Time, Repeating):
 	Moves     int64 // Moves per Time control
@@ -81,13 +82,25 @@ type Tourney struct {
 	BonusTime int64 // bonus Time added after each move
 	Repeating bool  // restart Time after Moves hits
 
-	Rounds int //number of games each engine will play
-
 	// Opening book information:
 	BookLocation string // File location of the book
 	BookMoves    int    // Number of Moves to use out of the book
-	BookPGN      []Game
-	RandomBook   bool
+	BookPGN      []Game // TODO: depreciated
+	RandomBook   bool   // do not choose the openings in sequence
+
+	//BookIteratorMap        []int
+	//BookIteratorReverseMap []int
+	//BookIteratorIndex      int
+
+	// if engine A vs engine B uses opening X then the next occurence
+	// of engine B vs engine A will also use opening X:
+	BookMirroring bool
+
+	// Can use the same opening if it is not yet used in that matchup.
+	// false indicates an engine should never use the same opening:
+	//RepeatOpenings bool
+
+	openingBook *Book // points to internal book data.
 
 	QuitAfter bool //Quit after the tourney is complete.
 
@@ -106,6 +119,7 @@ type Tourney struct {
 
 func RunTourney(T *Tourney) error {
 	// TODO: verify that the settings currently loaded will not cause any problems.
+	// TODO: print opening
 
 	//var state Status
 	for i, _ := range T.GameList {
@@ -125,6 +139,7 @@ func RunTourney(T *Tourney) error {
 					break
 				}
 				fmt.Println("Success.")
+
 				if err := PlayGame(&T.GameList[i]); err != nil {
 					fmt.Println(err.Error())
 					T.GameList[i].ResultDetail = "Failed: " + err.Error()
@@ -298,15 +313,28 @@ func LoadFile(filename string) (*Tourney, error) {
 	// Load the opening book:
 	if T.BookLocation != "" {
 		fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
-		if err := LoadBook(T); err != nil {
+		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves); err != nil {
 			fmt.Println("Failed to load opening book:", err)
 			return nil, err
 		} else {
-			fmt.Println("Success (", len(T.BookPGN), "Openings ).")
+			T.openingBook = book
+			fmt.Print("Success. (", len(T.openingBook.Positions[T.BookMoves-1]), " unique openings.)\n")
 		}
-	} else {
-		fmt.Println("No opening book specified.")
 	}
+	/*
+		if T.BookLocation != "" {
+			fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
+			if err := LoadBook(T); err != nil {
+				fmt.Println("Failed to load opening book:", err)
+				return nil, err
+			} else {
+				fmt.Println("Success (", len(T.BookPGN), "Openings ).")
+			}
+		} else {
+			fmt.Println("No opening book specified.")
+		}
+	*/
+
 	// Check if this tourney was previously stopped midway
 	fmt.Print("Loading previous tourney data... ")
 	if loaded, err := LoadPreviousResults(T); err != nil {
