@@ -19,6 +19,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"unicode"
 )
 
 /*******************************************************************************
@@ -106,4 +107,29 @@ func GetMD5(filepath string) (string, error) {
 		io.WriteString(hash, string(buf)) // append into the hash
 	}
 	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+/*******************************************************************************
+
+	Parsing:
+
+*******************************************************************************/
+
+func isNumber(s string) bool {
+	//if len(s) == 1 {
+	//	return unicode.IsDigit(rune(s[0]))
+	//}
+	//return unicode.IsDigit(rune(s[0])) && isNumber(s[1:])
+	if len(s) == 0 {
+		return false
+	}
+	if s[0] != '-' && !unicode.IsDigit(rune(s[0])) {
+		return false
+	}
+	for i := 1; i < len(s); i++ {
+		if !unicode.IsDigit(rune(s[i])) {
+			return false
+		}
+	}
+	return true
 }

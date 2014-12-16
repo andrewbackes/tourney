@@ -98,8 +98,11 @@ func PlayGame(G *Game) error {
 	if err := G.Player[BLACK].Start(&G.logBuffer); err != nil {
 		return err
 	}
-	var state Status = RUNNING
 
+	G.Player[WHITE].NewGame(G.Time, G.Moves)
+	G.Player[BLACK].NewGame(G.Time, G.Moves)
+
+	var state Status = RUNNING
 	for state == RUNNING {
 		if state == STOPPED {
 			// More clean up code here.
@@ -140,7 +143,7 @@ func ExecuteNextTurn(G *Game) bool {
 		return true
 	}
 	// Request a move from the engine:
-	engineMove, lapsed, err := G.Player[color].Move(G.Timer, G.MovesToGo)
+	engineMove, lapsed, err := G.Player[color].Move(G.Timer, G.MovesToGo, color)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
@@ -154,7 +157,11 @@ func ExecuteNextTurn(G *Game) bool {
 	}
 	// Convert the notation from the engines notation to pure coordinate notation
 	parsedMove := engineMove
-	parsedMove.Algebraic = InternalizeNotation(G, parsedMove.Algebraic)
+	parsedMove.Algebraic, err = InternalizeNotation(G, parsedMove.Algebraic)
+	if err != nil {
+		G.GameOver(color, err.Error())
+		return true
+	}
 
 	// Print the move:
 	if color == WHITE {
@@ -636,13 +643,13 @@ func (G *Game) PrintHUD() {
 	title := G.Player[[]int{1, 0}[toMove]].Name + " (" + []string{"Black", "White"}[toMove] + ")"
 
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
-	var pv []string
-	if len(G.MoveList) > 0 {
-		pv = G.MoveList[len(G.MoveList)-1].log
-	}
-	if len(pv)-2 >= 0 {
-		fmt.Print(pv[len(pv)-2])
-	}
+	//var pv []string
+	//if len(G.MoveList) > 0 {
+	//	pv = G.MoveList[len(G.MoveList)-1].log
+	//}
+	//if len(pv)-2 >= 0 {
+	//	fmt.Print(pv[len(pv)-2])
+	//}
 	title = G.Player[toMove].Name + " (" + []string{"White", "Black"}[toMove] + ")"
 	fmt.Print(strings.Repeat("-", (80-len(title))/2), title, strings.Repeat("-", (80-len(title))/2), "\n")
 	/*
@@ -789,6 +796,11 @@ func (G *Game) StartLog() error {
 
 	fmt.Println("Success.")
 	return err
+}
+
+func (G *Game) Log(label string, record rec) {
+	G.logBuffer += fmt.Sprintln("[" + record.timestamp.Format("01/02/2006 15:04:05.000") + "][GAME][" + label + "]" + record.data)
+
 }
 
 func (G *Game) AppendLog() error {

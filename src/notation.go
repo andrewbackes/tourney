@@ -21,8 +21,35 @@
 *******************************************************************************/
 
 /*
-BUG:
 
+BUG as of 12/15/2014:
+
+Notation: Can not find source square.
+r1bqk2r/pppn1pbp/3p2p1/5p2/2PP4/2N1P1P1/PP3PBP/R2QK1NR b KQkq - 1 8
+Nge2
+   +---+---+---+---+---+---+---+---+
+ 8 | r |   | b | q | k |   |   | r |      WHITE 00:00.000   [BLACK 00:00.000]
+   +---+---+---+---+---+---+---+---+
+ 7 | p | p | p | n |   | p | b | p |      Move #: 7    (Moves Remaining: 0)
+   +---+---+---+---+---+---+---+---+
+ 6 |   |   |   | p |   |   | p |   |      Enpassant: None
+   +---+---+---+---+---+---+---+---+
+ 5 |   |   |   |   |   | p |   |   |      Castling Rights: KQkq
+   +---+---+---+---+---+---+---+---+
+ 4 |   |   | P | P |   |   |   |   |      In Play: PPPPPPPP NN B  RR Q K  (36)
+   +---+---+---+---+---+---+---+---+
+ 3 |   |   | N |   | P |   | P |   |               pppppppp n  bb rr q k  (36)
+   +---+---+---+---+---+---+---+---+
+ 2 | P | P |   |   |   | P |[B]| P |
+   +---+---+---+---+---+---+---+---+
+ 1 | R |   |   | Q | K |[ ]| N | R |      Last move: f1g2
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+
+
+TODO: is this still a bug?
+
+BUG:
 
 > ucinewgame
 > position startpos moves d2d4 g8f6 c2c4 e7e6 b1c3 f8b4 g1f3 c7c5 d4c5 b8c6 c1d2 b4c5 e2e3 d7d5 f1e2 e8g8 e1g1 d5c4 e2c4 e6e5 e3e4 c8g4 a1c1 c6d4 c4e2 d4f3 e2f3 g4f3 g2f3 c5d4 d1e2 d8b6 d2e3 a8c8 f1d1 f8d8 g1g2 a7a6 d1d3 f6d7 c3d5 b6g6 g2h1 c8c1 e3c1 g6e6 c1g5 f7f6 g5e3 d7b6 e3d4 e5d4 e2d1 b6d5 d3d4 g8f7 d4d5 d8d5 e4d5 e6d6 h1g2 f6f5 d1d3 f7g6 h2h4 g6f6 d3d4 f6g6 f3f4 d6e7 d5d6 e7d7 g2g3 h7h6 d4c5 d7e6 c5e5 e6f7 b2b3 g6h7 g3f3 h7g6 f3e3 b7b5 e3d4 f7a7 e5c5 a7b7 h4h5 g6f6 c5e5 f6f7 e5f5 f7e8 f5e6 e8f8 d6d7 b7b8 d4c5 b8c7 c5d5 c7d8 d5c6 d8a8 c6b6 a8d8 b6a6 d8b8 e6e5 b8d8 e5d6 f8f7 a6b5 f7g8 f4f5 g8h8 a2a4 h8g8 b3b4 g7g6 f5g6 g8g7 d6d4 g7f8 b5c6 f8g8 d4d5 g8h8 d5e5 h8g8 e5e8 d8e8 d7e8Q g8g7 e8f7 g7h8 f7f8
@@ -75,7 +102,7 @@ import (
 	"strings"
 )
 
-func InternalizeNotation(G *Game, moveToParse string) string {
+func InternalizeNotation(G *Game, moveToParse string) (string, error) {
 	// Converts Standard Algebraic Notation (SAN) to Pure Coordinate Notation (PCN)
 	// Examples of PCN are: e2e4 (and) e7e8Q
 
@@ -99,19 +126,19 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 				}
 			}
 		}
-		return parsed
+		return parsed, nil
 	}
 	// Check for null move:
 	if moveToParse == "0000" {
-		return moveToParse
+		return moveToParse, nil
 	}
 
 	// Check for castling:
 	if moveToParse == "O-O" {
-		return []string{"e1g1", "e8g8"}[G.toMove()]
+		return []string{"e1g1", "e8g8"}[G.toMove()], nil
 	}
 	if moveToParse == "O-O-O" {
-		return []string{"e1c1", "e8c8"}[G.toMove()]
+		return []string{"e1c1", "e8c8"}[G.toMove()], nil
 	}
 
 	// First check for an ambiguous promotion:
@@ -124,10 +151,11 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 
 	matched := r.FindStringSubmatch(moveToParse)
 	if len(matched) == 0 {
-		fmt.Println("Error: index out of range.")
-		fmt.Println(G.FEN())
-		fmt.Println(moveToParse)
-		G.PrintHUD()
+		//fmt.Println("Error: index out of range.")
+		//fmt.Println(G.FEN())
+		//fmt.Println(moveToParse)
+		//G.PrintHUD()
+		return moveToParse, errors.New("Error parsing move from engine: '" + moveToParse + "'")
 	}
 	// For the sake of sanity, lets name some stuff:
 	piece := matched[1]
@@ -156,6 +184,7 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 		fmt.Println(G.FEN())
 		fmt.Println(moveToParse)
 		G.PrintHUD()
+		return moveToParse, errors.New("Error finding source square of move: '" + moveToParse + "'")
 	}
 
 	// Some engines dont tell you to promote to queen, so assume so in that case:
@@ -165,7 +194,7 @@ func InternalizeNotation(G *Game, moveToParse string) string {
 		}
 	}
 	*/
-	return origin + destination + strings.ToLower(promote)
+	return origin + destination + strings.ToLower(promote), nil
 }
 
 func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (string, error) {
@@ -269,6 +298,28 @@ func getAlg(index uint) string {
 	r = string(file) + string(rank)
 
 	return r
+}
+
+// Decides if a string is a chess move or not.
+func isMove(s string) bool {
+
+	if s == "O-O" || s == "O-O-O" || s == "0000" {
+		return true
+	}
+
+	PCN := "^([a-h][1-8])([a-h][1-8])([QBNRqbnr]?)$"
+	matches, _ := regexp.MatchString(PCN, s)
+	if matches {
+		return true
+	}
+
+	SAN := "^([BKNPQR]?)([a-h]?)([0-9]?)([x=]?)([BKNPQR]|[a-h][1-8])([+#]?)$"
+	matches, _ = regexp.MatchString(SAN, s)
+	if matches {
+		return true
+	}
+
+	return false
 }
 
 /*******************************************************************************

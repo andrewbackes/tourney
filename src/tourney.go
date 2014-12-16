@@ -21,11 +21,16 @@
  	-Saving .tourney / .detail / .result / .pgn files when other already exist
 	 should make a xxx1.xxx xxx2.xxx sort of thing.
 	-Use text/template to save result files.
+	-saved files should mimic the .tourney file name, not the event name.
+	-previous tourney data file should be .data not .details
 
  BUGS:
  	-There may be an issue with things like: changing fields in the .tourney
  	 file when there is already a .details file. Because when the details are
  	 loaded, there may be a different number of games.
+ 	-Already played openings.
+ 	-Error handleing in RunTourney() incorrectly uses break
+ 	-if you delete the log folder, the first log file doesnt get created.
 
  Author(s): Andrew Backes, Daniel Sparks
  Created: 7/16/2014
@@ -55,6 +60,8 @@ const (
 )
 
 type Tourney struct {
+	filename string
+
 	// Predetermined Settings for a tourney:
 	Event string //identifier for this tournament. Unique may be better?
 	Site  string
@@ -63,12 +70,13 @@ type Tourney struct {
 	Engines []Engine // which engines are playing in the tournament
 
 	// The following will determine gauntlet, multigauntlet, roundrobin
-	// 		if testSeats=1 then normal gauntlet (for the first engine)
-	// 		if testSeats=#Engines then its roundrobine
-	// 		if testSeats=2 then the first 2 engines will be multigauntlet
+	// 		if TestSeats=1 then normal gauntlet (for the first engine)
+	// 		if TestSeats=#Engines then its roundrobine
+	// 		if TestSeats=2 then the first 2 engines will be multigauntlet
 	TestSeats int
 
 	Carousel bool //The order the engines play against eachother
+	Rounds   int  //number of games each engine will play
 
 	// Time control (Moves, Time, Repeating):
 	Moves     int64 // Moves per Time control
@@ -76,13 +84,25 @@ type Tourney struct {
 	BonusTime int64 // bonus Time added after each move
 	Repeating bool  // restart Time after Moves hits
 
-	Rounds int //number of games each engine will play
-
 	// Opening book information:
 	BookLocation string // File location of the book
 	BookMoves    int    // Number of Moves to use out of the book
-	BookPGN      []Game
-	RandomBook   bool
+	BookPGN      []Game // TODO: depreciated
+	RandomBook   bool   // do not choose the openings in sequence
+
+	//BookIteratorMap        []int
+	//BookIteratorReverseMap []int
+	//BookIteratorIndex      int
+
+	// if engine A vs engine B uses opening X then the next occurence
+	// of engine B vs engine A will also use opening X:
+	BookMirroring bool
+
+	// Can use the same opening if it is not yet used in that matchup.
+	// false indicates an engine should never use the same opening:
+	//RepeatOpenings bool
+
+	openingBook *Book // points to internal book data.
 
 	QuitAfter bool //Quit after the tourney is complete.
 
@@ -101,6 +121,7 @@ type Tourney struct {
 
 func RunTourney(T *Tourney) error {
 	// TODO: verify that the settings currently loaded will not cause any problems.
+	// TODO: print opening
 
 	//var state Status
 	for i, _ := range T.GameList {
@@ -110,26 +131,31 @@ func RunTourney(T *Tourney) error {
 			break
 		default:
 			//channel isnt closed, so keep playing
-			fmt.Println("Round", i+1, ":", T.GameList[i].Player[WHITE].Name, "vs", T.GameList[i].Player[BLACK].Name)
+			fmt.Print("Round ", i+1, ": ", T.GameList[i].Player[WHITE].Name, " vs ", T.GameList[i].Player[BLACK].Name)
 			if !T.GameList[i].Completed {
-				fmt.Println("Game started.")
+				fmt.Println("\nGame started.")
 				fmt.Print("Playing from opening book... ")
 				if err := PlayOpening(T, i); err != nil {
 					fmt.Println("Failed:", err.Error())
+					T.GameList[i].ResultDetail = "Failed: " + err.Error()
 					break
 				}
 				fmt.Println("Success.")
+
 				if err := PlayGame(&T.GameList[i]); err != nil {
 					fmt.Println(err.Error())
+					T.GameList[i].ResultDetail = "Failed: " + err.Error()
 					break
 				}
 				fmt.Println("Game stopped.")
-				T.GameList[i].PrintHUD()
+				//T.GameList[i].PrintHUD()
 
 				// Save progress:
 				if err := Save(T); err != nil {
 					return err
 				}
+			} else {
+				fmt.Print(" -> ", []string{"1-0", "0-1", "1/2-1/2"}[T.GameList[i].Result], " - ", T.GameList[i].ResultDetail, "\n")
 			}
 		}
 	}
@@ -140,7 +166,6 @@ func RunTourney(T *Tourney) error {
 
 func Save(T *Tourney) error {
 	// Save results:
-	fmt.Print("Saving '" + T.Event + ".results'... ")
 	if err := SaveResults(T); err != nil {
 		fmt.Println("Failed.", err)
 		//return err
@@ -148,15 +173,13 @@ func Save(T *Tourney) error {
 		fmt.Println("Success.")
 	}
 	// Save details:
-	fmt.Print("Saving '" + T.Event + ".details'... ")
-	if err := SaveDetails(T); err != nil {
+	if err := SaveData(T); err != nil {
 		fmt.Println("Failed.", err)
 		//return err
 	} else {
 		fmt.Println("Success.")
 	}
 	// Save PGN:
-	fmt.Print("Saving '" + T.Event + ".pgn'... ")
 	if err := SavePGN(T); err != nil {
 		fmt.Println("Failed.", err)
 		//return err
@@ -168,7 +191,8 @@ func Save(T *Tourney) error {
 
 func SaveResults(T *Tourney) error {
 	//check if the file exists:
-	filename := T.Event + ".results"
+	filename := T.filename + ".results"
+	fmt.Print("Saving '" + filename + "'... ")
 	//var file *os.File
 	//var err error
 	if _, test := os.Stat(filename); os.IsNotExist(test) {
@@ -185,9 +209,10 @@ func SaveResults(T *Tourney) error {
 	return err
 }
 
-func SaveDetails(T *Tourney) error {
+func SaveData(T *Tourney) error {
 	//check if the file exists:
-	filename := T.Event + ".details"
+	filename := T.filename + ".data"
+	fmt.Print("Saving '" + filename + "'... ")
 	var file *os.File
 	var err error
 	if _, er := os.Stat(filename); os.IsNotExist(er) {
@@ -215,7 +240,8 @@ func SaveDetails(T *Tourney) error {
 // Saves the completed games in pgn format:
 func SavePGN(T *Tourney) error {
 	//check if the file exists:
-	filename := T.Event + ".pgn"
+	filename := T.filename + ".pgn"
+	fmt.Print("Saving '" + filename + "'... ")
 	if _, test := os.Stat(filename); os.IsNotExist(test) {
 		// file doesnt exist
 	} else if test == nil {
@@ -236,7 +262,7 @@ func SavePGN(T *Tourney) error {
 }
 
 func LoadPreviousResults(T *Tourney) (bool, error) {
-	filename := T.Event + ".details"
+	filename := T.filename + ".data"
 	var err error
 	if _, err = os.Stat(filename); os.IsNotExist(err) {
 		// file doesnt exist
@@ -268,7 +294,7 @@ func LoadFile(filename string) (*Tourney, error) {
 	tourneyFile, err := os.Open(filename)
 	defer tourneyFile.Close()
 	if err != nil {
-		fmt.Println("Failed:", filename, ",", err.Error())
+		fmt.Println("Failed to open:", filename, ",", err.Error())
 		return nil, err
 	}
 	// Make the object:
@@ -278,9 +304,11 @@ func LoadFile(filename string) (*Tourney, error) {
 	// Try to decode the file:
 	jsonParser := json.NewDecoder(tourneyFile)
 	if err = jsonParser.Decode(T); err != nil {
-		fmt.Println("Failed:", err.Error())
+		fmt.Println("Failed to decode:", err.Error())
 		return nil, err
 	}
+	// Record the filename for use in saving.
+	T.filename = strings.TrimSuffix(filename, ".tourney")
 
 	// Create the game list:
 	T.GenerateGames()
@@ -289,15 +317,28 @@ func LoadFile(filename string) (*Tourney, error) {
 	// Load the opening book:
 	if T.BookLocation != "" {
 		fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
-		if err := LoadBook(T); err != nil {
-			fmt.Println("Failed:", err)
+		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves); err != nil {
+			fmt.Println("Failed to load opening book:", err)
 			return nil, err
 		} else {
-			fmt.Println("Success (", len(T.BookPGN), "Openings ).")
+			T.openingBook = book
+			fmt.Print("Success. (", len(T.openingBook.Positions[T.BookMoves-1]), " unique openings.)\n")
 		}
-	} else {
-		fmt.Println("No opening book specified.")
 	}
+	/*
+		if T.BookLocation != "" {
+			fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
+			if err := LoadBook(T); err != nil {
+				fmt.Println("Failed to load opening book:", err)
+				return nil, err
+			} else {
+				fmt.Println("Success (", len(T.BookPGN), "Openings ).")
+			}
+		} else {
+			fmt.Println("No opening book specified.")
+		}
+	*/
+
 	// Check if this tourney was previously stopped midway
 	fmt.Print("Loading previous tourney data... ")
 	if loaded, err := LoadPreviousResults(T); err != nil {

@@ -8,6 +8,7 @@
  Description: PGN tools
 
  TODO:
+ 		-return as *[]Game not []Game
  		-finish tags: ELO, time, timecontrol
  		-reading PGN with split \n probably has some consequences with \r\n
 
@@ -16,14 +17,31 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
+//Load the contents of a PGN file into memory:
+func LoadPGN(filename string) (*[]Game, error) {
+	if !strings.HasSuffix(filename, ".pgn") {
+		return nil, errors.New("Invalid PGN file.")
+	}
+	pgn, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	PGN := DecodePGN(string(pgn))
+	return &PGN, nil
+}
+
 // Turns Game structs into PGN
 func EncodePGN(G *Game) string {
+	// TODO: Test needed. Changed code about Move.log without testing. See below.
+
 	var pgn string
 	tags := [][]string{
 		{"Event", G.Event},
@@ -51,7 +69,9 @@ func EncodePGN(G *Game) string {
 	pgn += fmt.Sprintln()
 
 	for j, _ := range G.MoveList {
-		if len(G.MoveList[j].log) > 0 && strings.Contains(G.MoveList[j].log[0], "Book Move.") {
+		// TODO: replaced this code without testing:
+		//if len(G.MoveList[j].log) > 0 && strings.Contains(G.MoveList[j].log[0], "Book Move.") {
+		if G.MoveList[j].Comment == BOOKMOVE {
 			// dont print book moves, since the FEN tag would mess it up.
 			continue
 		}

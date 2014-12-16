@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Test</title>
+		<style>
+		@font-face { font-family: 'digi'; src: url('http://cssdeck.com/uploads/resources/fonts/digii/DS-DIGII.TTF');
+}
+		
+		#container {
+			width: 800px; height: 759px; margin-left: auto;	margin-right: auto;	position: relative;	background-color: white; }
+		#graph_container {
+			width: 796px; position: absolute; left:0px; bottom:0px; height: 249px; border: black solid 2px; }
+		#board_container {
+			width: 435px; height: 435px; position: absolute; left: 0px; top: 3px; background-color: #F0F0E0; border: black solid 2px; }
+		#board {
+			width: 408px;height:408px;position:absolute;left: 18px;top:12px;}
+		.dark_square {
+			width:50px;height:50px;border:black solid 1px; background-color:#D2B48C; /*background-image:url("board/dark.jpg"); */}
+		.light_square {
+			width:50px;height:50px;border:black solid 1px; background-color: #FFF5EE; /*background-image:url("board/light.jpg");*/ }
+		#lost_material {
+			background-color: #F0F0E0; width:435px; height:50px; border: black solid 2px; position: absolute; left: 0px; top: 447px; /*text-align: center; vertical-align: middle; line-height: 76px;*/ }
+		#controls {
+			background-color: #F0F0E0; width:352px; height:50px; border: black solid 2px; position: absolute; right: 0px; top: 447px; /*text-align: center; vertical-align: middle; line-height: 76px;*/ }
+		
+	/* CLOCKS */		
+		#white_clock {
+			 background-color: white; width:172px; height:50px; border: black solid 2px; position: absolute; left: 445px; top: 3px; /*text-align: center; vertical-align: middle; line-height: 76px;*/}
+		#black_clock {
+			background-color: black; width:174px; height:50px; border: black solid 2px; position: absolute; left: 621px; top: 3px; /*text-align: center; vertical-align: middle; line-height: 76px;*/}
+		#white_clock_cursor {
+			display: none; background-color: black; width:170px; height: 10px; position: absolute; top:0px; left:0px; border: white solid 1px;}
+		#black_clock_cursor {
+			display: none; background-color: white; width:100%; height: 10px; position: absolute; top:0px; left:0px;}
+		#white_clock_value {
+			font-family:"digi", "Courier New", Courier, monospace; font-size:180%; width:100%; text-align:center; position:absolute; bottom: 10px; left:0px; padding:0;margin:0;}
+		#black_clock_value {
+			color: white; font-family:"digi", "Courier New", Courier, monospace; font-size:180%; width:100%; text-align:center;  position:absolute; bottom: 10px; left:0px; padding:0;margin:0; }
+	
+	/* MOVELIST */
+		#movelist_title {
+			background-color: #8585AD; color: white; font-weight: bold; font-size: 80%; text-align: center; position: absolute; top: 63px; right:0px; width:352px; height:18px; border-top:black solid 2px; border-left:black solid 2px; border-right:black solid 2px; border-bottom:black solid 0px;  }
+		#movelist_container {
+			width: 352px; height:355px; padding-top:2px; position: absolute; right:0; top:83px; background-color: #F0F0E0; overflow-y:scroll; overflow-x:hidden; cursor: default; color: #543600; border-left:black solid 2px; border-right:black solid 2px; border-bottom:black solid 2px;}
+		#movelist_container table {
+			left: 2px; position:absolute; padding: 0px; border-spacing: 0px; border-collapse: separate;}
+		#movelist_container table tr {
+			height: 16px; font-size: 80%; }
+		.td_movenum {
+			width: 20px; font-weight: bold; }
+		.td_movelist {
+			width: 63px; }
+		.td_movelist_eval {
+			width: 36px; text-align: center; font-weight: bold; }
+		.td_movelist_triangle_left {
+			height: 16px; width: 10px; padding-left: 8px; padding-right: 5px;}
+		.td_movelist_triangle_right {
+			height: 16px; width: 10px; padding-left: 5px; padding-right: 8px;}
+		.td_movelist_time { 
+			width: 83px; }
+		.td_movelist_depth { 
+			width: 83px; }
+		.moveListTimeBarW {
+			height: 12px; font-size: 85%; background-color: #F5F5F5; color: black; font-weight: bold; border: #959595 solid 1px;}
+		.moveListDepthBarW {
+			height: 12px; font-size: 85%; background-color: #EBEBEB;	color: black; font-weight: bold; border: #959595 solid 1px;}
+		.moveListTimeBarB {
+			height: 12px; font-size: 85%; background-color: #696969;	color: white; font-weight: bold; border: #555555 solid 1px;}
+		.moveListDepthBarB {
+			height: 12px; font-size: 85%; background-color: #37302D;	color: white; font-weight: bold; border: black solid 1px;}
+		.eval_up {
+			width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 10px solid green;}
+		.eval_down {
+			width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 10px solid red; }
+	
+	/* EVAL GRAPH */		
+		#evalgraph_title {
+			font-size: 90%; font-weight: bold;width: 20px; height: 83px; position: absolute; left: 0; bottom: 166px; color: white; background-color: #8585AD; border-bottom: white solid 0px; border-right: white solid 0px;}
+		#evalgraph_key {
+			width:20px;height:82px;position:absolute;left:20px;bottom:166px;background-color: #F0F0E0;}
+		#evalgraph {
+			width: 756px; height: 83px; position: absolute; left: 40px; bottom: 166px; background-color: #F0F0E0; }
+		#evalgraph table, td, tr {
+			padding: 0px;border: 0px;margin: 0px;}
+		#evalgraph table tr {
+			height: 39px;}
+		#evalgraph table tr td {
+			position:relative;}                                             
+		.eg_w {
+			background-color: white; position: absolute; outline: black solid 1px;}
+		.eg_b {
+			background-color: black; position: absolute;outline: black solid 1px;}
+		.eg_empty {
+			background-color: #F0F0E0; position: absolute; outline: #F0F0E0 solid 1px;}
+	
+	/* TIME GRAPH */
+		#timegraph_title {
+			font-size: 90%; font-weight: bold;width: 20px; height: 83px; position: absolute; left: 0px; bottom: 83px; color: white; background-color: #8585AD; border-bottom: white solid 0px; border-right: white solid 0px; }
+		#timegraph_key {
+			width:20px;height:83px;position:absolute;left:20px;bottom:83px;background-color: #F0F0E0;}
+		#timegraph {
+			width: 756px; height: 83px; position: absolute; left: 40px; bottom: 83px; background-color: #F0F0E0;}
+		#time_plot_area {
+			position:absolute; left:40px; bottom:83px; }
+		.time_dot_w {
+			width: 2px; height: 2px; position:absolute; background-color: blue; }
+		.time_dot_b {
+			width: 2px; height: 2px; position:absolute; background-color: black; }
+	
+	/* DEPTH GRAPH */
+		#depthgraph_title {
+			font-size: 90%; font-weight: bold; width: 20px; height: 83px; position: absolute; left: 0; bottom: 0px; color: white; background-color: #8585AD; border-right: white solid 0px;}
+		#depthgraph_key {
+			width:20px;height:83px;position:absolute;left:20px;bottom:0px;background-color: #F0F0E0; }
+		#depthgraph {
+			width: 756px; height: 83px; position: absolute; left: 40px; bottom: 0px; background-color: #F0F0E0; }
+		.dg_w {
+			background-color: #EBEBEB; position: absolute;outline: black solid 1px;}
+		.dg_b {
+			background-color: #696969; position: absolute;outline: black solid 1px;}
+	
+	/* STAT BOXES */
+		#score_box {
+			  display: none; background-color: #a0a688; width:75px; height:76px; border: black solid 2px; position: absolute; left: 0px; bottom: 173px; /*text-align: center; vertical-align: middle; line-height: 76px;*/}
+		#time_box {
+			 display: none; background-color: #90a637; width:75px; height:76px; border: black solid 2px; position: absolute; left: 0px; bottom: 87px;}
+		#depth_box {
+			 display: none; background-color: #566321; width:75px; height:76px; border: black solid 2px; position: absolute; left: 0px; bottom: 0px;}
+		.box_value {
+			text-shadow: 0 0 4px white; font-weight:bold;color: white; font-size: 150%; font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif;position:absolute; top:0px; width:100%; text-align:center;margin-top:20px;}		
+		.box_unit {
+			font-size: 75%; font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif;position:absolute; bottom:0px; width:100%; text-align:center;margin-bottom:22px; color: #543600;}
+		#triangle-up {
+			position:absolute; bottom:16px; left:13px;width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; border-bottom: 50px solid #F0F0E0;}
+		#triangle-down {
+			position:absolute; bottom:10px; left:13px;width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; border-top: 50px solid #F0F0E0; }
+	
+	/* MISC */
+		#movestats {
+			width: 250px; height: 250px; position: absolute; right: 0; bottom: 0; background-color: #F0F0E0; }
+		.vertical-text {
+			-ms-transform: rotate(-90deg);-webkit-transform: rotate(-90deg);transform: rotate(-90deg); bottom: -30px; position: relative; }
+		.graph_bar {
+			height: 4px; border-bottom: white solid 1px; width: 756px; position: absolute; }
+		.key_label {
+			font-size: 60%; position: absolute; right: 5px; }
+		#cursor_bar {
+			position:absolute; border-right: black dashed 1px; height: 245px; z-index: 1;}
+		.piece {
+			position:absolute;top:5px;left:5px;}
+		</style>
+
+		<script>
+
+		// Board stuff:
+			var pawn = new Array(2);
+			pawn[0] = "<img src='pieces/piece11.png' class='piece' style='width:30px;height:40px; left:10px;' />";
+			pawn[1] = "<img src='pieces/piece01.png' class='piece' style='width:30px;height:40px; left:10px;' />";
+			var knight = new Array(2);
+			knight[0] = "<img src='pieces/piece12.png' class='piece' style='width:40px;height:40px; left:5px;'/>";
+			knight[1] = "<img src='pieces/piece02.png' class='piece' style='width:40px;height:40px; left:5px;'/>";
+			var bishop = new Array(2);
+			bishop[0] = "<img src='pieces/piece13.png' class='piece' style='width:38px;height:40px; left:6px;' />";
+			bishop[1] = "<img src='pieces/piece03.png' class='piece' style='width:38px;height:40px; left:6px;' />";
+			var rook = new Array(2);
+			rook[0] = "<img src='pieces/piece14.png' class='piece' style='width:34px;height:40px; left:8px;'/>";
+			rook[1] = "<img src='pieces/piece04.png' class='piece' style='width:34px;height:40px; left:8px;'/>";
+			var queen = new Array(2);
+			queen[0] = "<img src='pieces/piece15.png' class='piece' style='width:40px;height:38px; left:6px;'/>";
+			queen[1] = "<img src='pieces/piece05.png' class='piece' style='width:40px;height:38px; left:6px;'/>";
+			var king = new Array(2);
+			king[0] = "<img src='pieces/piece16.png' class='piece' style='width:40px;height:40px; left:5px;'/>";
+			king[1] = "<img src='pieces/piece06.png' class='piece' style='width:40px;height:40px; left:5px;'/>";
+			
+			function doMove(color, num) {
+				var m = move[color][num];
+				var from = document.getElementById(m.substring(0,2));
+				var to = document.getElementById(m.substring(2,4));
+				var piece = from.innerHTML;
+				to.innerHTML = piece;
+				from.innerHTML = "";
+			}
+			
+			function doPly(p) {
+				var c = 0;
+				var n = 0;
+				if(p%2 == 0) {c = 1;}
+				n = Math.ceil(p/2);
+				doMove(c,n);
+			}
+			
+			function clearBoard() {
+				for(i=0;i<64;i++) {
+					var rank = Math.floor(i/8)+1;
+					var file = Math.floor(i%8)+1;
+					var idName = String.fromCharCode(96+rank) + file;
+					document.getElementById(idName).innerHTML = "";
+				}
+			}
+			
+			function setBoard() {
+				clearBoard();
+				document.getElementById("e1").innerHTML = king[0];
+				document.getElementById("e8").innerHTML = king[1];
+				document.getElementById("a1").innerHTML = rook[0];
+				document.getElementById("h1").innerHTML = rook[0];
+				document.getElementById("a8").innerHTML = rook[1];
+				document.getElementById("h8").innerHTML = rook[1];
+				document.getElementById("b1").innerHTML = knight[0];
+				document.getElementById("g1").innerHTML = knight[0];
+				document.getElementById("b8").innerHTML = knight[1];
+				document.getElementById("g8").innerHTML = knight[1];
+				document.getElementById("c1").innerHTML = bishop[0];
+				document.getElementById("f1").innerHTML = bishop[0];
+				document.getElementById("c8").innerHTML = bishop[1];
+				document.getElementById("f8").innerHTML = bishop[1];
+				document.getElementById("d1").innerHTML = queen[0];
+				document.getElementById("d8").innerHTML = queen[1];
+				for(i = 1; i <=8;i++) {
+					document.getElementById(String.fromCharCode(96+i) + 2).innerHTML = pawn[0];
+					document.getElementById(String.fromCharCode(96+i) + 7).innerHTML = pawn[1];
+				}
+			}
+			
+			function plyNum(c,n) {
+				return (1 + 2*(n-1) + c);
+			}
+			
+			function updateBoard(color, num) {
+				var goForward = false;
+				if(num == selected_move	&& color > selected_color) { goForward = true;}
+				if(num > selected_move) { goForward = true;}
+				if(goForward == true) {
+					var now = plyNum(selected_color, selected_move);
+					if(selected_color == 0 && selected_move == 0) {doMove(0,0);};
+					var till = plyNum(color,num);
+					for(i=now+1; i <= till; i++) {
+						doPly(i);
+					}
+				}
+				else {
+					setBoard();
+					for(i = 0; i <= plyNum(color,num); i++) {
+						doPly(i);
+					}
+				}
+			}
+		// Other stuff:
+		
+			//var move_count = Math.floor(Math.random()*60)+20;
+			var move_count = Math.ceil({{ len .MoveList }}/2);
+			var allmoves = [ {{ range .MoveList }}"{{ .Algebraic }}",{{ end }} ];
+			var alldepths = [ {{ range .MoveList }}"{{ .Depth }}",{{ end }} ];
+			var allscores = [ {{ range .MoveList }}"{{ .Score }}",{{ end }} ];
+			var alltimes = [ {{ range .MoveList }}"{{ .Time }}",{{ end }} ];
+			
+			var move = new Array(2);
+			move[0] = new Array();
+			move[1] = new Array();
+			var eval = new Array(2);
+			eval[0] = new Array();
+			eval[1] = new Array();
+			var time = new Array(2);
+			time[0] = new Array();
+			time[1] = new Array();
+			var depth = new Array(2);
+			depth[0] = new Array();
+			depth[1] = new Array();
+
+			for( var i=0; i < {{ len .MoveList }}; i++) {
+				move[i%2].push(allmoves[i]);
+				eval[i%2].push(allscores[i]/100);
+				time[i%2].push(alltimes[i]);
+				depth[i%2].push(alldepths[i]);
+			}
+
+			var max_eval = 0;
+
+			var max_time = 0;
+			var min_time = 100000;
+			
+			var max_depth = 0;
+			var min_depth = 100;
+			
+			/*
+			for(i=0; i<move_count; i++) {
+
+				move[0][i] = "w" + (i%8+1) + "x" + ( 8-(i%8));
+				move[1][i] = "b" + (i%8+1) + "y" + ( 8-(i%8));
+				eval[0][i] = (Math.random()*8)-4;
+				eval[0][i] = Math.round(eval[0][i]*100)/100;
+				eval[1][i] = eval[0][i] + (Math.random()*2)-1;
+				eval[1][i] = Math.round(eval[1][i]*100)/100;
+				var sum = new Array(2); sum[0]=0; sum[1]=0;
+				for(j=0; j<i; j++) { sum[0] += time[0][j]; sum[1] += time[1][j]; }
+
+				time[0][i] =  ((120-sum[0])/(40 - ((i+1)%40 ))) + Math.floor((Math.random()*3));
+				time[0][i] = Math.round(time[0][i]*10)/10;
+				time[1][i] =  ((120-sum[0])/(40-((i+1)%40))) + Math.floor((Math.random()*3));
+				time[1][i] = Math.round(time[1][i]*10)/10;
+				depth[0][i] = Math.floor((Math.random()*10)+8);
+				depth[1][i] = Math.floor((Math.random()*10)+8);
+			}
+			*/
+			for(i = 0; i < move_count; i++) {
+				if(eval[0][i] > max_eval) {max_eval = eval[0][i];}
+				if(eval[1][i] > max_eval) {max_eval = eval[1][i];}
+				
+				if(time[0][i] > max_time) {max_time = time[0][i];}
+				if(time[1][i] > max_time) {max_time = time[1][i];}
+				if(time[0][i] < min_time) {min_time = time[0][i];}
+				if(time[1][i] < min_time) {min_time = time[1][i];}
+				
+				if(depth[0][i] > max_depth) {max_depth = depth[0][i];}
+				if(depth[1][i] > max_depth) {max_depth = depth[1][i];}
+				if(depth[0][i] < min_depth) {min_depth = depth[0][i];}
+				if(depth[1][i] < min_depth) {min_depth = depth[1][i];}
+			}
+			
+			var w = (756-10)/((move_count)*2.5);
+            var selected_color = 0;
+            var selected_move = 0;
+			
+			function highlight_list(color,num) {                                         
+				var oldObjId = "movelist_"+selected_color+"_"+selected_move;
+				var newObjId = "movelist_"+color+"_"+num;
+				document.getElementById(oldObjId).style.outline = "invert none medium";
+				document.getElementById(newObjId).style.outline = "red solid 2px";
+			}
+
+			function highlight_eval(color,num) {
+				var oldObjId = "eg_"+selected_color+"_"+selected_move;
+				var newObjId = "eg_"+color+"_"+num;
+				var oldColor = "black";
+				if(selected_color==0) {oldColor="white";}
+				document.getElementById(oldObjId).style.backgroundColor = oldColor;
+				document.getElementById(newObjId).style.backgroundColor = "red";
+			}
+
+			function highlight_depth(color,num) {
+				var oldObjId = "dg_"+selected_color+"_"+selected_move;
+				var newObjId = "dg_"+color+"_"+num;
+				var oldColor = "#696969";
+				if(selected_color==0) {oldColor="#EBEBEB";}
+				document.getElementById(oldObjId).style.backgroundColor = oldColor;
+				document.getElementById(newObjId).style.backgroundColor = "red";
+			}
+			function moveCursorBar(color,num) {
+				var l = 40 + w*(num*2.5 + 1.5);
+				if(color == 1) {l = 40 + w*(num*2.5 + 2.5) - 1;}
+				document.getElementById("cursor_bar").style.left = l +"px" ;
+			}
+			function updateStatBoxes(color,num) {
+				document.getElementById("score_box_value").innerHTML = eval[color][num];
+				document.getElementById("score_box_value").style.color = "black";
+				document.getElementById("time_box_value").innerHTML = time[color][num];
+				document.getElementById("depth_box_value").innerHTML = depth[color][num];
+				document.getElementById("triangle-up").style.display = "none";
+				document.getElementById("triangle-down").style.display = "none";
+				if(eval[color][num] > 0) {
+					document.getElementById("triangle-up").style.display = "block"; 
+					document.getElementById("score_box_value").style.color = "green";
+				}
+				if(eval[color][num] < 0) { 
+					document.getElementById("triangle-down").style.display = "block"; 
+					document.getElementById("score_box_value").style.color = "red";
+				}
+			}
+			function select_clock(color) {
+				/*
+				document.getElementById("white_clock_cursor").style.display = "none"; 
+				document.getElementById("black_clock_cursor").style.display = "none";
+				if(color == 0) 
+				{ document.getElementById("white_clock_cursor").style.display = "block"; }
+				if(color == 1) 
+				{ document.getElementById("black_clock_cursor").style.display = "block"; }
+				*/
+				document.getElementById("white_clock").style.border = "black solid 2px";
+				document.getElementById("black_clock").style.border = "black solid 2px";
+				if(color == 0) 
+				{ document.getElementById("white_clock").style.border = "red solid 2px"; }
+				if(color == 1) 
+				{ document.getElementById("black_clock").style.border = "red solid 2px"; }
+				
+			}
+			function select_move(color, num) {
+				updateBoard(color,num);
+				select_clock(color);
+				highlight_list(color,num);
+				highlight_eval(color,num);
+				highlight_depth(color,num);
+				moveCursorBar(color,num);
+				updateStatBoxes(color,num);
+				selected_color = color; selected_move = num;
+			}
+		</script>
+    </head>
+    <body>
+		<div id="container">
+			<div id="white_clock">
+				<div id="white_clock_cursor"></div>
+				<p id="white_clock_value">00:00</p>
+			</div>
+			<div id="black_clock">
+				<div id="black_clock_cursor"></div>
+				<p id="black_clock_value">00:00</p>
+			</div>
+			<div id="lost_material"></div>
+			<div id="controls">
+				<div class="first_button"></div>
+				<div class="prev_button"></div>
+				
+				<div class="pause_button"></div>
+				<div class="play_button"></div>
+				
+				<div class="next_button"></div>
+				<div class="last_button"></div>
+			</div>
+            <div id="board_container">
+				<div id="board">
+					<script>
+						for(i=0;i<64;i++) {
+							
+							var rank = Math.floor(i/8)+1;
+							var file = Math.floor(i%8)+1;
+							var className = "dark_square";
+							
+							if((i%2 == 1 && rank%2==1)||(i%2 == 0 && rank%2==0)) {className = "light_square";}
+							var b = Math.floor(i/8)*50;
+							var l = Math.floor(i%8)*50;
+							var idName = String.fromCharCode(96+file) + rank.toString();
+							document.write("<div class='"+className+"' id='"+idName+"' style='position:absolute;left:" + l + "px;bottom:" + b+ "px;'></div>");
+						}
+						
+					</script>
+				</div>
+            </div>
+			<div id="movelist_title">
+				<div style="position:absolute;bottom:0px;left:0px;width:82px;border-right:white solid 0px;">MOVE</div>
+				<div style="position:absolute;bottom:0px;left:83px;width:82px;border-right:white solid 0px;">SCORE</div>
+				<div style="position:absolute;bottom:0px;left:166px;width:82px;border-right:white solid 0px;">TIME</div>
+				<div style="position:absolute;bottom:0px;left:249px;width:93px;">DEPTH</div>
+				
+			</div>
+			<div id="movelist_container">
+				<table>
+					<script>
+
+					for(i=0; i<move_count;i++) {
+						document.write("<tr id='movelist_0_"+i+"' onclick='select_move(0,"+i+")'>");
+						document.write("<td class='td_movenum'>" + (i+1) + ".</td>");
+						document.write("<td class='td_movelist' style='text-align:left;'>" + move[0][i] + "</td>");
+						
+						document.write("<td class='td_movelist_triangle_left'>");
+						if( eval[0][i] > 0) { document.write("<div class='eval_up'></div>");}
+						else if( eval[0][i] < 0) { document.write("<div class='eval_down'></div>");}
+						else {document.write("-");}
+						document.write("</td>");
+						
+						document.write("<td class='td_movelist_eval' style='text-align:left;'>" + eval[0][i] + "</td>");
+						
+						document.write("<td class='td_movelist_triangle_right'>");
+						document.write("</td>");
+										
+						
+						document.write("<td class='td_movelist_time'>");
+						var width = 15+((65*(time[0][i]-min_time))/(max_time-min_time));
+						document.write("<div class='moveListTimeBarW' style='width:" + width + "px;'>" + time[0][i] + "</div>")
+						document.write("</td>");
+						document.write("<td class='td_movelist_depth'>");
+						width = 15+((65*(depth[0][i]-min_depth))/(max_depth-min_depth));
+						document.write("<div class='moveListDepthBarW' style='width:" + width + "px;'>"+depth[0][i]+"</div>")
+						document.write("</td>");
+
+						document.write("</tr>");
+
+						document.write("<tr id='movelist_1_"+i+"' onclick='select_move(1,"+i+")'>");
+
+						document.write("<td class='td_movenum'></td>");
+						document.write("<td class='td_movelist' style='text-align:right;'>..." + move[1][i] + "</td>");
+
+						document.write("<td class='td_movelist_triangle_left'>");
+						document.write("</td>");
+						document.write("<td class='td_movelist_eval' style='text-align:right;'>"+eval[1][i]+"</td>");
+						document.write("<td class='td_movelist_triangle_right'>");
+						if( eval[1][i] > 0) { document.write("<div class='eval_up'></div>");}
+						else if( eval[1][i] < 0) { document.write("<div class='eval_down'></div>");}
+						else {document.write("-");}
+						document.write("</td>");
+												
+						document.write("<td class='td_movelist_time'>");
+						width = 15+((65*(time[1][i]-min_time))/(max_time-min_time));
+						document.write("<div class='moveListTimeBarB' style='width:" + width + "px;'>"+time[1][i]+"</div>")
+						document.write("</td>");
+						document.write("<td class='td_movelist_depth'>");
+						width = 15+((65*(depth[1][i]-min_depth))/(max_depth-min_depth));
+						document.write("<div class='moveListDepthBarB' style='width:" +width + "px;'>"+depth[1][i]+"</div>")
+						document.write("</td>");
+						document.write("</tr>");
+					}
+					
+					</script>
+				</table>
+			</div>
+			<div id="graph_container">
+				<div id="evalgraph_title"><p class="vertical-text">SCORE</p></div>
+				<div id="evalgraph_key">
+					<p id="eval_key_3" class="key_label" style="bottom: 47px;">+2</p>
+					<p id="eval_key_2" class="key_label" style="bottom: 27px;"> 0</p>
+					<p id="eval_key_1" class="key_label" style="bottom: 7px;">+2</p>
+				</div>
+				<div id="evalgraph">
+					<div class="graph_bar" style="bottom: 1px;"></div>
+					<div class="graph_bar" style="bottom: 21px;"></div>
+					<div class="graph_bar" style="bottom: 40px;border-bottom: #37302D solid 1px;"></div>
+					<div class="graph_bar" style="bottom: 61px;"></div>
+					<table>
+						<tr><td>
+							<script>
+							
+							for(i=0;i<move_count;i++) {
+								var l = w*(i*2.5 + 0.5);
+								if(eval[0][i] >= 0) {
+									var h = 40-4;
+									if(eval[0][i] < 4) {h=eval[0][i]*10 -4;}
+									if(h==0) {h=1;}
+									document.write("<div class='eg_w' id='eg_0_"+i+"' style='bottom:-1px;left:"+l+"px;height:"+h+"px;width:"+(w-2)+"px;'>");
+									document.write("</div>");
+								} else {
+									//document.write("<div class='eg_empty' style='bottom:0px;left:"+l+"px;height:38px;width:"+(w-2)+"px;'>");
+									//document.write("</div>");
+								}
+								var l = w*(i*2.5 + 1.5);
+								if(eval[1][i] >= 0) {
+									var h = 40-4;
+									if(eval[1][i] < 4) {h=eval[1][i]*10-4;}
+									if(h==0) {h=1;}
+									document.write("<div class='eg_b' id='eg_1_"+i+"' style='bottom:-1px;left:"+(l-1)+"px;height:"+h+"px;width:"+(w-2)+"px;'>");
+									document.write("</div>");
+								} else {
+									//document.write("<div class='eg_empty' style='bottom:0px;left:"+l+"px;height:38px;width:"+(w-2)+"px;'>");
+									//document.write("</div>");
+								}
+							}
+							</script>
+						</td></tr>
+						<tr><td>
+							<script>
+							for(i=0;i<move_count;i++) {
+								var l = w*(i*2.5 + 0.5);
+								if(eval[0][i] < 0) {
+									var h = 40-4;
+									if(eval[0][i] < 4) {h=Math.abs(eval[0][i])*10-4;}
+									document.write("<div class='eg_w' id='eg_0_"+i+"' style='top:0px;left:"+l+"px;height:"+h+"px;width:"+(w-2)+"px;'>");
+									document.write("</div>");
+								} else {
+									//document.write("<div class='eg_empty' style='top:0px;left:"+l+"px;height:38px;width:"+(w-2)+"px;'>");
+									//document.write("</div>");
+								}
+								var l = w*(i*2.5 + 1.5);
+
+								if(eval[1][i] < 0) {
+									var h = 40-4;
+									if(eval[1][i] < 4) {h=Math.abs(eval[1][i])*10-4;}
+									document.write("<div class='eg_b' id='eg_1_"+i+"' style='top:0px;left:"+(l-1)+"px;height:"+h+"px;width:"+(w-2)+"px;'>");
+									document.write("</div>");
+								} else {
+									//document.write("<div class='eg_empty' style='top:0px;left:"+l+"px;height:38px;width:"+(w-2)+"px;'>");
+									//document.write("</div>");
+								}
+							}
+							</script>
+						</td></tr>
+					</table>
+				</div>
+				<div id="timegraph_title"><p class="vertical-text" style="bottom:-25px;"> TIME</p></div>
+				<div id="timegraph_key">
+					<p id="time_key_3" class="key_label" style="bottom: 47px;">3</p>
+					<p id="time_key_2" class="key_label" style="bottom: 27px;">2</p>
+					<p id="time_key_1" class="key_label" style="bottom: 7px;">1</p>
+				</div>
+				<div id="timegraph">
+					<div class="graph_bar" style="bottom: 1px;"></div>
+					<div class="graph_bar" style="bottom: 21px;"></div>
+					<div class="graph_bar" style="bottom: 41px;"></div>
+					<div class="graph_bar" style="bottom: 61px;"></div>
+					
+					<script>
+
+					
+					var interval = Math.round(((max_time - min_time) / 3)*10)/10;
+					document.getElementById("time_key_1").innerHTML = Math.round(min_time*10)/10;
+					document.getElementById("time_key_2").innerHTML = Math.round((min_time + interval)*10)/10;
+					document.getElementById("time_key_3").innerHTML = Math.round((min_time + 2*interval)*10)/10;
+					
+					for(i=0;i<move_count;i++) {
+						
+						var l = w*(i*2.5 + 0.5);
+						h = 21 + (62*(time[0][i] - min_time))/(max_time - min_time);
+						var lt = l + (w/2);
+						document.write("<div class='time_dot_w' style='bottom:0px;bottom:"+h+"px;left:"+lt+"px;'>");
+						document.write("</div>");
+
+						l = w*(i*2.5 + 1.5);
+						h= 21 + (62*(time[1][i] - min_time))/(max_time - min_time);
+						lt = l + (w/2)-1;
+						document.write("<div class='time_dot_b' style='bottom:0px;bottom:"+h+"px;left:"+(lt-1)+"px;'>");
+						document.write("</div>");
+						
+
+					}
+									
+					
+					</script>
+					
+				</div>
+				
+				<canvas id="time_plot_area"  width="756" height="83"></canvas>
+				
+				<script>
+					var c = document.getElementById("time_plot_area");
+					var ctx = c.getContext("2d");
+					ctx.beginPath();
+					ctx.lineWidth=1;
+					ctx.lineCap="round";
+					ctx.lineJoin="round";
+					
+					var y =  21 + ( 62*(time[0][0] - min_time))/(max_time - min_time)+1 ;
+					var x = w*(1);
+					ctx.moveTo(x,y);
+					ctx.moveTo(x,83-y);
+					for(i=1;i<move_count;i++) {
+						var y = 83 - ( 21 + (62*(time[0][i] - min_time))/(max_time - min_time)) - 1;
+						var x = w*(i*2.5 + 1);
+						ctx.lineTo(x,y);
+					}
+					ctx.strokeStyle="blue";
+					ctx.stroke();
+					
+					ctx.beginPath();
+					y =  21 + ( 62*(time[1][0] - min_time))/(max_time - min_time) +1;
+					x = w*(2);
+					ctx.moveTo(x,y);
+					ctx.moveTo(x,83-y);
+					for(i=1;i<move_count;i++) {
+						var y = 83 - ( 21 + (62*(time[1][i] - min_time))/(max_time - min_time)) - 1;
+						var x = w*(i*2.5 + 2);
+						ctx.lineTo(x,y);
+					}
+					ctx.strokeStyle="black";
+					ctx.stroke();
+					
+					
+				</script>
+				
+				<div id="depthgraph_title"><p class="vertical-text">DEPTH</p></div>
+				<div id="depthgraph_key">
+					<p id="depth_key_3" class="key_label" style="bottom: 47px;">3</p>
+					<p id="depth_key_2" class="key_label" style="bottom: 27px;">2</p>
+					<p id="depth_key_1" class="key_label" style="bottom: 7px;">1</p>
+				</div>
+				<div id="depthgraph">
+					
+					<div class="graph_bar" style="bottom: 21px;"></div>
+					<div class="graph_bar" style="bottom: 41px;"></div>
+					<div class="graph_bar" style="bottom: 61px;"></div>
+
+					<script>
+					var interval = (max_depth - min_depth)/3;
+					document.getElementById("depth_key_1").innerHTML = Math.round(min_depth);
+					document.getElementById("depth_key_2").innerHTML = Math.round(min_depth + 2*interval);
+					document.getElementById("depth_key_3").innerHTML = Math.round(min_depth + 3*interval);
+					for(i=0;i<move_count;i++) {
+
+						
+						h=21+(62*(depth[0][i]-min_depth))/(max_depth-min_depth);
+						var l = w*(i*2.5 +0.5) +2;
+						document.write("<div class='dg_w' id='dg_0_"+i+"' style='bottom:0px;height:"+h+"px;width:"+(w-2)+"px;left:"+l+"px;'>");
+						document.write("</div>");
+
+						h=21+(62*(depth[1][i]-min_depth))/(max_depth-min_depth);
+						l = w*(i*2.5 + 1.5) + 2;
+						document.write("<div class='dg_b' id='dg_1_"+i+"' style='bottom:0px;height:"+h+"px;width:"+(w-2)+"px;left:"+(l-1)+"px;'>");
+						document.write("</div>");
+					}             
+					</script>
+				</div>
+				<div id="cursor_bar" style="bottom:0px;"></div>
+
+			</div>
+			
+			<div id="score_box">
+				<div id="triangle-down"></div>
+				<div id="triangle-up"></div>
+				<p id="score_box_value" class="box_value"></p> 
+				<p class="box_unit">pawns</p>
+			</div>
+			<div id="time_box">
+				<p id="time_box_value" class="box_value"></p> 
+				<p class="box_unit">seconds</p>
+			</div>
+			<div id="depth_box">
+				<p id="depth_box_value" class="box_value"></p> 
+				<p class="box_unit">plies</p>
+			</div>
+			<script>
+				setBoard();
+				select_move(0,0);
+				
+			</script>
+		</div>
+	</body>
+</html>

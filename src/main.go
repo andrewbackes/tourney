@@ -16,8 +16,6 @@
 
  TODO:
  	-Opening Book (non-pgn)
- 	-Distributed game playing
- 	-http output
  	-Vertical score graph. rows will be move#'s, cols will be the graph.
  	-ability to pipe commands
 
