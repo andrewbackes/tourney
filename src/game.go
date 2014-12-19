@@ -90,17 +90,25 @@ type Game struct {
 func PlayGame(G *Game) error {
 	// Note: opening book is handled in RunTourney()
 	G.StartLog()
+	defer G.CloseLog()
+	defer G.AppendLog()
+
 	fmt.Println("Playing Game...")
 	// Start up the engines:
+	defer G.Player[WHITE].Shutdown()
 	if err := G.Player[WHITE].Start(&G.logBuffer); err != nil {
+		G.AppendLog()
 		return err
 	}
+	defer G.Player[BLACK].Shutdown()
 	if err := G.Player[BLACK].Start(&G.logBuffer); err != nil {
+		G.AppendLog()
 		return err
 	}
 
 	G.Player[WHITE].NewGame(G.Time, G.Moves)
 	G.Player[BLACK].NewGame(G.Time, G.Moves)
+	G.AppendLog()
 
 	var state Status = RUNNING
 	for state == RUNNING {
@@ -125,11 +133,10 @@ func PlayGame(G *Game) error {
 	}
 
 	// Stop the engines:
-	G.Player[WHITE].Shutdown()
-	G.Player[BLACK].Shutdown()
+	//G.Player[WHITE].Shutdown()
+	//G.Player[BLACK].Shutdown()
 
-	G.AppendLog()
-	G.CloseLog()
+	//G.AppendLog()
 	return nil
 }
 
@@ -168,6 +175,12 @@ func ExecuteNextTurn(G *Game) bool {
 		fmt.Print(len(G.MoveList)/2+1, ". ")
 	}
 	fmt.Print(parsedMove.Algebraic, " ")
+
+	// Check for nullmove/resign:
+	if parsedMove.Algebraic == "0000" {
+		G.GameOver(color, []string{"White", "Black"}[color]+" resigned.")
+		return true
+	}
 
 	// Check legality of move.
 	LegalMoves := LegalMoveList(G)

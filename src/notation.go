@@ -10,11 +10,13 @@
  Standard Algebraic Notation. The purpose of this module is to translate between
  PCN and SAN.
 
- Author(s): Andrew Backes, Daniel Sparks
+ Author(s): Andrew Backes
  Created: 7/29/2014
 
 
  TODO:
+ 	-Rename to: SANtoPCN()
+ 	-make PCNtoSAN()
  	-instead of calling LegalMoveGen(), should have a stripped down version
  	for just the type of piece moving.
 
@@ -108,6 +110,24 @@ func InternalizeNotation(G *Game, moveToParse string) (string, error) {
 
 	// TODO: needs error handling.
 	// TODO: what about promotion captures? or ambiguous promotions?
+	//		 -Illegal move: f7g8 (raw: fxg8=Q).
+	//		 -illegal move: move axb8=Q+
+
+	// Check for null move:
+	if moveToParse == "0000" {
+		return moveToParse, nil
+	}
+
+	// Check for castling:
+	if moveToParse == "O-O" {
+		return []string{"e1g1", "e8g8"}[G.toMove()], nil
+	}
+	if moveToParse == "O-O-O" {
+		return []string{"e1c1", "e8c8"}[G.toMove()], nil
+	}
+
+	// Strip uneeded characters:
+	moveToParse = strings.Replace(moveToParse, "-", "", -1)
 
 	// First check to see if it is already in the correct form.
 	PCN := "([a-h][1-8])([a-h][1-8])([QBNRqbnr]?)"
@@ -127,18 +147,6 @@ func InternalizeNotation(G *Game, moveToParse string) (string, error) {
 			}
 		}
 		return parsed, nil
-	}
-	// Check for null move:
-	if moveToParse == "0000" {
-		return moveToParse, nil
-	}
-
-	// Check for castling:
-	if moveToParse == "O-O" {
-		return []string{"e1g1", "e8g8"}[G.toMove()], nil
-	}
-	if moveToParse == "O-O-O" {
-		return []string{"e1c1", "e8c8"}[G.toMove()], nil
 	}
 
 	// First check for an ambiguous promotion:

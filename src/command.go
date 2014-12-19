@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -211,7 +212,8 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 				if len(words) > 1 {
 					filename = words[1]
 				} else {
-					filename = "Kasparov.pgn" // TEMPORARY
+					fmt.Println("Please specify a filename.")
+					return
 				}
 				fmt.Print("Building opening book from '", filename, "'...\n")
 				if b, err := BuildBook(filename, 4); err == nil {
@@ -220,6 +222,30 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 				} else {
 					fmt.Println("Failed:", err.Error())
 				}
+				return
+			}},
+		{
+			label: []string{"reset"},
+			desc:  "Removes all previous tourney data.",
+			f: func() {
+				extensions := []string{".data", ".pgn", ".results"}
+				for _, v := range extensions {
+					if err := os.Remove(T[*selected].filename + v); err != nil {
+						fmt.Println(err)
+					} else {
+						fmt.Println("Deleted " + T[*selected].filename + v)
+					}
+				}
+				for i, _ := range T[*selected].GameList {
+					path := "logs/" + T[*selected].Event + " round " + strconv.Itoa(i+1) + ".log"
+					if err := os.Remove(path); err != nil {
+						fmt.Println(err)
+						break
+					} else {
+						fmt.Println("Deleted " + path)
+					}
+				}
+
 				return
 			}},
 	}

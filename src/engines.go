@@ -16,7 +16,7 @@ TODO:
 	opening book, and a few other bare minimums.
 	-Fix the bug where >> >> >> >> ... keeps looping sometimes.
 
- Author(s): Andrew Backes, Daniel Sparks
+ Author(s): Andrew Backes
  Created: 7/16/2014
 
 *******************************************************************************/
@@ -29,7 +29,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
+	//"strconv"
 	"strings"
 	"time"
 )
@@ -38,6 +38,25 @@ import (
 type rec struct {
 	timestamp time.Time
 	data      string
+}
+
+/*******************************************************************************
+
+	Protocol Specific:
+
+*******************************************************************************/
+
+type Protocoler interface {
+	Initialize() (string, func(string) bool)
+	Move(timers [2]int64, MovesToGo int64, EngineColor Color) (string, func(string) bool)
+	Ping(int) (string, func(string) bool)
+
+	NewGame(Time, Moves int64) string
+	SetBoard(moveSoFar []Move) string
+	Quit() string
+
+	ExtractMove(string) Move
+	RegisterEngineOptions(string, map[string]Setting)
 }
 
 /*******************************************************************************
@@ -177,13 +196,16 @@ func (E *Engine) Start(logbuffer *string) error {
 	case <-started:
 	case e := <-errChan:
 		E.LogError("Starting Engine:" + e.Error())
+		//E.Shutdown()
 		return errors.New("Error starting engine:" + e.Error())
 	}
 
 	// Get the engine ready:
 	if err := E.Initialize(); err != nil {
 		E.LogError("Initializing Engine: " + err.Error())
-		return err
+		//E.Shutdown()
+		//cmd.Process.Kill()
+		//return err
 	}
 
 	//E.NewGame()
@@ -222,7 +244,7 @@ func (E *Engine) Initialize() error {
 // Recieve and process commands until a certain command is recieved
 // or after the timeout (milliseconds) is achieved.
 // Returns: engine output, lapsed Time, error
-func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration, error) {
+func (E *Engine) Recieve(EndOfRecieve func(string) bool, timeout int64) (string, time.Duration, error) {
 
 	//var err error
 	var output string //engine's output
@@ -239,7 +261,8 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration,
 		go func() {
 			// TODO: need a better idea here. ReadString() could hault this goroutine.
 			if nextline, err := E.reader.ReadString('\n'); err == nil {
-				recieved <- rec{time.Now(), nextline}
+				t := time.Now()
+				recieved <- rec{t, nextline}
 			} else {
 				errChan <- err
 			}
@@ -253,8 +276,8 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration,
 			output += line.data
 
 			// Take off line return bytes:
-			line.data = strings.Trim(line.data, "\r\n") // for windows
-			line.data = strings.Trim(line.data, "\n")   // for *nix/bsd
+			line.data = strings.Trim(line.data, "\n") // for *nix/bsd
+			line.data = strings.Trim(line.data, "\r") // for windows
 
 			// Log this line of engine output:
 			E.Log("->", line)
@@ -267,10 +290,14 @@ func (E *Engine) Recieve(untilCmd string, timeout int64) (string, time.Duration,
 					}
 				}
 			*/
-			if (len(line.data) >= len(untilCmd)) && (line.data[:len(untilCmd)] == untilCmd || line.data[len(line.data)-len(untilCmd):] == untilCmd) {
+			if EndOfRecieve(line.data) {
 				return output, line.timestamp.Sub(startTime), nil
 			}
-
+			/*
+				if (len(line.data) >= len(untilCmd)) && (line.data[:len(untilCmd)] == untilCmd || line.data[len(line.data)-len(untilCmd):] == untilCmd) {
+					return output, line.timestamp.Sub(startTime), nil
+				}
+			*/
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
 			description := "Timed out waiting for engine to respond."
 			return output, time.Now().Sub(startTime), errors.New(description)
@@ -324,450 +351,10 @@ func (E *Engine) Set(movesSoFar []Move) error {
 
 func (E *Engine) Ping() error {
 	s, r := E.protocol.Ping(1)
-	E.Send(s)
-	_, _, err := E.Recieve(r, 2000)
-	return err
-}
-
-/*******************************************************************************
-
-	Protocol Specific:
-
-*******************************************************************************/
-
-type Protocoler interface {
-	Initialize() (string, string)
-	Quit() string
-	Move(timers [2]int64, MovesToGo int64, EngineColor Color) (string, string)
-	SetBoard(moveSoFar []Move) string
-	NewGame(Time, Moves int64) string
-	Ping(int) (string, string)
-
-	ExtractMove(string) Move
-	RegisterEngineOptions(string, map[string]Setting)
-}
-
-/*******************************************************************************
-
-	UCI:
-
-*******************************************************************************/
-
-type UCI struct{}
-
-func (U UCI) Ping(N int) (string, string) {
-	return "isready", "readyok"
-}
-
-func (U UCI) Initialize() (string, string) {
-	// (command to send),(command to recieve)
-	return "uci", "uciok"
-}
-
-func (U UCI) NewGame(Time, Moves int64) string {
-	return "ucinewgame"
-}
-
-func (U UCI) Quit() string {
-	return "quit"
-}
-
-func (U UCI) Move(Timer [2]int64, MovesToGo int64, EngineColor Color) (string, string) {
-	goString := "go"
-
-	if Timer[WHITE] > 0 {
-		goString += " wtime " + strconv.FormatInt(Timer[WHITE], 10)
-	}
-	if Timer[BLACK] > 0 {
-		goString += " btime " + strconv.FormatInt(Timer[BLACK], 10)
-	}
-	if MovesToGo > 0 {
-		goString += " movestogo " + strconv.FormatInt(MovesToGo, 10)
-	}
-
-	return goString, "bestmove"
-}
-
-func (U UCI) SetBoard(movesSoFar []Move) string {
-	var ml []string
-
-	for _, m := range movesSoFar {
-		ml = append(ml, m.Algebraic)
-	}
-
-	var pos string
-	if len(movesSoFar) > 0 {
-		pos = "position startpos moves " + strings.Join(ml, " ")
-	} else {
-		pos = "position startpos"
-	}
-
-	return pos
-}
-
-func (U UCI) RegisterEngineOptions(output string, options map[string]Setting) {
-	// TODO: some engines have two word setting keys
-	// 		 ex: senpai: option name Log File type check default false
-	// TODO: case sensitive
-
-	if output == "" {
-		return
-	}
-
-	output = strings.Replace(output, "\r", "", -1) // remove the \r after the \n\r
-	lines := strings.Split(output, "\n")
-	for i, _ := range lines {
-		newSettingLabel := ""
-		newSetting := Setting{}
-		words := strings.Split(lines[i], " ")
-		// double check that this line has option information on it:
-		if strings.ToLower(words[0]) != "option" {
-			continue
-		}
-		// Process the option information:
-		for j := 0; j < len(words)-1; j++ {
-			switch strings.ToLower(words[j]) {
-			case "name":
-				newSettingLabel = words[j+1]
-			case "type":
-				newSetting.Type = words[j+1]
-			case "default":
-				newSetting.Value = words[j+1]
-			case "min":
-				newSetting.Min = words[j+1]
-			case "max":
-				newSetting.Max = words[j+1]
-			}
-		}
-		options[newSettingLabel] = newSetting
-	}
-}
-
-func parseInfo(line string) EvaluationData {
-	// ex: info depth 120 seldepth 2 time 10 nodes 6792 nps 679200 multipv 1 score mate 1 pv c5d7
-	// ex: info multipv 1 depth 4 score mate -5 time 4 nodes 7159 hashfull 321 pv f5f4 d7d4 f4g3 d4e3 g3g4 e3f3 g4g5 c5e6 g5h6 f8h8
-	// ex: info multipv 1 depth 9 score cp -1261 upperbound time 7 nodes 11461 hashfull 286 pv h7g7 d2h6 g7f7 h6f8 f7e6 f8c8 e6e5 c8c5 e5e6 c5d6 e6f7 h8h7 f7g8 d6e7 h4e1 g1h2 e1h4 g2h3 h4f4 h2g2
-
-	if !strings.HasPrefix(line, "info") {
-		return EvaluationData{}
-	}
-
-	words := strings.Split(line, " ")
-
-	var d, sd, n, t, s int
-	var l, u bool
-	var pv string
-
-	for i := 1; i < len(words)-1; i++ {
-		switch words[i] {
-		case "depth":
-			d, _ = strconv.Atoi(words[i+1])
-		case "seldepth":
-			sd, _ = strconv.Atoi(words[i+1])
-		case "nodes":
-			n, _ = strconv.Atoi(words[i+1])
-		case "time":
-			t, _ = strconv.Atoi(words[i+1])
-		case "score":
-			if i+2 < len(words) {
-				if words[i+1] == "cp" {
-					s, _ = strconv.Atoi(words[i+2])
-				} else if words[i+1] == "mate" {
-					s, _ = strconv.Atoi(words[i+2])
-					s = MateIn(s)
-				}
-			}
-			if i+3 < len(words) {
-				l = (words[i+3] == "lowerbound")
-				u = (words[i+3] == "upperbound")
-			}
-		case "pv":
-			for j := i + 1; j < len(words); j++ {
-				if isMove(words[j]) {
-					pv += words[j] + " "
-				} else {
-					break
-				}
-			}
-		}
-	}
-
-	return EvaluationData{Depth: d, Seldepth: sd, Nodes: n, Score: s, Upperbound: u, Lowerbound: l, Time: t, Pv: strings.Trim(pv, " ")}
-}
-
-func (U UCI) ExtractMove(output string) Move {
-
-	output = strings.Replace(output, "\r", "", -1)
-	lines := strings.Split(output, "\n")
-	mv := Move{}
-	for _, line := range lines {
-		eval := parseInfo(line)
-		if eval.Depth != 0 {
-			mv.Evaluation = append(mv.Evaluation, eval)
-		}
-		if strings.HasPrefix(line, "bestmove") {
-			words := strings.Fields(line)
-			if len(words) >= 2 {
-				mv.Algebraic = words[1]
-			}
-			if len(words) >= 4 && words[2] == "ponder" {
-				mv.Ponder = words[3]
-			}
-		}
-	}
-	return mv
-
-	/*
-		// TODO: REFACTOR: this replace also happens in Engine.Recieve()
-		output = strings.Replace(output, "\n\r", " ", -1)
-		output = strings.Replace(output, "\n", " ", -1)
-
-		words := strings.Split(output, " ")
-
-		// Helper functions:
-		LastNValuesOf := func(key string, N int) string {
-			for i := len(words) - 1; i >= 0; i-- {
-				if words[i] == key {
-					if i+N <= len(words)-1 {
-						return strings.Join(words[i+1:i+N+1], " ")
-					}
-				}
-			}
-			return ""
-		}
-		LastValueOf := func(key string) string {
-			//returns the word after the word given as an arg
-			return LastNValuesOf(key, 1)
-		}
-
-		// ***
-
-		keys := []string{"depth", "time", "nodes"}
-		values := [4]int{0, 0, 0, 0}
-		for i, key := range keys {
-			temp := LastValueOf(key)
-			if isNumber(temp) {
-				values[i], _ = strconv.Atoi(temp)
-			}
-		}
-		skey := LastValueOf("score")
-		var sval int
-		if skey == "cp" {
-			sval, _ = strconv.Atoi(LastValueOf(skey))
-		} else if skey == "mate" {
-			sval, _ = strconv.Atoi(LastValueOf(skey))
-			sval = MateIn(sval)
-		}
-
-		return (Move{
-			Algebraic: LastValueOf("bestmove"),
-			Depth:     values[0],
-			Time:      values[1],
-			Nodes:     values[2],
-			Score:     sval,
-			Pv:        LastNValuesOf("pv", values[0]),
-		})
-	*/
-
-}
-
-/*******************************************************************************
-
-	WINBOARD:
-
-*******************************************************************************/
-
-type WINBOARD struct {
-	features map[string]string
-}
-
-func (W WINBOARD) Initialize() (string, string) {
-	return "xboard\nprotover 2", "done=1"
-}
-
-func (W WINBOARD) NewGame(Time, Moves int64) string {
-	level := "level " + strconv.FormatInt(Moves, 10) + " " + strconv.FormatInt((Time/1000)/60, 10) + ":" + strconv.FormatInt((Time/1000)%60, 10) + " 0\n"
-	return "new\nrandom\n" + level + "post\nhard\neasy\ncomputer"
-}
-
-func (W *WINBOARD) SetBoard(movesSoFar []Move) string {
-
-	// DEBUG:
-	//fmt.Print("\nW.features[usermove]='", W.features["usermove"], "'\n\n")
-
-	var pos string
-
-	// Determine if this is the first move this engine will be thinking on:
-	movesOutOfBook := 0
-	pos = "force\n"
-	for i, _ := range movesSoFar {
-		if v := W.features["usermove"]; v == "1" {
-			pos += "usermove "
-		}
-		pos += movesSoFar[i].Algebraic + "\n"
-		if movesSoFar[i].Comment != BOOKMOVE {
-			movesOutOfBook++
-		}
-	}
-
-	// when there is more than one move out of the book, dont play the opening:
-	if movesOutOfBook > 1 {
-		pos = "force\n"
-		if v := W.features["usermove"]; v == "1" {
-			pos += "usermove "
-		}
-		pos += movesSoFar[len(movesSoFar)-1].Algebraic //only the last move is needed
-	}
-
-	return pos
-}
-
-func (W WINBOARD) Ping(N int) (string, string) {
-	return "ping " + strconv.Itoa(N), "pong " + strconv.Itoa(N)
-}
-
-func (W WINBOARD) Quit() string {
-	return "quit"
-}
-
-func (W *WINBOARD) Move(Timer [2]int64, MovesToGo int64, EngineColor Color) (string, string) {
-	var goString string
-
-	// Note: remember that winboard uses centiseconds
-	goString += "time " + strconv.FormatInt(Timer[EngineColor]/10, 10) + "\n"
-	goString += "otim " + strconv.FormatInt(Timer[[]int{1, 0}[EngineColor]]/10, 10) + "\n"
-	if W.features["colors"] == "1" {
-		goString += []string{"white\n", "black\n"}[EngineColor]
-	}
-	goString += "go"
-
-	return goString, "move"
-}
-
-func parsePost(line string) EvaluationData {
-	// ply score time nodes pv
-	// ex: 6    11       0      5118 Qd5 9.Bf4 Nc6 10.e3 Bg4 11.a3 [TT]
-	// ex: 8&     66    1    20536   d1e2  e8e7  e2e3  e7e6  e3d4  g7g5  a2a4  f7f5
-
-	fields := strings.Fields(line)
-
-	var d, s, t, n int
-	var l, u bool
-	var pv string
 	var err error
-
-	if len(fields) >= 4 {
-		if d, err = strconv.Atoi(fields[0]); err != nil {
-			d, _ = strconv.Atoi(fields[0][:len(fields[0])-1])
-		}
-		s, _ = strconv.Atoi(fields[1])
-		t, _ = strconv.Atoi(fields[2])
-		n, _ = strconv.Atoi(fields[3])
+	if s != "" {
+		E.Send(s)
+		_, _, err = E.Recieve(r, 2000)
 	}
-	for i := 4; i < len(fields); i++ {
-		pv += fields[i] + " "
-	}
-	pv = strings.Trim(pv, " ")
-	if len(pv) > 1 {
-		l = (pv[len(pv)-1] == '!')
-		u = (pv[len(pv)-1] == '?')
-	}
-
-	return EvaluationData{Depth: d, Score: s, Upperbound: u, Lowerbound: l, Time: t, Nodes: n, Pv: pv}
-}
-
-func (W WINBOARD) ExtractMove(output string) Move {
-
-	output = strings.Replace(output, "\r", " ", -1)
-	lines := strings.Split(output, "\n")
-	mv := Move{}
-	for _, line := range lines {
-		if strings.HasPrefix(line, "move") {
-			words := strings.Fields(line)
-			//words := strings.Split(line, " ")
-			if len(words) >= 2 {
-				mv.Algebraic = words[1]
-			}
-			break
-		} else {
-			eval := parsePost(line)
-			if eval.Depth != 0 {
-				mv.Evaluation = append(mv.Evaluation, eval)
-			}
-		}
-	}
-	return mv
-}
-
-func (W *WINBOARD) RegisterEngineOptions(output string, options map[string]Setting) {
-
-	// helper. Splits based on spaces not inside quotes:
-	nonQuotedWordSplit := func(ln string) []string {
-		r := []string{}
-		quoted := false
-		var b int
-		for i, v := range ln {
-			if string(v) == "\"" {
-				quoted = !quoted
-			}
-			if string(v) == " " && !quoted || i == len(ln)-1 {
-				r = append(r, strings.Trim(ln[b:i+1], " "))
-				b = i + 1
-			}
-		}
-		return r
-	}
-	// ***
-
-	W.features = make(map[string]string) // init for local struct use
-	W.setFeaturesToDefault()
-
-	output = strings.Replace(output, "\r", "", -1)
-	lines := strings.Split(output, "\n")
-
-	for _, v := range lines {
-		if strings.HasPrefix(v, "feature") {
-			v = v[len("feature "):]
-		} else {
-			continue
-		}
-
-		pairs := nonQuotedWordSplit(v)
-		for j, _ := range pairs {
-			p := strings.Split(pairs[j], "=")
-			if p[0] != "option" { // TEMPORARY
-				if len(p) > 1 {
-					W.features[p[0]] = p[1]
-					//fmt.Println("accepted", p[0], p[1])
-				}
-			}
-		}
-	}
-}
-
-// Sets the feature list to the Winboard defaults:
-func (W *WINBOARD) setFeaturesToDefault() {
-
-	// Winboard/xboard default values:
-	W.features["ping"] = "0"      //ping (boolean, default 0, recommended 1)
-	W.features["setboard"] = "0"  //setboard (boolean, default 0, recommended 1)
-	W.features["playother"] = "0" //playother (boolean, default 0, recommended 1)
-	W.features["san"] = "0"       //san (boolean, default 0)
-	W.features["usermove"] = "0"  //usermove (boolean, default 0)
-	W.features["time"] = "1"      //time (boolean, default 1, recommended 1)
-	W.features["draw"] = "1"      //draw (boolean, default 1, recommended 1)
-	W.features["sigint"] = "1"    //sigint (boolean, default 1)
-	W.features["sigterm"] = "1"   //sigterm (boolean, default 1)
-	W.features["reuse"] = "1"     //reuse (boolean, default 1, recommended 1)
-	W.features["analyze"] = "1"   //analyze (boolean, default 1, recommended 1)
-	W.features["colors"] = "1"    //colors (boolean, default 1, recommended 0)
-	W.features["ics"] = "0"       //ics (boolean, default 0)
-	W.features["pause"] = "0"     // pause (boolean, default 0)
-	W.features["debug"] = "0"     //debug (boolean, default 0)
-	W.features["memory"] = "0"    //memory (boolean, default 0)
-	W.features["smp"] = "0"       //smp (boolean, default 0)
-	W.features["exclude"] = "0"   //exclude (boolean, default 0)
-	W.features["setscore"] = "0"  //setscore (boolean, default 0)
-	W.features["highlight"] = "0" //highlight (boolean, default 0)
-
+	return err
 }
