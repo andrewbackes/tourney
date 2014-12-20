@@ -80,12 +80,13 @@ func renderGameViewer(w http.ResponseWriter, T *Tourney, round int) {
 }
 
 //func Broadcast(T *Tourney) error {
-func Broadcast(TList *[]*Tourney, Tindex *int) error {
+//func Broadcast(TList *[]*Tourney, Tindex *int) error {
+func Broadcast(Tourneys *TourneyList) error {
 	//TODO: check that the tourney is valid
 
 	// Summary Requests:
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		renderTourneyPage(w, (*TList)[*Tindex])
+		renderTourneyPage(w, Tourneys.Selected())
 	})
 
 	// Round Requests:
@@ -95,18 +96,18 @@ func Broadcast(TList *[]*Tourney, Tindex *int) error {
 		if len(words) == 1 {
 			// just the round is being requested:
 			round, _ := strconv.Atoi(words[0])
-			renderRoundPage(w, (*TList)[*Tindex], round)
+			renderRoundPage(w, Tourneys.Selected(), round)
 		} else if len(words) >= 3 && words[1] == "ply" {
 			round, _ := strconv.Atoi(words[0])
 			ply, _ := strconv.Atoi(words[2])
-			renderPlyPage(w, (*TList)[*Tindex], round, ply)
+			renderPlyPage(w, Tourneys.Selected(), round, ply)
 		}
 	})
 
 	// Game Viewer:
 	http.HandleFunc("/viewer/", func(w http.ResponseWriter, req *http.Request) {
 		request, _ := strconv.Atoi(strings.Trim(req.URL.Path[len("/viewer"):], "/"))
-		renderGameViewer(w, (*TList)[*Tindex], request)
+		renderGameViewer(w, Tourneys.Selected(), request)
 	})
 	// Image files for Game Viewer:
 	http.Handle("/viewer/pieces/", http.StripPrefix("/viewer/pieces/", http.FileServer(http.Dir("templates/pieces"))))

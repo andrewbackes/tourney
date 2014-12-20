@@ -25,7 +25,8 @@ import (
 	"sync"
 )
 
-func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*Tourney, bool) {
+//func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*Tourney, bool) {
+func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 	var queQuit bool
 	command = strings.Trim(command, "\n")
 	command = strings.Trim(command, " ")
@@ -51,7 +52,8 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			label: []string{"tourney", "t"},
 			desc:  "Prints the settings of the selected tourney.",
 			f: func() {
-				T[*selected].Print()
+				//T[*selected].Print()
+				Tourneys.Selected().Print()
 			}},
 		{
 			label: []string{"settings", "e"},
@@ -64,11 +66,13 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			desc:  "Starts the currently selected tourney.",
 			f: func() {
 				go func() {
-					T[*selected].Done = make(chan struct{})
+					//T[*selected].Done = make(chan struct{})
+					Tourneys.Selected().Done = make(chan struct{})
 				}()
 				wg.Add(1)
 				go func() {
-					if err := RunTourney(T[*selected]); err != nil {
+					//if err := RunTourney(T[*selected]); err != nil {
+					if err := RunTourney(Tourneys.Selected()); err != nil {
 						fmt.Println(err)
 					}
 					wg.Done()
@@ -81,7 +85,8 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			f: func() {
 				fmt.Println("Broadcasting http on port 8080.")
 				go func() {
-					if err := Broadcast(&T, selected); err != nil {
+					//if err := Broadcast(&T, selected); err != nil {
+					if err := Broadcast(Tourneys); err != nil {
 						fmt.Println(err)
 					}
 				}()
@@ -93,8 +98,8 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			f: func() {
 				wg.Add(1)
 				go func() {
-					if blocks(T[*selected].Done) {
-						close(T[*selected].Done)
+					if blocks(Tourneys.Selected().Done) {
+						close(Tourneys.Selected().Done)
 					}
 					wg.Done()
 				}()
@@ -103,14 +108,14 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			label: []string{"results", "r"},
 			desc:  "Displays the results of the currently selected tourney.",
 			f: func() {
-				fmt.Print(SummarizeResults(T[*selected]))
+				fmt.Print(SummarizeResults(Tourneys.Selected()))
 				fmt.Println("To see more details type, 'games' or 'g'")
 			}},
 		{
 			label: []string{"games", "g"},
 			desc:  "Displays the results of each game in the selected tourney.",
 			f: func() {
-				fmt.Print(SummarizeGames(T[*selected]))
+				fmt.Print(SummarizeGames(Tourneys.Selected()))
 			}},
 		{
 			label: []string{"load", "l"},
@@ -122,33 +127,36 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 				filename = strings.Trim(filename, "\n")   // for *nix
 				filename = strings.Replace(filename, ".tourney", "", 1) + ".tourney"
 				if N, err := LoadFile(filename); err == nil {
-					T = append(T, N)
-					*selected = len(T) - 1
-					ListActiveTourneys(T, *selected)
+					//T = append(T, N)
+					//*selected = len(T) - 1
+					Tourneys.Add(N)
+					ListActiveTourneys(Tourneys)
 				}
 			}},
-		{
-			label: []string{"new", "n"},
-			desc:  "Creates a new tourney with default settings.",
-			f: func() {
-				if N, err := LoadDefault(); err == nil {
-					T = append(T, N)
-					*selected = len(T) - 1
-					ListActiveTourneys(T, *selected)
-				}
-			}},
+		/*
+			{
+				label: []string{"new", "n"},
+				desc:  "Creates a new tourney with default settings.",
+				f: func() {
+					if N, err := LoadDefault(); err == nil {
+						T = append(T, N)
+						*selected = len(T) - 1
+						ListActiveTourneys(T, *selected)
+					}
+				}},
+		*/
 		{
 			label: []string{"ls"},
 			desc:  "Displays a list of currently loaded tourneys.",
 			f: func() {
-				ListActiveTourneys(T, *selected)
+				ListActiveTourneys(Tourneys)
 			}},
 		{
 			label: []string{"quit", "q"},
 			desc:  "Quits the program",
 			f: func() {
-				if blocks(T[*selected].Done) {
-					close(T[*selected].Done)
+				if blocks(Tourneys.Selected().Done) {
+					close(Tourneys.Selected().Done)
 				}
 				queQuit = true
 			}},
@@ -174,8 +182,8 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 			f: func() {
 				wg.Add(1)
 				go func() {
-					T[*selected].Done = make(chan struct{})
-					if err := HostTourney(T[*selected]); err != nil {
+					Tourneys.Selected().Done = make(chan struct{})
+					if err := HostTourney(Tourneys.Selected()); err != nil {
 						fmt.Println(err)
 					}
 					wg.Done()
@@ -205,7 +213,7 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 				return
 			}},
 		{
-			label: []string{"build"},
+			label: []string{"build", "buildbook"},
 			desc:  "Build an opening book from a PGN.",
 			f: func() {
 				var filename string
@@ -225,19 +233,19 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 				return
 			}},
 		{
-			label: []string{"reset"},
-			desc:  "Removes all previous tourney data.",
+			label: []string{"delete", "rm"},
+			desc:  "Deletes all previous tourney data.",
 			f: func() {
 				extensions := []string{".data", ".pgn", ".results"}
 				for _, v := range extensions {
-					if err := os.Remove(T[*selected].filename + v); err != nil {
+					if err := os.Remove(Tourneys.Selected().filename + v); err != nil {
 						fmt.Println(err)
 					} else {
-						fmt.Println("Deleted " + T[*selected].filename + v)
+						fmt.Println("Deleted " + Tourneys.Selected().filename + v)
 					}
 				}
-				for i, _ := range T[*selected].GameList {
-					path := "logs/" + T[*selected].Event + " round " + strconv.Itoa(i+1) + ".log"
+				for i, _ := range Tourneys.Selected().GameList {
+					path := "logs/" + Tourneys.Selected().Event + " round " + strconv.Itoa(i+1) + ".log"
 					if err := os.Remove(path); err != nil {
 						fmt.Println(err)
 						break
@@ -245,7 +253,6 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 						fmt.Println("Deleted " + path)
 					}
 				}
-
 				return
 			}},
 	}
@@ -261,21 +268,22 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 	}
 	// check if the user input is a valid command:
 	if len(words) == 0 {
-		return T, queQuit
+		return queQuit
 	}
 	for _, command := range commands {
 		if inSlice(command.label, words[0]) {
 			command.f()
-			return T, queQuit
+			return queQuit
 		}
 	}
 	// check to see if the user typed in an index or name of a tourney:
 	var adjustedSelected bool
-	for i, _ := range T {
-		if (strconv.Itoa(i+1) == command) || (strings.ToLower(T[i].Event) == strings.ToLower(command)) {
-			*selected = i
+	for i, _ := range Tourneys.List {
+		if (strconv.Itoa(i+1) == command) || (strings.ToLower(Tourneys.List[i].Event) == strings.ToLower(command)) {
+			//*selected = i
+			Tourneys.Index = i
 			adjustedSelected = true
-			ListActiveTourneys(T, *selected)
+			ListActiveTourneys(Tourneys)
 		}
 	}
 
@@ -283,20 +291,21 @@ func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*T
 	if !adjustedSelected {
 		fmt.Print("There was an error processing that command. Type 'help' for a list of commands.\n")
 	}
-	return T, queQuit
+	return queQuit
 }
 
-func ListActiveTourneys(actT []*Tourney, selT int) {
+//func ListActiveTourneys(actT []*Tourney, selT int) {
+func ListActiveTourneys(Tourneys *TourneyList) {
 	fmt.Print("\nThe following tourneys are currently loaded:\n")
 
-	for i, _ := range actT {
+	for i, _ := range Tourneys.List {
 		str := ""
-		if i == selT {
+		if i == Tourneys.Index {
 			str += " --> "
 		} else {
 			str += "     "
 		}
-		str += strconv.Itoa(i+1) + ". " + actT[i].Event
+		str += strconv.Itoa(i+1) + ". " + Tourneys.List[i].Event
 		fmt.Println(str)
 	}
 	fmt.Println("\nTo select a different tourney from the list, type its name or number. ")

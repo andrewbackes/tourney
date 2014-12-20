@@ -15,51 +15,28 @@
 
 
  TODO:
- 	-Rename to: SANtoPCN()
  	-make PCNtoSAN()
  	-instead of calling LegalMoveGen(), should have a stripped down version
  	for just the type of piece moving.
 
 *******************************************************************************/
 
-/*
-
-BUG as of 12/15/2014:
-
-Notation: Can not find source square.
-r1bqk2r/pppn1pbp/3p2p1/5p2/2PP4/2N1P1P1/PP3PBP/R2QK1NR b KQkq - 1 8
-Nge2
-   +---+---+---+---+---+---+---+---+
- 8 | r |   | b | q | k |   |   | r |      WHITE 00:00.000   [BLACK 00:00.000]
-   +---+---+---+---+---+---+---+---+
- 7 | p | p | p | n |   | p | b | p |      Move #: 7    (Moves Remaining: 0)
-   +---+---+---+---+---+---+---+---+
- 6 |   |   |   | p |   |   | p |   |      Enpassant: None
-   +---+---+---+---+---+---+---+---+
- 5 |   |   |   |   |   | p |   |   |      Castling Rights: KQkq
-   +---+---+---+---+---+---+---+---+
- 4 |   |   | P | P |   |   |   |   |      In Play: PPPPPPPP NN B  RR Q K  (36)
-   +---+---+---+---+---+---+---+---+
- 3 |   |   | N |   | P |   | P |   |               pppppppp n  bb rr q k  (36)
-   +---+---+---+---+---+---+---+---+
- 2 | P | P |   |   |   | P |[B]| P |
-   +---+---+---+---+---+---+---+---+
- 1 | R |   |   | Q | K |[ ]| N | R |      Last move: f1g2
-   +---+---+---+---+---+---+---+---+
-     a   b   c   d   e   f   g   h
-
-*/
-
 package main
 
 import (
 	"errors"
-	"fmt"
+	//"fmt"
 	"regexp"
 	"strings"
 )
 
-func InternalizeNotation(G *Game, moveToParse string) (string, error) {
+/*******************************************************************************
+
+	PCN Convertion:
+
+*******************************************************************************/
+
+func ConvertToPCN(G *Game, moveToParse string) (string, error) {
 	// Converts Standard Algebraic Notation (SAN) to Pure Coordinate Notation (PCN)
 	// Examples of PCN are: e2e4 (and) e7e8Q
 
@@ -104,55 +81,6 @@ func InternalizeNotation(G *Game, moveToParse string) (string, error) {
 		return parsed, nil
 	}
 
-	/* OLD CODE */
-
-	// First check for an ambiguous promotion:
-	//SAN := "([a-h]?)([0-9]?)([a-h][0-9])([=])([BNQR])([+#]?)"
-	//p, _ := regexp.Compile(SAN)
-
-	// Breakdown the SAN:
-	// SAN := "([BKNPQR]?)([a-h]?)([0-9]?)([x=]?)([BKNPQR]|[a-h][1-8])([=]?[BKNPQR]?)([+#]?)"
-
-	/*
-		SAN := "([BKNPQR]?)([a-h]?)([0-9]?)([x=]?)([BKNPQR]|[a-h][1-8])([+#]?)"
-
-		//		  (piece)    (from)  (from)  (cap) (dest)      (promotion)        (chk  )
-		//SAN := "([BKNPQR]?)([a-h]?)([0-9]?)([x]?)([a-h][1-8])([=]?[BNPQRbnpqr]?)([+#]?)"
-		r, _ := regexp.Compile(SAN)
-
-		matched := r.FindStringSubmatch(moveToParse)
-		if len(matched) == 0 {
-			//fmt.Println("Error: index out of range.")
-			//fmt.Println(G.FEN())
-			//fmt.Println(moveToParse)
-			//G.PrintHUD()
-			return moveToParse, errors.New("Error parsing move from engine: '" + moveToParse + "'")
-		}
-		// For the sake of sanity, lets name some stuff:
-		piece := matched[1]
-		fromFile := matched[2]
-		fromRank := matched[3]
-		action := matched[4]      // capture or promote
-		destination := matched[5] //or promotion piece if action="="
-		//check := matched[6]       //or mate
-		var promote string
-
-		if piece == "" {
-			piece = "P"
-		}
-
-		// TODO: what about promotion captures? or ambiguous promotions?
-		if action == "=" {
-			promote = destination
-			destination = fromFile + fromRank
-			fromFile = ""
-			fromRank = ""
-		}
-	*/
-	/************/
-
-	/* NEW CODE */
-
 	//	    (piece)    (from)  (from)  (cap) (dest)      (promotion)        (chk  )
 	SAN := "([BKNPQR]?)([a-h]?)([0-9]?)([x]?)([a-h][1-8])([=]?[BNPQRbnpqr]?)([+#]?)"
 	r, _ := regexp.Compile(SAN)
@@ -174,14 +102,12 @@ func InternalizeNotation(G *Game, moveToParse string) (string, error) {
 		piece = "P"
 	}
 
-	/*************/
-
 	origin, err := originOfPiece(piece, destination, fromFile, fromRank, G)
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println(G.FEN())
-		fmt.Println(moveToParse)
-		G.PrintHUD()
+		//fmt.Println(err)
+		//fmt.Println(G.FEN())
+		//fmt.Println(moveToParse)
+		//G.PrintHUD()
 		return moveToParse, errors.New("Error finding source square of move: '" + moveToParse + "'.")
 	}
 
@@ -257,7 +183,18 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 
 /*******************************************************************************
 
-	Notation Stuff:
+	SAN Convertion:
+
+*******************************************************************************/
+
+func ConvertToSAN(G *Game, moveToParse string) (string, error) {
+
+	return "", nil
+}
+
+/*******************************************************************************
+
+	Notation Utilities:
 
 *******************************************************************************/
 
@@ -327,40 +264,3 @@ func isMove(s string) bool {
 
 	return false
 }
-
-/*******************************************************************************
-
-	Tests:
-
-*******************************************************************************/
-
-// TODO: add to a _test file
-
-/*
-
-func TestNotation() {
-	var G Game
-	G.Board.Reset()
-
-	G.LoadFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
-	G.Print()
-	moves := []string{"Qh3", "Nb5", "Pxh3", "xh3", "O-O-O", "O-O"}
-	for _, m := range moves {
-		fmt.Print(m, "->")
-		n := InternalizeNotation(&G, m)
-		fmt.Print(n, "\n")
-	}
-
-	G.LoadFEN("8/2p5/3p4/KP5k/1R3p1r/4P1P1/8/8 w - - 0 1")
-	G.Print()
-	moves = []string{"gf4", "ef4", "gxf4", "Rf4", "Rxf4"}
-	for _, m := range moves {
-		fmt.Print(m, "->")
-		n := InternalizeNotation(&G, m)
-		fmt.Print(n, "\n")
-	}
-
-	return
-}
-
-*/

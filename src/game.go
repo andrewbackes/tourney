@@ -164,7 +164,7 @@ func ExecuteNextTurn(G *Game) bool {
 	}
 	// Convert the notation from the engines notation to pure coordinate notation
 	parsedMove := engineMove
-	parsedMove.Algebraic, err = InternalizeNotation(G, parsedMove.Algebraic)
+	parsedMove.Algebraic, err = ConvertToPCN(G, parsedMove.Algebraic)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true

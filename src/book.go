@@ -135,7 +135,7 @@ func BuildBook(PGNfilename string, MoveNumber int) (*Book, error) {
 				break
 			}
 			//white move:
-			wmv, err := InternalizeNotation(&dummyGame, StripAnnotations((*PGN)[i].MoveList[ply-1].Algebraic))
+			wmv, err := ConvertToPCN(&dummyGame, StripAnnotations((*PGN)[i].MoveList[ply-1].Algebraic))
 			if err != nil {
 				break
 			}
@@ -143,7 +143,7 @@ func BuildBook(PGNfilename string, MoveNumber int) (*Book, error) {
 				break
 			}
 			//black move:
-			bmv, err := InternalizeNotation(&dummyGame, StripAnnotations((*PGN)[i].MoveList[ply].Algebraic))
+			bmv, err := ConvertToPCN(&dummyGame, StripAnnotations((*PGN)[i].MoveList[ply].Algebraic))
 			if err != nil {
 				break
 			}
@@ -290,7 +290,7 @@ func PlayOpeningOLD(T *Tourney, GameIndex int) error {
 			mv := b.MoveList[j].Algebraic
 			mv = StripAnnotations(mv)
 			var err error
-			mv, err = InternalizeNotation(&dummy, mv)
+			mv, err = ConvertToPCN(&dummy, mv)
 			if err != nil {
 				return errors.New("Book notation error: '" + err.Error())
 			}

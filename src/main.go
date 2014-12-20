@@ -33,19 +33,22 @@ import (
 	"sync"
 )
 
+type TourneyList struct {
+	List  []*Tourney
+	Index int
+}
+
+func (W *TourneyList) Selected() *Tourney {
+	return W.List[W.Index]
+}
+
+func (W *TourneyList) Add(T *Tourney) {
+	W.List = append(W.List, T)
+	W.Index = len(W.List) - 1
+}
+
 func main() {
 
-	// 5r1k/PP6/2p2n2/5P2/6pK/1R1B4/8/2R5 w - - 4 47
-	/*
-		var g Game
-		g.Board.Reset()
-		g.LoadFEN("5r1k/PP6/2p2n2/5P2/6pK/1R1B4/8/2R5 w - - 4 47")
-		g.PrintHUD()
-		fmt.Println(InternalizeNotation(&g, "b7b8"))
-		//fmt.Println(g.MoveGen())
-
-		return
-	*/
 	fmt.Println("\nProject: Tourney Started\n")
 	PrintSysStats()
 	fmt.Println()
@@ -56,15 +59,24 @@ func main() {
 	// validate that the file exists and is valid:
 
 	// when no .tourney file is provided or is invalid, should load default.tourney
-	var ActiveTourneys []*Tourney
-	var SelectedIndex int
+	/*
+		var ActiveTourneys []*Tourney
+		var SelectedIndex int
 
-	def, _ := LoadDefault()
-	ActiveTourneys = append(ActiveTourneys, def)
+		def, _ := LoadDefault()
+		ActiveTourneys = append(ActiveTourneys, def)
 
-	SelectedIndex = 0
-	ListActiveTourneys(ActiveTourneys, SelectedIndex)
+		SelectedIndex = 0
+		ListActiveTourneys(ActiveTourneys, SelectedIndex)
+	*/
+
 	// TODO: Other launch arguements
+
+	var Tourneys TourneyList
+	def, _ := LoadDefault()
+	Tourneys.Add(def)
+
+	ListActiveTourneys(&Tourneys)
 
 	// REPL:
 
@@ -74,14 +86,14 @@ func main() {
 	var quit bool
 	var prompt string
 	for !quit {
-		if len(ActiveTourneys) > 0 {
-			prompt = ActiveTourneys[SelectedIndex].Event + "> "
+		if len(Tourneys.List) > 0 {
+			prompt = Tourneys.Selected().Event + "> "
 		} else {
 			prompt = "> "
 		}
 		fmt.Print(prompt)
 		line, _ := inputReader.ReadString('\n')
-		ActiveTourneys, quit = Eval(line, ActiveTourneys, &SelectedIndex, &wg)
+		quit = Eval(line, &Tourneys, &wg)
 	}
 	wg.Wait()
 	// DEBUG:

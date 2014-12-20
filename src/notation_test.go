@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestInternalizeNotation(t *testing.T) {
+func TestConvertToPCN(t *testing.T) {
 
 	tests := [][]string{
 		{
@@ -131,7 +131,7 @@ func TestInternalizeNotation(t *testing.T) {
 		tester.LoadFEN(tests[i][0])
 		SAN := tests[i][1]
 		PCN := tests[i][2]
-		answer, err := InternalizeNotation(&tester, SAN)
+		answer, err := ConvertToPCN(&tester, SAN)
 		if answer != PCN {
 			t.Error(i, "FAILED: Expected", PCN, "got", answer, "-", err)
 		} else {
