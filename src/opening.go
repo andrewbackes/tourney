@@ -53,7 +53,8 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 	// Check if the opening has already been played on this game:
 	if len(T.GameList[GameIndex].MoveList) > 0 {
 		// TODO: better checking!
-		return errors.New("Opening already played.")
+		//return errors.New("Opening already played.")
+		return nil
 	}
 
 	var fen string

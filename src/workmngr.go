@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -130,18 +131,43 @@ GAMESYNC:
 	}
 }
 
-func ServeEngineFiles() {
+func ServeEngineFiles(T *Tourney) {
 	// TODO: customizable ports
-	FilePath := "/Users/Andrew/Documents/Engines"
+	// TODO: some sort of security here. don't want to just serve any files to anybody.
+
 	fmt.Println("Serving game engines on port 9001")
-	http.ListenAndServe(":9001", http.FileServer(http.Dir(FilePath)))
+	//h := NewEngineHandler(T)
+	var h http.HandlerFunc
+	h = func(w http.ResponseWriter, req *http.Request) {
+		filepath := req.URL.Path
+		// Verify that filepath is an engine playing in this tourney:
+		okayToServe := false
+		for i, _ := range T.Engines {
+			if filepath == T.Engines[i].Path {
+				okayToServe = true
+				break
+			}
+		}
+		// Give the file:
+		if okayToServe {
+			fmt.Print("Worker is downloading engine: '", filepath, "'.\n")
+			http.ServeFile(w, req, filepath)
+		} else {
+			fmt.Print("Worker is downloading engine: Permission Denied.\n")
+			io.WriteString(w, "Permission Denied. "+filepath)
+		}
+	}
+
+	http.ListenAndServe(":9001", h)
 }
 
 func HostTourney(T *Tourney) error {
 
+	// TODO: if the client cant play the game, this loop just goes on forever.
+
 	fmt.Println("\n\nHosting:", T.Event)
 	M := NewWorkManager(T)
-	go ServeEngineFiles() // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
+	go ServeEngineFiles(T) // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
 	go M.ListenForWorkers()
 
 	// TODO: refactoring required: consolidate with RunTourney()

@@ -33,21 +33,18 @@ import (
 	"sync"
 )
 
-type TourneyList struct {
-	List  []*Tourney
-	Index int
+type GlobalSettings struct {
+	EngineDirectory string
 }
 
-func (W *TourneyList) Selected() *Tourney {
-	return W.List[W.Index]
-}
-
-func (W *TourneyList) Add(T *Tourney) {
-	W.List = append(W.List, T)
-	W.Index = len(W.List) - 1
-}
+var Settings GlobalSettings
 
 func main() {
+
+	// TODO: put settings in a file:
+	Settings.EngineDirectory = "/Users/"
+
+	// ************************************************
 
 	fmt.Println("\nProject: Tourney Started\n")
 	PrintSysStats()

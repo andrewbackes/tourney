@@ -114,6 +114,20 @@ type Tourney struct {
 	//CompletedGameQue chan Game
 }
 
+type TourneyList struct {
+	List  []*Tourney
+	Index int
+}
+
+func (W *TourneyList) Selected() *Tourney {
+	return W.List[W.Index]
+}
+
+func (W *TourneyList) Add(T *Tourney) {
+	W.List = append(W.List, T)
+	W.Index = len(W.List) - 1
+}
+
 func RunTourney(T *Tourney) error {
 	// TODO: verify that the settings currently loaded will not cause any problems.
 	// TODO: print opening
