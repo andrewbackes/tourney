@@ -44,6 +44,7 @@ import (
 	"strings"
 	//"time"
 	//"runtime"
+	"path/filepath"
 )
 
 type Status int
@@ -174,6 +175,14 @@ func RunTourney(T *Tourney) error {
 }
 
 func Save(T *Tourney) error {
+
+	// Create the Save directory:
+	if Settings.SaveDirectory != "" {
+		if err := os.MkdirAll(Settings.SaveDirectory, os.ModePerm); err != nil {
+			fmt.Println("Could not make directory:", Settings.SaveDirectory, " - ", err)
+			return err
+		}
+	}
 	// Save results:
 	if err := SaveResults(T); err != nil {
 		fmt.Println("Failed.", err)
@@ -200,7 +209,8 @@ func Save(T *Tourney) error {
 
 func SaveResults(T *Tourney) error {
 	//check if the file exists:
-	filename := T.filename + ".results"
+	filename := T.filename + ".txt"
+	filename = filepath.Join(Settings.SaveDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	//var file *os.File
 	//var err error
@@ -221,6 +231,7 @@ func SaveResults(T *Tourney) error {
 func SaveData(T *Tourney) error {
 	//check if the file exists:
 	filename := T.filename + ".data"
+	filename = filepath.Join(Settings.SaveDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	var file *os.File
 	var err error
@@ -250,6 +261,7 @@ func SaveData(T *Tourney) error {
 func SavePGN(T *Tourney) error {
 	//check if the file exists:
 	filename := T.filename + ".pgn"
+	filename = filepath.Join(Settings.SaveDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	if _, test := os.Stat(filename); os.IsNotExist(test) {
 		// file doesnt exist

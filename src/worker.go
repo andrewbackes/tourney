@@ -10,6 +10,7 @@
  TODO:
  	- "\" vs "/" in file paths will be a problem on windows.
  	- send logs back to server
+ 	- Give reasons when engines cant be downloaded.
 
 *******************************************************************************/
 
@@ -24,8 +25,9 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
-	"time"
 )
 
 // Wrapper for functions to be played with net/rpc :
@@ -36,16 +38,16 @@ type Worker struct {
 
 	// To be used by the Worker:
 	serverAddr string
-	localPath  string
 }
 
 func (W *Worker) DownloadEngine(ServerPath string, rpcResponse *string) error {
 
-	parsed := strings.SplitAfter(ServerPath, "/")
+	parsed := strings.SplitAfter(ServerPath, "/")            // *nix
+	parsed = strings.SplitAfter(parsed[len(parsed)-1], "\\") // windows
 	EngineFileName := parsed[len(parsed)-1]
 
 	// Make the file locally:
-	LocalEngineFilePath := W.localPath + "/" + EngineFileName
+	LocalEngineFilePath := filepath.Join(Settings.WorkerDirectory, EngineFileName)
 	LocalFile, err := os.Create(LocalEngineFilePath)
 	defer LocalFile.Close()
 	if err != nil {
@@ -59,7 +61,7 @@ func (W *Worker) DownloadEngine(ServerPath string, rpcResponse *string) error {
 	}
 
 	// Get it from the server:
-	httpFile, err := http.Get("http://" + strings.Split(W.serverAddr, ":")[0] + ":9001" + ServerPath)
+	httpFile, err := http.Get("http://" + strings.Split(W.serverAddr, ":")[0] + ":" + strconv.Itoa(Settings.EngineFilePort) + "/" + ServerPath)
 	defer httpFile.Body.Close()
 	if err != nil {
 		return err
@@ -81,20 +83,23 @@ func (W *Worker) LocalizeEngines(WorkingGame *Game, rpcResponse *string) error {
 	fmt.Println("Localizing game engines...")
 
 	// check if folder exists:
-	if err := os.MkdirAll(W.localPath, os.ModePerm); err != nil { //!os.IsExist(err) {
-		fmt.Println("Could not make directory:", W.localPath, " - ", err)
-		return err
+	if Settings.WorkerDirectory != "" {
+		if err := os.MkdirAll(Settings.WorkerDirectory, os.ModePerm); err != nil { //!os.IsExist(err) {
+			fmt.Println("Could not make directory:", Settings.WorkerDirectory, " - ", err)
+			return err
+		}
 	}
 
 	for color := 0; color <= 1; color++ {
 		// figure out the engine name and paths:
-		parsed := strings.SplitAfter(WorkingGame.Player[color].Path, "/")
+		parsed := strings.SplitAfter(WorkingGame.Player[color].Path, "/") // *nix
+		parsed = strings.SplitAfter(parsed[len(parsed)-1], "\\")          // windows
 		EngineFileName := parsed[len(parsed)-1]
 		ServerPath := WorkingGame.Player[color].Path // local path on the server
 
 		EngineValidated := false
 		LocalEngine := WorkingGame.Player[color] // temp object
-		LocalEngine.Path = W.localPath + "/" + EngineFileName
+		LocalEngine.Path = filepath.Join(Settings.WorkerDirectory, EngineFileName)
 
 		for attempts := 0; attempts < 3; attempts++ {
 			// Verify file existence and integrity:
@@ -124,7 +129,7 @@ func (W *Worker) LocalizeEngines(WorkingGame *Game, rpcResponse *string) error {
 		// Update file locations in the Game object:
 		WorkingGame.Player[color] = LocalEngine
 
-		fmt.Println("File Integrity Verified. Using:", "./"+LocalEngine.Path)
+		fmt.Println("File Integrity Verified. Using:", LocalEngine.Path)
 		//fmt.Println("Serverpath:", ServerPath)
 		//time.Sleep(30 * time.Second)
 	}
@@ -176,7 +181,7 @@ func ConnectAndWait(address string) {
 	// Establish RPC serving:
 	ThisWorker := &Worker{
 		serverAddr: address,
-		localPath:  "worker",
+		//localPath:  "worker",
 	}
 	rpc.Register(ThisWorker)
 	rpc.ServeConn(conn)

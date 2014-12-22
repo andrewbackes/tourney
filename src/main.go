@@ -34,7 +34,27 @@ import (
 )
 
 type GlobalSettings struct {
-	EngineDirectory string
+	WorkerDirectory   string
+	LogDirectory      string
+	TemplateDirectory string
+	SaveDirectory     string
+	BookDirectory     string
+	ServerPort        int
+	WebPort           int
+	EngineFilePort    int
+}
+
+func DefaultSettings() GlobalSettings {
+	return GlobalSettings{
+		WorkerDirectory:   "worker/",
+		LogDirectory:      "logs/",
+		TemplateDirectory: "templates/",
+		SaveDirectory:     "",
+		BookDirectory:     "",
+		ServerPort:        9000,
+		WebPort:           8080,
+		EngineFilePort:    9001,
+	}
 }
 
 var Settings GlobalSettings
@@ -42,9 +62,7 @@ var Settings GlobalSettings
 func main() {
 
 	// TODO: put settings in a file:
-	Settings.EngineDirectory = "/Users/"
-
-	// ************************************************
+	Settings = DefaultSettings()
 
 	fmt.Println("\nProject: Tourney Started\n")
 	PrintSysStats()

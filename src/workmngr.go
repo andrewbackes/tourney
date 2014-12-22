@@ -8,7 +8,6 @@
  Description:
 
  TODO:
- 	-customizable ports
 
 *******************************************************************************/
 
@@ -20,6 +19,7 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"strconv"
 )
 
 type WorkManager struct {
@@ -66,8 +66,8 @@ func (M *WorkManager) DisconnectAll() {
 
 func (M *WorkManager) ListenForWorkers() {
 	// Setup Server:
-	fmt.Println("Waiting for workers on port 9000...")
-	server, err := net.Listen("tcp", ":9000") //TODO: user chosen port.
+	fmt.Println("Waiting for workers on port", Settings.ServerPort, "...")
+	server, err := net.Listen("tcp", ":"+strconv.Itoa(Settings.ServerPort)) //TODO: user chosen port.
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -132,14 +132,15 @@ GAMESYNC:
 }
 
 func ServeEngineFiles(T *Tourney) {
-	// TODO: customizable ports
-	// TODO: some sort of security here. don't want to just serve any files to anybody.
 
-	fmt.Println("Serving game engines on port 9001")
+	fmt.Println("Serving game engines on port", Settings.EngineFilePort, "...")
 	//h := NewEngineHandler(T)
 	var h http.HandlerFunc
 	h = func(w http.ResponseWriter, req *http.Request) {
 		filepath := req.URL.Path
+		if len(filepath) >= len("/") && filepath[0] == '/' {
+			filepath = filepath[1:]
+		}
 		// Verify that filepath is an engine playing in this tourney:
 		okayToServe := false
 		for i, _ := range T.Engines {
@@ -158,7 +159,7 @@ func ServeEngineFiles(T *Tourney) {
 		}
 	}
 
-	http.ListenAndServe(":9001", h)
+	http.ListenAndServe(":"+strconv.Itoa(Settings.EngineFilePort), h)
 }
 
 func HostTourney(T *Tourney) error {

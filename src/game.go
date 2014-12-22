@@ -25,6 +25,7 @@ import (
 	"fmt"
 	//"runtime"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -337,7 +338,7 @@ func (G *Game) GameOver(looser Color, reason string) {
 
 /*******************************************************************************
 
-	Modifiers:
+	Game State Modifiers:
 
 *******************************************************************************/
 
@@ -777,16 +778,13 @@ func (G *Game) isAttacked(square uint, byWho Color) bool {
 func (G *Game) StartLog() error {
 	fmt.Print("Creating log file... ")
 
-	//check if folder exists:
-	//if err := os.Mkdir("logs", os.ModePerm); !os.IsExist(err) {
-	//	return err
-	//}
-	if err := os.MkdirAll("logs", os.ModePerm); err != nil {
+	if err := os.MkdirAll(Settings.LogDirectory, os.ModePerm); err != nil {
+		fmt.Println("Could not make directory:", Settings.LogDirectory, " - ", err)
 		return err
 	}
 
 	//check if the file exists:
-	filename := fmt.Sprint("logs/", G.Event, " round ", G.Round, ".log")
+	filename := filepath.Join(Settings.LogDirectory, fmt.Sprint(G.Event, " round ", G.Round, ".log"))
 	if _, test := os.Stat(filename); os.IsNotExist(test) {
 		// file doesnt exist
 	} else if test == nil {
