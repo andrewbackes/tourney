@@ -55,7 +55,7 @@ func (W *Worker) DownloadEngine(ServerPath string, rpcResponse *string) error {
 		return err
 	}
 	err = LocalFile.Chmod(0755)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "not supported by windows") {
 		fmt.Println("Error modifying file permissions.")
 		return err
 	}
