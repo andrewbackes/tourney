@@ -25,6 +25,7 @@ import (
 	"fmt"
 	//"runtime"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -90,17 +91,25 @@ type Game struct {
 func PlayGame(G *Game) error {
 	// Note: opening book is handled in RunTourney()
 	G.StartLog()
+	defer G.CloseLog()
+	defer G.AppendLog()
+
 	fmt.Println("Playing Game...")
 	// Start up the engines:
+	defer G.Player[WHITE].Shutdown()
 	if err := G.Player[WHITE].Start(&G.logBuffer); err != nil {
+		G.AppendLog()
 		return err
 	}
+	defer G.Player[BLACK].Shutdown()
 	if err := G.Player[BLACK].Start(&G.logBuffer); err != nil {
+		G.AppendLog()
 		return err
 	}
 
 	G.Player[WHITE].NewGame(G.Time, G.Moves)
 	G.Player[BLACK].NewGame(G.Time, G.Moves)
+	G.AppendLog()
 
 	var state Status = RUNNING
 	for state == RUNNING {
@@ -125,11 +134,10 @@ func PlayGame(G *Game) error {
 	}
 
 	// Stop the engines:
-	G.Player[WHITE].Shutdown()
-	G.Player[BLACK].Shutdown()
+	//G.Player[WHITE].Shutdown()
+	//G.Player[BLACK].Shutdown()
 
-	G.AppendLog()
-	G.CloseLog()
+	//G.AppendLog()
 	return nil
 }
 
@@ -157,7 +165,7 @@ func ExecuteNextTurn(G *Game) bool {
 	}
 	// Convert the notation from the engines notation to pure coordinate notation
 	parsedMove := engineMove
-	parsedMove.Algebraic, err = InternalizeNotation(G, parsedMove.Algebraic)
+	parsedMove.Algebraic, err = ConvertToPCN(G, parsedMove.Algebraic)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
@@ -168,6 +176,12 @@ func ExecuteNextTurn(G *Game) bool {
 		fmt.Print(len(G.MoveList)/2+1, ". ")
 	}
 	fmt.Print(parsedMove.Algebraic, " ")
+
+	// Check for nullmove/resign:
+	if parsedMove.Algebraic == "0000" {
+		G.GameOver(color, []string{"White", "Black"}[color]+" resigned.")
+		return true
+	}
 
 	// Check legality of move.
 	LegalMoves := LegalMoveList(G)
@@ -324,7 +338,7 @@ func (G *Game) GameOver(looser Color, reason string) {
 
 /*******************************************************************************
 
-	Modifiers:
+	Game State Modifiers:
 
 *******************************************************************************/
 
@@ -764,16 +778,13 @@ func (G *Game) isAttacked(square uint, byWho Color) bool {
 func (G *Game) StartLog() error {
 	fmt.Print("Creating log file... ")
 
-	//check if folder exists:
-	//if err := os.Mkdir("logs", os.ModePerm); !os.IsExist(err) {
-	//	return err
-	//}
-	if err := os.MkdirAll("logs", os.ModePerm); err != nil {
+	if err := os.MkdirAll(Settings.LogDirectory, os.ModePerm); err != nil {
+		fmt.Println("Could not make directory:", Settings.LogDirectory, " - ", err)
 		return err
 	}
 
 	//check if the file exists:
-	filename := fmt.Sprint("logs/", G.Event, " round ", G.Round, ".log")
+	filename := filepath.Join(Settings.LogDirectory, fmt.Sprint(G.Event, " round ", G.Round, ".log"))
 	if _, test := os.Stat(filename); os.IsNotExist(test) {
 		// file doesnt exist
 	} else if test == nil {

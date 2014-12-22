@@ -106,7 +106,7 @@ func DecodePGN(pgn string) []Game {
 				// its a tag
 				t := strings.SplitN(l, " ", 2)
 				key := t[0][1:]
-				value := t[1][1 : len(t[1])-2]
+				value := t[1][1 : len(t[1])-2] // TODO: index out of range error here.
 				switch key {
 				case "Event":
 					G.Event = value

@@ -10,6 +10,7 @@
  TODO:
  	- "\" vs "/" in file paths will be a problem on windows.
  	- send logs back to server
+ 	- Give reasons when engines cant be downloaded.
 
 *******************************************************************************/
 
@@ -24,6 +25,8 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -35,13 +38,16 @@ type Worker struct {
 
 	// To be used by the Worker:
 	serverAddr string
-	localPath  string
 }
 
-func (W *Worker) DownloadEngine(EngineFileName string, rpcResponse *string) error {
+func (W *Worker) DownloadEngine(ServerPath string, rpcResponse *string) error {
+
+	parsed := strings.SplitAfter(ServerPath, "/")            // *nix
+	parsed = strings.SplitAfter(parsed[len(parsed)-1], "\\") // windows
+	EngineFileName := parsed[len(parsed)-1]
 
 	// Make the file locally:
-	LocalEngineFilePath := W.localPath + "/" + EngineFileName
+	LocalEngineFilePath := filepath.Join(Settings.WorkerDirectory, EngineFileName)
 	LocalFile, err := os.Create(LocalEngineFilePath)
 	defer LocalFile.Close()
 	if err != nil {
@@ -55,7 +61,7 @@ func (W *Worker) DownloadEngine(EngineFileName string, rpcResponse *string) erro
 	}
 
 	// Get it from the server:
-	httpFile, err := http.Get("http://" + strings.Split(W.serverAddr, ":")[0] + ":9001" + "/" + EngineFileName)
+	httpFile, err := http.Get("http://" + strings.Split(W.serverAddr, ":")[0] + ":" + strconv.Itoa(Settings.EngineFilePort) + "/" + ServerPath)
 	defer httpFile.Body.Close()
 	if err != nil {
 		return err
@@ -77,31 +83,36 @@ func (W *Worker) LocalizeEngines(WorkingGame *Game, rpcResponse *string) error {
 	fmt.Println("Localizing game engines...")
 
 	// check if folder exists:
-	if err := os.MkdirAll(W.localPath, os.ModePerm); err != nil { //!os.IsExist(err) {
-		fmt.Println("Could not make directory:", W.localPath, " - ", err)
-		return err
+	if Settings.WorkerDirectory != "" {
+		if err := os.MkdirAll(Settings.WorkerDirectory, os.ModePerm); err != nil { //!os.IsExist(err) {
+			fmt.Println("Could not make directory:", Settings.WorkerDirectory, " - ", err)
+			return err
+		}
 	}
 
 	for color := 0; color <= 1; color++ {
 		// figure out the engine name and paths:
-		parsed := strings.SplitAfter(WorkingGame.Player[color].Path, "/")
+		parsed := strings.SplitAfter(WorkingGame.Player[color].Path, "/") // *nix
+		parsed = strings.SplitAfter(parsed[len(parsed)-1], "\\")          // windows
 		EngineFileName := parsed[len(parsed)-1]
-		LocalPath := W.localPath + "/" + EngineFileName
+		ServerPath := WorkingGame.Player[color].Path // local path on the server
 
-		// Update file locations in the Game object:
-		WorkingGame.Player[color].Path = "./" + LocalPath
 		EngineValidated := false
+		LocalEngine := WorkingGame.Player[color] // temp object
+		LocalEngine.Path = filepath.Join(Settings.WorkerDirectory, EngineFileName)
+
 		for attempts := 0; attempts < 3; attempts++ {
 			// Verify file existence and integrity:
-			if err := WorkingGame.Player[color].ValidateEngineFile(); err != nil {
-				if _, err2 := os.Stat(WorkingGame.Player[color].Path); err2 == nil {
+			if err := LocalEngine.ValidateEngineFile(); err != nil {
+				fmt.Println(err)
+				if _, err2 := os.Stat(LocalEngine.Path); err2 == nil {
 					//file exists but is corrupt. delete it.
 					fmt.Println("Engine file corrupt.")
-					os.Remove(WorkingGame.Player[color].Path)
+					os.Remove(LocalEngine.Path)
 				}
 				// Download engine file:
 				fmt.Println("Downloading", EngineFileName, "from the server... ")
-				if err3 := W.DownloadEngine(EngineFileName, new(string)); err3 != nil {
+				if err3 := W.DownloadEngine(ServerPath, new(string)); err3 != nil {
 					fmt.Println("Failed. - ", err3)
 					//return err3
 				}
@@ -114,30 +125,13 @@ func (W *Worker) LocalizeEngines(WorkingGame *Game, rpcResponse *string) error {
 		if !EngineValidated {
 			return errors.New("Engine file's integrety could not be validated.")
 		}
-		/*
-			// check if the file exists:
-			fmt.Println("Looking for", LocalPath, "...")
-			if _, test := os.Stat(LocalPath); os.IsNotExist(test) {
-				// file doesnt exist, so get it from the server:
-				fmt.Println("Downloading ", EngineFileName, " from the server... ")
-				if err := W.DownloadEngine(EngineFileName, new(string)); err != nil {
-					fmt.Println("Failed. - ", err)
-					return err
-				}
-				// md5 check:
-				if err := WorkingGame.Player[color].ValidateEngineFile(); err != nil {
-					fmt.Println("MD5:", err)
-				} else {
-					fmt.Println("MD5 Ok.")
-				}
-			} else if test == nil {
-				// file does exist
-				// TODO: should md5 check it!
-			}
-		*/
 
-		fmt.Println("File Integrity Verified. Using:", "./"+LocalPath)
+		// Update file locations in the Game object:
+		WorkingGame.Player[color] = LocalEngine
 
+		fmt.Println("File Integrity Verified. Using:", LocalEngine.Path)
+		//fmt.Println("Serverpath:", ServerPath)
+		//time.Sleep(30 * time.Second)
 	}
 
 	return nil
@@ -187,7 +181,7 @@ func ConnectAndWait(address string) {
 	// Establish RPC serving:
 	ThisWorker := &Worker{
 		serverAddr: address,
-		localPath:  "worker",
+		//localPath:  "worker",
 	}
 	rpc.Register(ThisWorker)
 	rpc.ServeConn(conn)

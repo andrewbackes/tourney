@@ -15,7 +15,6 @@
 
  BUGS:
  	-executing Broadcast() more than once crashes.
- 	-executing Broadcast() then loading a tourney crashes on web requests.
 
 *******************************************************************************/
 
@@ -26,6 +25,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -49,14 +49,14 @@ func renderTourneyPage(w http.ResponseWriter, T *Tourney) {
 	//io.WriteString(w, SummarizeResults(T))
 	//io.WriteString(w, SummarizeGames(T))
 	Records := NewRecordRollup(T)
-	renderTemplate(w, "templates/tourney.html", Records)
+	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "tourney.html"), Records)
 }
 
 func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 	if round < len(T.GameList) && round >= 0 {
 		//io.WriteString(w, "Round: "+strconv.Itoa(round))
 		//io.WriteString(w, fmt.Sprint(T.GameList[round].MoveList))
-		renderTemplate(w, "templates/game.html", T.GameList[round-1])
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "game.html"), T.GameList[round-1])
 		//renderTemplate(w, "templates/viewer.html", T.GameList[round])
 	} else {
 		io.WriteString(w, "That is not a valid round in this Tourney.")
@@ -65,7 +65,7 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 
 func renderPlyPage(w http.ResponseWriter, T *Tourney, round, ply int) {
 	if round < len(T.GameList) && round >= 0 {
-		renderTemplate(w, "templates/ply.html", T.GameList[round-1].MoveList[ply])
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "ply.html"), T.GameList[round-1].MoveList[ply])
 	} else {
 		io.WriteString(w, "That is not a valid ply of a round in this Tourney.")
 	}
@@ -73,19 +73,20 @@ func renderPlyPage(w http.ResponseWriter, T *Tourney, round, ply int) {
 
 func renderGameViewer(w http.ResponseWriter, T *Tourney, round int) {
 	if round < len(T.GameList) && round >= 0 {
-		renderTemplate(w, "templates/viewer.html", T.GameList[round-1])
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "viewer.html"), T.GameList[round-1])
 	} else {
 		io.WriteString(w, "That is not a valid round in this Tourney.")
 	}
 }
 
 //func Broadcast(T *Tourney) error {
-func Broadcast(TList *[]*Tourney, Tindex *int) error {
+//func Broadcast(TList *[]*Tourney, Tindex *int) error {
+func Broadcast(Tourneys *TourneyList) error {
 	//TODO: check that the tourney is valid
 
 	// Summary Requests:
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		renderTourneyPage(w, (*TList)[*Tindex])
+		renderTourneyPage(w, Tourneys.Selected())
 	})
 
 	// Round Requests:
@@ -95,28 +96,29 @@ func Broadcast(TList *[]*Tourney, Tindex *int) error {
 		if len(words) == 1 {
 			// just the round is being requested:
 			round, _ := strconv.Atoi(words[0])
-			renderRoundPage(w, (*TList)[*Tindex], round)
+			renderRoundPage(w, Tourneys.Selected(), round)
 		} else if len(words) >= 3 && words[1] == "ply" {
 			round, _ := strconv.Atoi(words[0])
 			ply, _ := strconv.Atoi(words[2])
-			renderPlyPage(w, (*TList)[*Tindex], round, ply)
+			renderPlyPage(w, Tourneys.Selected(), round, ply)
 		}
 	})
 
 	// Game Viewer:
 	http.HandleFunc("/viewer/", func(w http.ResponseWriter, req *http.Request) {
 		request, _ := strconv.Atoi(strings.Trim(req.URL.Path[len("/viewer"):], "/"))
-		renderGameViewer(w, (*TList)[*Tindex], request)
+		renderGameViewer(w, Tourneys.Selected(), request)
 	})
 	// Image files for Game Viewer:
-	http.Handle("/viewer/pieces/", http.StripPrefix("/viewer/pieces/", http.FileServer(http.Dir("templates/pieces"))))
+	http.Handle("/viewer/pieces/", http.StripPrefix("/viewer/pieces/", http.FileServer(http.Dir(filepath.Join(Settings.TemplateDirectory, "pieces")))))
 
 	// Log Requests:
-	http.Handle("/logs/", http.FileServer(http.Dir("./")))
+	//http.Handle("/logs/", http.FileServer(http.Dir("./")))
+	http.Handle("/logs/", http.StripPrefix("/logs/", http.FileServer(http.Dir(Settings.LogDirectory))))
 
 	// Start the server:
 	// TODO: allow the server to be shut down.
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":"+strconv.Itoa(Settings.WebPort), nil)
 	if err != nil {
 		return err
 	}

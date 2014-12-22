@@ -12,27 +12,22 @@
  TODO:
  	- Rename Tourney.Done to something more descriptive, like ForceQuit or
  	  something.
- 	-Allow for games to be distributed to multiple machines to be played.
- 		-Each machine will have to be benchmarked to determine equivalent
- 		 Time control parameters.
+ 	-Worker Normalization
  	-More tournament parameters
  	-Formatting results needs to be able to handle big numbers.
  	 Like: 35000-25000-10000
- 	-Saving .tourney / .detail / .result / .pgn files when other already exist
+ 	-Saving .tourney / .data / .result / .pgn files when other already exist
 	 should make a xxx1.xxx xxx2.xxx sort of thing.
 	-Use text/template to save result files.
-	-saved files should mimic the .tourney file name, not the event name.
-	-previous tourney data file should be .data not .details
 
  BUGS:
  	-There may be an issue with things like: changing fields in the .tourney
  	 file when there is already a .details file. Because when the details are
  	 loaded, there may be a different number of games.
- 	-Already played openings.
  	-Error handleing in RunTourney() incorrectly uses break
  	-if you delete the log folder, the first log file doesnt get created.
 
- Author(s): Andrew Backes, Daniel Sparks
+ Author(s): Andrew Backes
  Created: 7/16/2014
 
 *******************************************************************************/
@@ -49,6 +44,7 @@ import (
 	"strings"
 	//"time"
 	//"runtime"
+	"path/filepath"
 )
 
 type Status int
@@ -119,6 +115,20 @@ type Tourney struct {
 	//CompletedGameQue chan Game
 }
 
+type TourneyList struct {
+	List  []*Tourney
+	Index int
+}
+
+func (W *TourneyList) Selected() *Tourney {
+	return W.List[W.Index]
+}
+
+func (W *TourneyList) Add(T *Tourney) {
+	W.List = append(W.List, T)
+	W.Index = len(W.List) - 1
+}
+
 func RunTourney(T *Tourney) error {
 	// TODO: verify that the settings currently loaded will not cause any problems.
 	// TODO: print opening
@@ -165,6 +175,14 @@ func RunTourney(T *Tourney) error {
 }
 
 func Save(T *Tourney) error {
+
+	// Create the Save directory:
+	if Settings.SaveDirectory != "" {
+		if err := os.MkdirAll(Settings.SaveDirectory, os.ModePerm); err != nil {
+			fmt.Println("Could not make directory:", Settings.SaveDirectory, " - ", err)
+			return err
+		}
+	}
 	// Save results:
 	if err := SaveResults(T); err != nil {
 		fmt.Println("Failed.", err)
@@ -191,7 +209,8 @@ func Save(T *Tourney) error {
 
 func SaveResults(T *Tourney) error {
 	//check if the file exists:
-	filename := T.filename + ".results"
+	filename := T.filename + ".txt"
+	filename = filepath.Join(Settings.SaveDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	//var file *os.File
 	//var err error
@@ -212,6 +231,7 @@ func SaveResults(T *Tourney) error {
 func SaveData(T *Tourney) error {
 	//check if the file exists:
 	filename := T.filename + ".data"
+	filename = filepath.Join(Settings.SaveDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	var file *os.File
 	var err error
@@ -241,6 +261,7 @@ func SaveData(T *Tourney) error {
 func SavePGN(T *Tourney) error {
 	//check if the file exists:
 	filename := T.filename + ".pgn"
+	filename = filepath.Join(Settings.SaveDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	if _, test := os.Stat(filename); os.IsNotExist(test) {
 		// file doesnt exist
@@ -315,7 +336,7 @@ func LoadFile(filename string) (*Tourney, error) {
 	fmt.Print("Success.\n")
 
 	// Load the opening book:
-	if T.BookLocation != "" {
+	if T.BookLocation != "" && T.BookMoves > 0 {
 		fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
 		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves); err != nil {
 			fmt.Println("Failed to load opening book:", err)

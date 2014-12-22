@@ -8,7 +8,6 @@
  Description:
 
  TODO:
- 	-customizable ports
 
 *******************************************************************************/
 
@@ -16,9 +15,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/rpc"
+	"strconv"
 )
 
 type WorkManager struct {
@@ -65,8 +66,8 @@ func (M *WorkManager) DisconnectAll() {
 
 func (M *WorkManager) ListenForWorkers() {
 	// Setup Server:
-	fmt.Println("Waiting for workers on port 9000...")
-	server, err := net.Listen("tcp", ":9000") //TODO: user chosen port.
+	fmt.Println("Waiting for workers on port", Settings.ServerPort, "...")
+	server, err := net.Listen("tcp", ":"+strconv.Itoa(Settings.ServerPort)) //TODO: user chosen port.
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -130,18 +131,44 @@ GAMESYNC:
 	}
 }
 
-func ServeEngineFiles() {
-	// TODO: customizable ports
-	FilePath := "/Users/Andrew/Documents/Engines"
-	fmt.Println("Serving game engines on port 9001")
-	http.ListenAndServe(":9001", http.FileServer(http.Dir(FilePath)))
+func ServeEngineFiles(T *Tourney) {
+
+	fmt.Println("Serving game engines on port", Settings.EngineFilePort, "...")
+	//h := NewEngineHandler(T)
+	var h http.HandlerFunc
+	h = func(w http.ResponseWriter, req *http.Request) {
+		filepath := req.URL.Path
+		if len(filepath) >= len("/") && filepath[0] == '/' {
+			filepath = filepath[1:]
+		}
+		// Verify that filepath is an engine playing in this tourney:
+		okayToServe := false
+		for i, _ := range T.Engines {
+			if filepath == T.Engines[i].Path {
+				okayToServe = true
+				break
+			}
+		}
+		// Give the file:
+		if okayToServe {
+			fmt.Print("Worker is downloading engine: '", filepath, "'.\n")
+			http.ServeFile(w, req, filepath)
+		} else {
+			fmt.Print("Worker is downloading engine: Permission Denied.\n")
+			io.WriteString(w, "Permission Denied. "+filepath)
+		}
+	}
+
+	http.ListenAndServe(":"+strconv.Itoa(Settings.EngineFilePort), h)
 }
 
 func HostTourney(T *Tourney) error {
 
+	// TODO: if the client cant play the game, this loop just goes on forever.
+
 	fmt.Println("\n\nHosting:", T.Event)
 	M := NewWorkManager(T)
-	go ServeEngineFiles() // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
+	go ServeEngineFiles(T) // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
 	go M.ListenForWorkers()
 
 	// TODO: refactoring required: consolidate with RunTourney()
