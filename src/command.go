@@ -194,9 +194,16 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"connect", "c"},
 			desc:  "Connects to a host running a tourney.",
 			f: func() {
+				address := "127.0.0.1"
+				if len(words) > 1 {
+					address = words[1]
+				}
+				if !strings.Contains(address, ":") {
+					address += fmt.Sprint(":", Settings.ServerPort)
+				}
 				wg.Add(1)
 				go func() {
-					ConnectAndWait("127.0.0.1:9000")
+					ConnectAndWait(address)
 					wg.Done()
 				}()
 				return
