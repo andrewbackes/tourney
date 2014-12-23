@@ -9,8 +9,10 @@
  Created: 7/15/2014
 
 TODO:
-	-Need to prevent the user from using commands that both write to the same
-	 object. Like RunTourney() and HostTourney()
+	- Need to prevent the user from using commands that both write to the same
+	  object. Like RunTourney() and HostTourney()
+
+	- delete command can have filepath issues.
 
 */
 
@@ -194,7 +196,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"connect", "c"},
 			desc:  "Connects to a host running a tourney.",
 			f: func() {
-				address := "127.0.0.1"
+				address := "127.0.0.1:"
 				if len(words) > 1 {
 					address = words[1]
 				}
@@ -230,10 +232,13 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 					fmt.Println("Please specify a filename.")
 					return
 				}
-				fmt.Print("Building opening book from '", filename, "'...\n")
-				if b, err := BuildBook(filename, 4); err == nil {
+				moves := 12
+				if len(words) > 2 {
+					moves, _ = strconv.Atoi(words[2])
+				}
+				if b, err := LoadOrBuildBook(filename, moves); err == nil {
 					fmt.Println("Success.")
-					fmt.Println(*b)
+					fmt.Println(b.String())
 				} else {
 					fmt.Println("Failed:", err.Error())
 				}
@@ -243,7 +248,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"delete", "rm"},
 			desc:  "Deletes all previous tourney data.",
 			f: func() {
-				extensions := []string{".data", ".pgn", ".results"}
+				extensions := []string{".data", ".pgn", ".txt"}
 				for _, v := range extensions {
 					if err := os.Remove(Tourneys.Selected().filename + v); err != nil {
 						fmt.Println(err)

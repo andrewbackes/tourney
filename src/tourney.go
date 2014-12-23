@@ -84,7 +84,7 @@ type Tourney struct {
 	BookLocation string // File location of the book
 	BookMoves    int    // Number of Moves to use out of the book
 	BookPGN      []Game // TODO: depreciated
-	RandomBook   bool   // do not choose the openings in sequence
+	RandomBook   bool   // do not choose the openings in sequence. TODO.
 
 	//BookIteratorMap        []int
 	//BookIteratorReverseMap []int
@@ -94,9 +94,8 @@ type Tourney struct {
 	// of engine B vs engine A will also use opening X:
 	BookMirroring bool
 
-	// Can use the same opening if it is not yet used in that matchup.
-	// false indicates an engine should never use the same opening:
-	//RepeatOpenings bool
+	// Once all of the openings have been used, circle back around and use them again:
+	RepeatOpenings bool
 
 	openingBook *Book // points to internal book data.
 
@@ -246,7 +245,8 @@ func SaveData(T *Tourney) error {
 	defer file.Close()
 
 	var encoded []byte
-	encoded, err = json.MarshalIndent(T.GameList, "", "  ")
+	//encoded, err = json.MarshalIndent(T.GameList, "", "  ")
+	encoded, err = json.Marshal(T.GameList)
 	if err != nil {
 		return err
 	}
