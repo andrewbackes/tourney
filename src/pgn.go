@@ -1,13 +1,16 @@
 /*******************************************************************************
 
  Project: Tourney
- Author(s): Andrew Backes, Daniel Sparks
+ Author(s): Andrew Backes
  Created: 8/8/2014
 
  Module: PGN
  Description: PGN tools
 
  TODO:
+ 		-shouldnt just crash with an invalid pgn file
+ 		-rewrite the pgn parsing function. can be prone to errors when tags
+ 		 don't follow the pgn standard.
  		-return as *[]Game not []Game
  		-finish tags: ELO, time, timecontrol
  		-reading PGN with split \n probably has some consequences with \r\n

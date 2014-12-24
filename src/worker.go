@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Wrapper for functions to be played with net/rpc :
@@ -168,12 +169,24 @@ func (W *Worker) PlayGame(G Game, CompletedGame *Game) error {
 
 func ConnectAndWait(address string) {
 	// First connect to the host:
-	fmt.Print("\nConnecting to ", address, " ... ")
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
+
+	var conn net.Conn
+	for i := 1; i <= Settings.MaxConnectionAttempts; i++ {
+		fmt.Print("Connecting to ", address, " ...\n")
+		var err error
+		conn, err = net.Dial("tcp", address)
+		if err != nil {
+			fmt.Println(err.Error())
+			if i == Settings.MaxConnectionAttempts {
+				fmt.Println("Failed to connect", i, "times.")
+				return
+			} else {
+				fmt.Println("Retrying in 3 seconds...")
+				time.Sleep(3 * time.Second)
+			}
+		}
 	}
+
 	defer conn.Close()
 	fmt.Println("Success.")
 	fmt.Println("Waiting on server...")

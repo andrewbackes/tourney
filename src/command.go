@@ -83,15 +83,22 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			}},
 		{
 			label: []string{"broadcast", "b"},
-			desc:  "Broadcasts the currently selected tourney over http port 8000.",
+			desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort),
 			f: func() {
-				fmt.Println("Broadcasting http on port 8080.")
-				go func() {
-					//if err := Broadcast(&T, selected); err != nil {
-					if err := Broadcast(Tourneys); err != nil {
-						fmt.Println(err)
-					}
-				}()
+				if !Tourneys.broadcasting {
+					fmt.Println("Broadcasting http on port " + strconv.Itoa(Settings.WebPort))
+					go func() {
+						//if err := Broadcast(&T, selected); err != nil {
+						if err := Broadcast(Tourneys); err != nil {
+							fmt.Println(err)
+						} else {
+
+						}
+					}()
+					Tourneys.broadcasting = true
+				} else {
+					fmt.Println("Already broadcasting on port " + strconv.Itoa(Settings.WebPort))
+				}
 				return
 			}},
 		{
@@ -196,10 +203,13 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"connect", "c"},
 			desc:  "Connects to a host running a tourney.",
 			f: func() {
-				address := "127.0.0.1:"
+				address := "127.0.0.1"
 				if len(words) > 1 {
 					address = words[1]
+				} else {
+					fmt.Println("No IP was specified. Assuming localhost.")
 				}
+
 				if !strings.Contains(address, ":") {
 					address += fmt.Sprint(":", Settings.ServerPort)
 				}

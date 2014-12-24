@@ -99,7 +99,7 @@ type Tourney struct {
 
 	openingBook *Book // points to internal book data.
 
-	QuitAfter bool //Quit after the tourney is complete.
+	QuitAfter bool // Quit after the tourney is complete.
 
 	// Control settings (Determined while tourney is running, or when the tourney starts)
 	//State     Status //flag to indicate: running, paused, stopped
@@ -115,12 +115,16 @@ type Tourney struct {
 }
 
 type TourneyList struct {
-	List  []*Tourney
-	Index int
+	List         []*Tourney
+	Index        int
+	broadcasting bool
 }
 
 func (W *TourneyList) Selected() *Tourney {
-	return W.List[W.Index]
+	if len(W.List) > 0 {
+		return W.List[W.Index]
+	}
+	return nil
 }
 
 func (W *TourneyList) Add(T *Tourney) {
@@ -311,7 +315,7 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 func LoadFile(filename string) (*Tourney, error) {
 
 	// Try to open the file:
-	fmt.Print("Loading tourney settings: '", filename, "'... ")
+	fmt.Print("Loading tourney: '", filename, "'... ")
 	tourneyFile, err := os.Open(filename)
 	defer tourneyFile.Close()
 	if err != nil {
@@ -337,13 +341,13 @@ func LoadFile(filename string) (*Tourney, error) {
 
 	// Load the opening book:
 	if T.BookLocation != "" && T.BookMoves > 0 {
-		fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
+		//fmt.Println("Loading opening book: '", T.BookLocation, "'... ")
 		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves); err != nil {
 			fmt.Println("Failed to load opening book:", err)
 			return nil, err
 		} else {
 			T.openingBook = book
-			fmt.Print("Success. (", len(T.openingBook.Positions[T.BookMoves-1]), " unique openings.)\n")
+			//fmt.Print("Success. (", len(T.openingBook.Positions[T.BookMoves-1]), " unique openings.)\n")
 		}
 	}
 	/*

@@ -113,6 +113,7 @@ func (B *Book) String() string {
 // filename can be a .pgn or a .book
 func LoadOrBuildBook(filename string, MoveNumber int) (*Book, error) {
 
+	fmt.Print("Opening book: ", filename, "'...\n")
 	// Look for the file in the given path
 	if _, try := os.Stat(filename); try != nil {
 		// when it cant be found in the given location, look in the books folder
@@ -138,12 +139,12 @@ func LoadOrBuildBook(filename string, MoveNumber int) (*Book, error) {
 
 	// Now we look for the .book file:
 	foundit := false
-	fmt.Println("Looking for '" + bookfilename + "'...")
+	fmt.Print("Looking for previously build book '" + bookfilename + "'...\n")
 	if _, try := os.Stat(bookfilename); try != nil {
 		// when it cant be found in the given location, look in the books folder
 		_, f := filepath.Split(bookfilename)
 		bookfilename = filepath.Join(Settings.BookDirectory, f)
-		fmt.Print("Looking for '", bookfilename, "'...\n")
+		fmt.Print("Looking for previously build book '", bookfilename, "'...\n")
 		if _, try2 := os.Stat(bookfilename); try2 == nil {
 			//file exists here, so use this path:
 			foundit = true
@@ -156,7 +157,7 @@ func LoadOrBuildBook(filename string, MoveNumber int) (*Book, error) {
 
 	if foundit {
 		// when we find the already built book, we just need to load it:
-		fmt.Println("Found it.")
+		//fmt.Println("Found it.")
 		b, e = OpenBook(bookfilename)
 	} else {
 		// couldn't find the .book, so we need to build it:
@@ -173,11 +174,11 @@ func LoadOrBuildBook(filename string, MoveNumber int) (*Book, error) {
 // Opens a .book file:
 func OpenBook(filename string) (*Book, error) {
 	// Try to open the file:
-	fmt.Print("Loading opening book: '", filename, "'... ")
+	fmt.Print("Loading opening book: '", filename, "'...\n")
 	bookFile, err := os.Open(filename)
 	defer bookFile.Close()
 	if err != nil {
-		fmt.Println("Failed to open:", filename, ",", err.Error())
+		fmt.Print("Failed to open: '", filename, "'\n", err.Error(), "\n")
 		return nil, err
 	}
 	// Make the object:
@@ -205,7 +206,7 @@ func (B *Book) SaveBook(filename string) error {
 
 	filename = filepath.Join(Settings.BookDirectory, filename)
 
-	fmt.Print("Saving '" + filename + "'... ")
+	fmt.Println("Saving '" + filename + "'... ")
 	var file *os.File
 	var err error
 	if _, er := os.Stat(filename); os.IsNotExist(er) {

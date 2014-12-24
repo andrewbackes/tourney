@@ -15,7 +15,7 @@
 
 
  TODO:
- 	-make PCNtoSAN()
+ 	-make convertToSAN()
  	-instead of calling LegalMoveGen(), should have a stripped down version
  	for just the type of piece moving.
 
