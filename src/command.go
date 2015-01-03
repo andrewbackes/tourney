@@ -19,6 +19,7 @@ TODO:
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"runtime"
@@ -36,9 +37,11 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 
 	// helper:
 	type Command struct {
-		label []string
-		desc  string
-		f     func()
+		label   []string
+		desc    string
+		format  string
+		example string
+		f       func()
 	}
 
 	// Slice of possible commands, so we can search through them (or print them) later:
@@ -76,6 +79,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 					//if err := RunTourney(T[*selected]); err != nil {
 					if err := RunTourney(Tourneys.Selected()); err != nil {
 						fmt.Println(err)
+						fmt.Println("To add an engine to play in this tournament type: addengine")
 					}
 					wg.Done()
 				}()
@@ -300,6 +304,43 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 					}
 				}
 				return
+			}},
+		{
+			label: []string{"engine", "add"},
+			desc:  "Adds an engine to the tournament.",
+			f: func() {
+				inputReader := bufio.NewReader(os.Stdin)
+				fmt.Println("Adding an engine to the tournament.")
+				fmt.Print("Engine Name: ")
+				name, _ := inputReader.ReadString('\n')
+				fmt.Print("File Path: ")
+				path, _ := inputReader.ReadString('\n')
+				fmt.Print("Protocol (UCI or WINBOARD):")
+				prot, _ := inputReader.ReadString('\n')
+				Tourneys.Selected().AddEngine(strings.Trim(name, "\n"), strings.Trim(path, "\n"), strings.Trim(prot, "\n"))
+				return
+			}},
+		{
+			label:   []string{"timecontrol", "time", "settime"},
+			format:  "timecontrol <moves>/<milliseconds>:<milliseconds added after each move>",
+			example: "time 40/2000:10",
+			desc:    "Modifies the time control of the tournament.",
+			f: func() {
+				if len(words) > 1 && strings.Contains(words[1], "/") {
+					var m, t, i string
+					m = strings.Split(words[1], "/")[0]
+					t = strings.Split(words[1], "/")[1]
+					if strings.Contains(t, ":") {
+						i = strings.Split(t, ":")[1]
+						t = strings.Split(t, ":")[0]
+					}
+					moves, _ := strconv.Atoi(m)
+					time, _ := strconv.Atoi(t)
+					inc, _ := strconv.Atoi(i)
+					Tourneys.Selected().ChangeTimeControl(int64(moves), int64(time), int64(inc), Tourneys.Selected().Repeating)
+				} else {
+					fmt.Println("Not enough information to change time control.")
+				}
 			}},
 	}
 

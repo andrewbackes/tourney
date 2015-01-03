@@ -137,6 +137,9 @@ func RunTourney(T *Tourney) error {
 	// TODO: print opening
 
 	//var state Status
+	if len(T.GameList) == 0 {
+		return errors.New("There are no games to play in this tournament.")
+	}
 	for i, _ := range T.GameList {
 		select {
 		case <-T.Done:
@@ -153,7 +156,12 @@ func RunTourney(T *Tourney) error {
 					T.GameList[i].ResultDetail = "Failed: " + err.Error()
 					break
 				}
-				fmt.Println("Success.")
+				// Print the book  moves:
+				for m, _ := range T.GameList[i].MoveList {
+					fmt.Print(T.GameList[i].MoveList[m].Algebraic, " ")
+				}
+				fmt.Println()
+				//fmt.Println("Success.")
 
 				if err := PlayGame(&T.GameList[i]); err != nil {
 					fmt.Println(err.Error())
@@ -406,7 +414,7 @@ func LoadDefault() (*Tourney, error) {
 		T.TestSeats = 1
 		T.Carousel = true
 		T.Moves = 40
-		T.Time = 120 //seconds
+		T.Time = 1000 //milliseconds
 		T.Repeating = true
 		T.Rounds = 30
 		T.QuitAfter = false
@@ -425,6 +433,7 @@ func (T *Tourney) GenerateGames() {
 	//S := T.TestSeats *( (T.TestSeats +1 )/2 ) // = Sum_{0}^{n} k
 	//gameCount := T.Rounds * (T.TestSeats * len(T.Engines) - S)
 	//T.GameList = make([]Game,gameCount)
+	T.GameList = nil
 	var def Game
 	def.initialize()
 	def.Event = T.Event
@@ -526,4 +535,31 @@ func (T *Tourney) VerifyEngineIntegrity() error {
 	}
 
 	return nil
+}
+
+func (T *Tourney) AddEngine(name, path, protocol string) {
+	e := Engine{
+		Name:     name,
+		Path:     path,
+		Protocol: protocol,
+	}
+	T.Engines = append(T.Engines, e)
+	fmt.Println(name, "added to the tournament.")
+	fmt.Print("Generating game matchups...")
+	T.GenerateGames()
+	fmt.Println("Done.")
+}
+
+func (T *Tourney) ChangeTimeControl(moves, time, bonus int64, repeating bool) {
+	T.Moves = moves
+	T.Time = time
+	T.BonusTime = bonus
+	T.Repeating = repeating
+	for i, _ := range T.GameList {
+		T.GameList[i].Moves = moves
+		T.GameList[i].Time = time
+		T.GameList[i].BonusTime = bonus
+		T.GameList[i].Repeating = repeating
+		T.GameList[i].resetTimeControl()
+	}
 }

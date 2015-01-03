@@ -55,6 +55,7 @@ type Game struct {
 	Date        string
 	Round       int
 	Time        int64
+	BonusTime   int64
 	Moves       int64
 	Repeating   bool
 	Player      [2]Engine // white=0,black=1
