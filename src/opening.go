@@ -30,7 +30,7 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 	}
 
 	if T.openingBook == nil {
-		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves); err != nil {
+		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves, nil); err != nil {
 			return err
 		} else {
 			T.openingBook = book
@@ -83,20 +83,20 @@ func (B *Book) nextOpening(T *Tourney, GameIndex int) (string, error) {
 		return fen, nil
 	}
 
-	//if T.RandomBook {
-
-	//} else {
 	// find the last opening used and use the one after that:
 	nextIndex := 0
 	if GameIndex >= 1 {
 		lastFEN := T.GameList[GameIndex-1].StartingFEN
 		nextIndex = B.Positions[T.BookMoves-1][lastFEN].Index + 1
 		if nextIndex >= len(B.Iterator[T.BookMoves-1]) {
-			return "", errors.New("Not enough openings in book.")
+			if T.RepeatOpenings {
+				nextIndex = 0
+			} else {
+				return "", errors.New("Not enough openings in book.")
+			}
 		}
 	}
 	return B.Iterator[T.BookMoves-1][nextIndex], nil
-	//}
 
 	return "", nil
 }

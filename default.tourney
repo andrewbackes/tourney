@@ -5,23 +5,23 @@
 	"Engines": [
 		{ 	
 			"Name": "Engine A", 
-			"Path": "/Users/Andrew/Documents/Engines/mac/senpai_10-osx-x64", 
+			"Path": "engines/senpai_10-osx-x64", 
 			"Protocol": "UCI" 
 		},
 		{ 
 			"Name": "Engine B", 
-			"Path": "/Users/Andrew/Documents/Engines/mac/senpai_10-osx-x64", 
+			"Path": "engines/senpai_10-osx-x64", 
 			"Protocol": "UCI"  
 		}
 	],
 	"TestSeats": 1,
 	"Carousel": true,
 	"Moves": 40,
-	"Time": 3000,
+	"Time": 10000,
 	"Repeating": true,
 	"Rounds": 10,
 	"QuitAfter": false,
-	"BookLocation": "Kasparov.pgn",
+	"BookLocation": "default.book",
 	"BookMoves": 8,
 	"RandomBook": false,
 	"BookMirroring": true

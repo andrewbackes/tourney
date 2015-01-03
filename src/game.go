@@ -15,6 +15,7 @@
  	-add support for processing nullmoves.
  	-double check 3 fold and 50 move rules.
  	-optimize 3 fold.
+ 	-some of the Game data members can be omitted from json.
 
 *******************************************************************************/
 

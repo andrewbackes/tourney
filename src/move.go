@@ -17,9 +17,9 @@ const MATESCORE int = 100000
 
 type Move struct {
 	Algebraic  string
-	Ponder     string
-	Comment    string
-	Evaluation []EvaluationData
+	Ponder     string           `json:",omitempty"`
+	Comment    string           `json:",omitempty"`
+	Evaluation []EvaluationData `json:",omitempty"`
 }
 
 func (M *Move) Depth() int {

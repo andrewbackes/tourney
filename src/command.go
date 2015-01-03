@@ -9,8 +9,10 @@
  Created: 7/15/2014
 
 TODO:
-	-Need to prevent the user from using commands that both write to the same
-	 object. Like RunTourney() and HostTourney()
+	- Need to prevent the user from using commands that both write to the same
+	  object. Like RunTourney() and HostTourney()
+
+	- delete command can have filepath issues.
 
 */
 
@@ -81,15 +83,22 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			}},
 		{
 			label: []string{"broadcast", "b"},
-			desc:  "Broadcasts the currently selected tourney over http port 8000.",
+			desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort),
 			f: func() {
-				fmt.Println("Broadcasting http on port 8080.")
-				go func() {
-					//if err := Broadcast(&T, selected); err != nil {
-					if err := Broadcast(Tourneys); err != nil {
-						fmt.Println(err)
-					}
-				}()
+				if !Tourneys.broadcasting {
+					fmt.Println("Broadcasting http on port " + strconv.Itoa(Settings.WebPort))
+					go func() {
+						//if err := Broadcast(&T, selected); err != nil {
+						if err := Broadcast(Tourneys); err != nil {
+							fmt.Println(err)
+						} else {
+
+						}
+					}()
+					Tourneys.broadcasting = true
+				} else {
+					fmt.Println("Already broadcasting on port " + strconv.Itoa(Settings.WebPort))
+				}
 				return
 			}},
 		{
@@ -197,7 +206,10 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				address := "127.0.0.1"
 				if len(words) > 1 {
 					address = words[1]
+				} else {
+					fmt.Println("No IP was specified. Assuming localhost.")
 				}
+
 				if !strings.Contains(address, ":") {
 					address += fmt.Sprint(":", Settings.ServerPort)
 				}
@@ -223,19 +235,46 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"build", "buildbook"},
 			desc:  "Build an opening book from a PGN.",
 			f: func() {
+				// ex: buildbook "testing.pgn" 20 WhiteElo >2700 BlackElo >2700 Result =1/2-1/2
 				var filename string
+				// filename:
 				if len(words) > 1 {
 					filename = words[1]
 				} else {
 					fmt.Println("Please specify a filename.")
 					return
 				}
-				fmt.Print("Building opening book from '", filename, "'...\n")
-				if b, err := BuildBook(filename, 4); err == nil {
+				// move count:
+				moves := 12 //default
+				if len(words) > 2 {
+					moves, _ = strconv.Atoi(words[2])
+				}
+				// filters:
+				var filters []PGNFilter
+				for i := 3; i+1 < len(words); i = i + 2 {
+					filters = append(filters, PGNFilter{Tag: words[i], Value: words[i+1]})
+				}
+				if b, err := LoadOrBuildBook(filename, moves, filters); err == nil {
 					fmt.Println("Success.")
-					fmt.Println(*b)
+					fmt.Println(b.String())
 				} else {
 					fmt.Println("Failed:", err.Error())
+				}
+				return
+			}},
+		{
+			label: []string{"rebuild", "rebuildbook"},
+			desc:  "Rebuilds an opening book from a PGN.",
+			f: func() {
+				var filename string
+				// filename:
+				if len(words) > 1 {
+					filename = words[1]
+				}
+				if err := os.Remove(filename[:len(filename)-3] + "book"); err != nil {
+					fmt.Println(err)
+				} else {
+					Eval(command[2:], Tourneys, wg)
 				}
 				return
 			}},
@@ -243,7 +282,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"delete", "rm"},
 			desc:  "Deletes all previous tourney data.",
 			f: func() {
-				extensions := []string{".data", ".pgn", ".results"}
+				extensions := []string{".data", ".pgn", ".txt"}
 				for _, v := range extensions {
 					if err := os.Remove(Tourneys.Selected().filename + v); err != nil {
 						fmt.Println(err)
