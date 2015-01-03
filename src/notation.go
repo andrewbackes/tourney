@@ -199,8 +199,11 @@ func ConvertToSAN(G *Game, moveToParse string) (string, error) {
 *******************************************************************************/
 
 func StripAnnotations(mv string) string {
-	m := strings.Replace(mv, "!", "", -1)
-	m = strings.Replace(m, "?", "", -1)
+	m := strings.Trim(mv, "!")
+	m = strings.Trim(m, "?")
+	m = strings.Trim(m, "+")
+	m = strings.Trim(m, "#")
+
 	return m
 }
 
@@ -255,8 +258,8 @@ func isMove(s string) bool {
 	if matches {
 		return true
 	}
-
-	SAN := "^([BKNPQR]?)([a-h]?)([0-9]?)([x=]?)([BKNPQR]|[a-h][1-8])([+#]?)$"
+	SAN := "([BKNPQR]?)([a-h]?)([0-9]?)([x]?)([a-h][1-8])([=]?[BNPQRbnpqr]?)([+#]?)"
+	//SAN := "^([BKNPQR]?)([a-h]?)([0-9]?)([x=]?)([BKNPQR]|[a-h][1-8])([+#]?)$"
 	matches, _ = regexp.MatchString(SAN, s)
 	if matches {
 		return true

@@ -235,22 +235,46 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"build", "buildbook"},
 			desc:  "Build an opening book from a PGN.",
 			f: func() {
+				// ex: buildbook "testing.pgn" 20 WhiteElo >2700 BlackElo >2700 Result =1/2-1/2
 				var filename string
+				// filename:
 				if len(words) > 1 {
 					filename = words[1]
 				} else {
 					fmt.Println("Please specify a filename.")
 					return
 				}
-				moves := 12
+				// move count:
+				moves := 12 //default
 				if len(words) > 2 {
 					moves, _ = strconv.Atoi(words[2])
 				}
-				if b, err := LoadOrBuildBook(filename, moves); err == nil {
+				// filters:
+				var filters []PGNFilter
+				for i := 3; i+1 < len(words); i = i + 2 {
+					filters = append(filters, PGNFilter{Tag: words[i], Value: words[i+1]})
+				}
+				if b, err := LoadOrBuildBook(filename, moves, filters); err == nil {
 					fmt.Println("Success.")
 					fmt.Println(b.String())
 				} else {
 					fmt.Println("Failed:", err.Error())
+				}
+				return
+			}},
+		{
+			label: []string{"rebuild", "rebuildbook"},
+			desc:  "Rebuilds an opening book from a PGN.",
+			f: func() {
+				var filename string
+				// filename:
+				if len(words) > 1 {
+					filename = words[1]
+				}
+				if err := os.Remove(filename[:len(filename)-3] + "book"); err != nil {
+					fmt.Println(err)
+				} else {
+					Eval(command[2:], Tourneys, wg)
 				}
 				return
 			}},

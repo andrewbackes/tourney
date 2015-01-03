@@ -8,7 +8,6 @@
  Description:
 
  TODO:
- 	- "\" vs "/" in file paths will be a problem on windows.
  	- send logs back to server
  	- Give reasons when engines cant be downloaded.
 
@@ -168,8 +167,8 @@ func (W *Worker) PlayGame(G Game, CompletedGame *Game) error {
 }
 
 func ConnectAndWait(address string) {
-	// First connect to the host:
 
+	// First connect to the host:
 	var conn net.Conn
 	for i := 1; i <= Settings.MaxConnectionAttempts; i++ {
 		fmt.Print("Connecting to ", address, " ...\n")
@@ -186,7 +185,6 @@ func ConnectAndWait(address string) {
 			}
 		}
 	}
-
 	defer conn.Close()
 	fmt.Println("Success.")
 	fmt.Println("Waiting on server...")

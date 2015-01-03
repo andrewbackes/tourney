@@ -30,7 +30,7 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 	}
 
 	if T.openingBook == nil {
-		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves); err != nil {
+		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves, nil); err != nil {
 			return err
 		} else {
 			T.openingBook = book

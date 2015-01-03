@@ -342,7 +342,7 @@ func LoadFile(filename string) (*Tourney, error) {
 	// Load the opening book:
 	if T.BookLocation != "" && T.BookMoves > 0 {
 		//fmt.Println("Loading opening book: '", T.BookLocation, "'... ")
-		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves); err != nil {
+		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves, nil); err != nil {
 			fmt.Println("Failed to load opening book:", err)
 			return nil, err
 		} else {

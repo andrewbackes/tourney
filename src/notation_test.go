@@ -135,7 +135,7 @@ func TestConvertToPCN(t *testing.T) {
 		if answer != PCN {
 			t.Error(i, "FAILED: Expected", PCN, "got", answer, "-", err)
 		} else {
-			t.Log(i, "PASSED. ")
+			//t.Log(i, "PASSED. ")
 		}
 
 	}

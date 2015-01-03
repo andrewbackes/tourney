@@ -111,7 +111,7 @@ func (B *Book) String() string {
 // When it cant be found it is built from the PGN .
 //
 // filename can be a .pgn or a .book
-func LoadOrBuildBook(filename string, MoveNumber int) (*Book, error) {
+func LoadOrBuildBook(filename string, MoveNumber int, filters []PGNFilter) (*Book, error) {
 
 	fmt.Print("Opening book: ", filename, "'...\n")
 	// Look for the file in the given path
@@ -161,7 +161,7 @@ func LoadOrBuildBook(filename string, MoveNumber int) (*Book, error) {
 		b, e = OpenBook(bookfilename)
 	} else {
 		// couldn't find the .book, so we need to build it:
-		b, e = BuildBookFromPGN(filename, MoveNumber)
+		b, e = BuildBookFromPGN(filename, MoveNumber, filters)
 		if e == nil {
 			if err := b.SaveBook(bookfilename); err != nil {
 				fmt.Println(err)
@@ -232,18 +232,18 @@ func (B *Book) SaveBook(filename string) error {
 }
 
 // Load the PGN file into a Book object:
-func BuildBookFromPGN(PGNfilename string, MoveNumber int) (*Book, error) {
-	fmt.Println("Building Opening Book from " + PGNfilename + "...")
+func BuildBookFromPGN(PGNfilename string, MoveNumber int, filters []PGNFilter) (*Book, error) {
 
 	book := NewBook(PGNfilename, MoveNumber)
 
 	// load the pgn games:
-	PGN, err := LoadPGN(PGNfilename)
+	PGN, err := ReadPGN(PGNfilename, filters) //LoadPGN(PGNfilename)
 	if err != nil {
 		return nil, err
 	}
 
 	// Progress bar:
+	fmt.Println("Building Opening Book from " + PGNfilename + "...")
 	fmt.Print("1%", strings.Repeat(" ", 36), "50%", strings.Repeat(" ", 35), "100%\n")
 	dotgap := (len(*PGN) / 80)
 	if len(*PGN)%80 != 0 {
@@ -261,6 +261,7 @@ func BuildBookFromPGN(PGNfilename string, MoveNumber int) (*Book, error) {
 			//}
 			//check if this game has enough moves made:
 			if len((*PGN)[i].MoveList) < ply+1 {
+				//fmt.Println("len((*PGN)[i].MoveList) < ply+1")
 				break
 			}
 			//white move:
