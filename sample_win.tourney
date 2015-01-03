@@ -1,0 +1,27 @@
+{
+	"Event": "Sample Windows Tourney",
+	"Site": "localhost",
+	"Date": "??",
+	"Engines": [
+		{ 	
+			"Name": "Senpai", 
+			"Path": "C:\\engines\\senpai.exe", 
+			"Protocol": "UCI"
+		},
+		{ 
+			"Name": "Crafty", 
+			"Path": "C:\\engines\\crafty.exe", 
+			"Protocol": "WINBOARD"
+		}
+	],
+	"TestSeats": 1,
+	"Carousel": true,
+	"Moves": 40,
+	"Time": 1000,
+	"Repeating": true,
+	"Rounds": 10,
+	"BookLocation": "default.book",
+	"BookMoves": 8,
+	"RandomBook": false,
+	"BookMirroring": true
+}

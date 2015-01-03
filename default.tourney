@@ -2,22 +2,10 @@
 	"Event": "Default Tourney",
 	"Site": "localhost",
 	"Date": "??",
-	"Engines": [
-		{ 	
-			"Name": "Engine A", 
-			"Path": "engines/senpai_10-osx-x64", 
-			"Protocol": "UCI" 
-		},
-		{ 
-			"Name": "Engine B", 
-			"Path": "engines/senpai_10-osx-x64", 
-			"Protocol": "UCI"  
-		}
-	],
 	"TestSeats": 1,
 	"Carousel": true,
 	"Moves": 40,
-	"Time": 10000,
+	"Time": 1000,
 	"Repeating": true,
 	"Rounds": 10,
 	"QuitAfter": false,
