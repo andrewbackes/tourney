@@ -34,6 +34,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 	command = strings.Trim(command, "\n")
 	command = strings.Trim(command, " ")
 	words := strings.Fields(command)
+	T := Tourneys.Selected()
 
 	// helper:
 	type Command struct {
@@ -57,17 +58,18 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"tourney", "t"},
 			desc:  "Prints the settings of the selected tourney.",
 			f: func() {
-				//T[*selected].Print()
 				Tourneys.Selected().Print()
 			}},
+		/*
+			{
+				label: []string{"settings", "e"},
+				desc:  "Changes the settings of the current tourney.",
+				f: func() {
+					//Setup(T[*selected])
+				}},
+		*/
 		{
-			label: []string{"settings", "e"},
-			desc:  "Changes the settings of the current tourney.",
-			f: func() {
-				//Setup(T[*selected])
-			}},
-		{
-			label: []string{"start", "s"},
+			label: []string{"start", "s", "play"},
 			desc:  "Starts the currently selected tourney.",
 			f: func() {
 				go func() {
@@ -146,18 +148,19 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 					ListActiveTourneys(Tourneys)
 				}
 			}},
-		/*
-			{
-				label: []string{"new", "n"},
-				desc:  "Creates a new tourney with default settings.",
-				f: func() {
+		{
+			label: []string{"new", "n"},
+			desc:  "Creates a new tourney with default settings.",
+			f: func() {
+				fmt.Println("This command is not yet supported.")
+				/*
 					if N, err := LoadDefault(); err == nil {
 						T = append(T, N)
 						*selected = len(T) - 1
 						ListActiveTourneys(T, *selected)
 					}
-				}},
-		*/
+				*/
+			}},
 		{
 			label: []string{"ls"},
 			desc:  "Displays a list of currently loaded tourneys.",
@@ -174,7 +177,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				queQuit = true
 			}},
 		{
-			label: []string{"help", "h"},
+			label: []string{"help", "h", "commands"},
 			desc:  "Displays a menu of commands.",
 			f: func() {
 				fmt.Println("\nCommand:", "\t", "Description:\n")
@@ -306,7 +309,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				return
 			}},
 		{
-			label: []string{"engine", "add"},
+			label: []string{"engine", "add", "addengine"},
 			desc:  "Adds an engine to the tournament.",
 			f: func() {
 				inputReader := bufio.NewReader(os.Stdin)
@@ -337,9 +340,27 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 					moves, _ := strconv.Atoi(m)
 					time, _ := strconv.Atoi(t)
 					inc, _ := strconv.Atoi(i)
-					Tourneys.Selected().ChangeTimeControl(int64(moves), int64(time), int64(inc), Tourneys.Selected().Repeating)
+					Tourneys.Selected().SetTimeControl(int64(moves), int64(time), int64(inc), Tourneys.Selected().Repeating)
 				} else {
 					fmt.Println("Not enough information to change time control.")
+				}
+			}},
+		{
+			label:   []string{"rounds", "rnds"},
+			format:  "rounds <#>",
+			example: "rounds 10",
+			desc:    "Modifies or Displays the number of rounds in the tournament.",
+			f: func() {
+				if len(words) > 1 {
+					n, _ := strconv.Atoi(words[1])
+					if n > 0 {
+						T.SetRounds(n)
+					} else {
+						fmt.Println("Can not have 0 rounds.")
+					}
+				} else {
+					fmt.Println("Rounds:", T.Rounds)
+					fmt.Println("If you would like to change the number of rounds type: rounds <#>.")
 				}
 			}},
 	}

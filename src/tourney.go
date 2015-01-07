@@ -550,7 +550,7 @@ func (T *Tourney) AddEngine(name, path, protocol string) {
 	fmt.Println("Done.")
 }
 
-func (T *Tourney) ChangeTimeControl(moves, time, bonus int64, repeating bool) {
+func (T *Tourney) SetTimeControl(moves, time, bonus int64, repeating bool) {
 	T.Moves = moves
 	T.Time = time
 	T.BonusTime = bonus
@@ -562,4 +562,9 @@ func (T *Tourney) ChangeTimeControl(moves, time, bonus int64, repeating bool) {
 		T.GameList[i].Repeating = repeating
 		T.GameList[i].resetTimeControl()
 	}
+}
+
+func (T *Tourney) SetRounds(num int) {
+	T.Rounds = num
+	T.GenerateGames()
 }

@@ -120,7 +120,8 @@ func main() {
 	if loaddefault {
 		def, _ := LoadDefault()
 		Tourneys.Add(def)
-		ListActiveTourneys(&Tourneys)
+		//ListActiveTourneys(&Tourneys)
+		Eval("ls", &Tourneys, &wg)
 	}
 
 	// Start web services.
