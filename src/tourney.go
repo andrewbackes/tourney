@@ -10,15 +10,17 @@
  essentially modify the data feild "state" which is read by playLoop().
 
  TODO:
- 	- Rename Tourney.Done to something more descriptive, like ForceQuit or
- 	  something.
+ 	-Prefilter the .tourney file for engine paths on windows. If the user
+ 	 accidently puts just \ but not a \\ replace the \ with \\
+ 	-Rename Tourney.Done to something more descriptive, like ForceQuit or
+ 	 something.
  	-Worker Normalization
  	-More tournament parameters
  	-Formatting results needs to be able to handle big numbers.
  	 Like: 35000-25000-10000
  	-Saving .tourney / .data / .result / .pgn files when other already exist
 	 should make a xxx1.xxx xxx2.xxx sort of thing.
-	-Use text/template to save result files.
+	-Use text/template to save result files
 
  BUGS:
  	-There may be an issue with things like: changing fields in the .tourney
@@ -294,7 +296,15 @@ func SavePGN(T *Tourney) error {
 	return err
 }
 
+//
+// Opens a .data file. This type of file is a json encoded version of
+// a Tourney.GameList object. Generally this is previously ran
+// tournament data.
+//
 func LoadPreviousResults(T *Tourney) (bool, error) {
+	// BUG:
+	// 		-Index out of range can occur when the .tourney file is loaded and generates games
+	//		 but then this .data file is loaded with potentially more games.
 	filename := T.filename + ".data"
 	var err error
 	if _, err = os.Stat(filename); os.IsNotExist(err) {
@@ -320,6 +330,9 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 	return false, nil
 }
 
+//
+// Opens a .tourney file
+//
 func LoadFile(filename string) (*Tourney, error) {
 
 	// Try to open the file:
@@ -398,7 +411,6 @@ func LoadFile(filename string) (*Tourney, error) {
 }
 
 func LoadDefault() (*Tourney, error) {
-	//TODO: I dont really like the name of this function
 	var err error
 	// Create the object:
 	var T *Tourney

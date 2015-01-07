@@ -28,7 +28,10 @@ import (
 	"sync"
 )
 
-//func Eval(command string, T []*Tourney, selected *int, wg *sync.WaitGroup) ([]*Tourney, bool) {
+//
+// Evaluate a command from the user.
+// There is only one TourneyList and WaitGroup, it should be declared in main()
+//
 func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 	var queQuit bool
 	command = strings.Trim(command, "\n")
@@ -60,14 +63,12 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			f: func() {
 				Tourneys.Selected().Print()
 			}},
-		/*
-			{
-				label: []string{"settings", "e"},
-				desc:  "Changes the settings of the current tourney.",
-				f: func() {
-					//Setup(T[*selected])
-				}},
-		*/
+		{
+			label: []string{"settings"},
+			desc:  "Changes the settings of the current tourney.",
+			f: func() {
+				fmt.Print(Settings)
+			}},
 		{
 			label: []string{"start", "s", "play"},
 			desc:  "Starts the currently selected tourney.",
