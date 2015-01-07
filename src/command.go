@@ -48,30 +48,49 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 		f       func()
 	}
 
+	PrintCommand := func(cmd Command) string {
+		str := "Command:     "
+		for _, c := range cmd.label {
+			str += c + ", "
+		}
+		str = strings.Trim(str, ", ") + "\n"
+		if cmd.format != "" {
+
+			str += "How to use:  " + cmd.format + "\n"
+		}
+		if cmd.example != "" {
+			str += "Example:     " + cmd.example + "\n"
+		}
+		str += "Description: " + cmd.desc
+		return str
+	}
+
 	// Slice of possible commands, so we can search through them (or print them) later:
 	var commands []Command
 	commands = []Command{
-		{
-			label: []string{"display", "d"},
-			desc:  "Displays the HUD for the current game.",
-			f: func() {
+		/*
+			{
+				label: []string{"hud"},
+				desc:  "Displays the HUD for the current game. Prints the game board and other game state information.",
+				f: func() {
 
-			}},
+				}},
+		*/
 		{
-			label: []string{"tourney", "t"},
-			desc:  "Prints the settings of the selected tourney.",
+			label: []string{"info"},
+			desc:  "Prints the configuration information for the selected tourney.",
 			f: func() {
 				Tourneys.Selected().Print()
 			}},
 		{
 			label: []string{"settings"},
-			desc:  "Changes the settings of the current tourney.",
+			desc:  "Displays Tourney's program settings.",
 			f: func() {
 				fmt.Print(Settings)
 			}},
 		{
-			label: []string{"start", "s", "play"},
-			desc:  "Starts the currently selected tourney.",
+			label: []string{"play", "start"},
+			desc:  "Starts playing the currently selected tourney on the local machine. Use the 'stop' command to stop playing.",
 			f: func() {
 				go func() {
 					//T[*selected].Done = make(chan struct{})
@@ -89,8 +108,8 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				return
 			}},
 		{
-			label: []string{"broadcast", "b"},
-			desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort),
+			label: []string{"broadcast"},
+			desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort) + ". Broadcasting is enabled by default. The default port is specified in the 'tourney.settings' file.",
 			f: func() {
 				if !Tourneys.broadcasting {
 					fmt.Println("Broadcasting http on port " + strconv.Itoa(Settings.WebPort))
@@ -109,7 +128,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				return
 			}},
 		{
-			label: []string{"stop", "p"},
+			label: []string{"stop"},
 			desc:  "Stops the tourney after the next game completes.",
 			f: func() {
 				wg.Add(1)
@@ -121,14 +140,14 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}()
 			}},
 		{
-			label: []string{"results", "r"},
-			desc:  "Displays the results of the currently selected tourney.",
+			label: []string{"results"},
+			desc:  "Displays the results of the currently selected tourney. Results may be displayed even if the tournament is incomplete.",
 			f: func() {
 				fmt.Print(SummarizeResults(Tourneys.Selected()))
 				fmt.Println("To see more details type, 'games' or 'g'")
 			}},
 		{
-			label: []string{"games", "g"},
+			label: []string{"games"},
 			desc:  "Displays the results of each game in the selected tourney.",
 			f: func() {
 				fmt.Print(SummarizeGames(Tourneys.Selected()))
@@ -150,7 +169,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 			}},
 		{
-			label: []string{"new", "n"},
+			label: []string{"new"},
 			desc:  "Creates a new tourney with default settings.",
 			f: func() {
 				fmt.Println("This command is not yet supported.")
@@ -170,7 +189,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			}},
 		{
 			label: []string{"quit", "q"},
-			desc:  "Quits the program",
+			desc:  "Stops any running tournament after the next game and quits the program.",
 			f: func() {
 				if blocks(Tourneys.Selected().Done) {
 					close(Tourneys.Selected().Done)
@@ -178,24 +197,47 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				queQuit = true
 			}},
 		{
-			label: []string{"help", "h", "commands"},
-			desc:  "Displays a menu of commands.",
+			label: []string{"help"},
+			desc:  "Displays help for a specific command.",
 			f: func() {
-				fmt.Println("\nCommand:", "\t", "Description:\n")
-				for _, c := range commands {
-					for i, _ := range c.label {
-						if i > 0 {
-							fmt.Print(", ")
+				var str string
+				if len(words) > 1 {
+					var cmd Command
+					// find the command to help with:
+					for _, c := range commands {
+						for _, l := range c.label {
+							if l == words[1] {
+								cmd = c
+							}
 						}
-						fmt.Print(c.label[i])
 					}
-					fmt.Println("\n\t", c.desc)
+					if cmd.label == nil {
+						fmt.Println("That is not a valid command. Use the 'commands' command to see a list of commands.")
+						return
+					}
+					// display the help:
+					str = PrintCommand(cmd)
+				} else {
+					str = "To get help with a specific command type: help <command>\nFor a list of commands type 'commands'"
 				}
-				fmt.Println()
+				fmt.Println(str)
 			}},
 		{
-			label: []string{"host", "o"},
-			desc:  "Hosts and runs a tourney.",
+			label: []string{"commands"},
+			desc:  "Displays a list of supported commands.",
+			f: func() {
+				cmds := ""
+				for _, c := range commands {
+					for i, _ := range c.label {
+						cmds += c.label[i] + ", "
+					}
+				}
+				cmds = strings.Trim(cmds, ", ")
+				fmt.Println(cmds)
+			}},
+		{
+			label: []string{"host"},
+			desc:  "Hosts the currently loaded tournament on the local machine. However, does not start playing in the tournament.",
 			f: func() {
 				wg.Add(1)
 				go func() {
@@ -326,7 +368,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			}},
 		{
 			label:   []string{"timecontrol", "time", "settime"},
-			format:  "timecontrol <moves>/<milliseconds>:<milliseconds added after each move>",
+			format:  "timecontrol <moves>/<milliseconds>:<millisec added after each move>",
 			example: "time 40/2000:10",
 			desc:    "Modifies the time control of the tournament.",
 			f: func() {
@@ -347,7 +389,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 			}},
 		{
-			label:   []string{"rounds", "rnds"},
+			label:   []string{"rounds"},
 			format:  "rounds <#>",
 			example: "rounds 10",
 			desc:    "Modifies or Displays the number of rounds in the tournament.",
