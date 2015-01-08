@@ -19,6 +19,9 @@
  	-Vertical score graph. rows will be move#'s, cols will be the graph.
  	-ability to pipe commands
 
+ BUG:
+ 	-current directory could differ from the directory the executable is in.
+
 *******************************************************************************/
 
 package main

@@ -183,6 +183,8 @@ func ConnectAndWait(address string) {
 				fmt.Println("Retrying in 3 seconds...")
 				time.Sleep(3 * time.Second)
 			}
+		} else {
+			break
 		}
 	}
 	defer conn.Close()

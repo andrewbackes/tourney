@@ -110,16 +110,17 @@ type Tourney struct {
 	GameList []Game //list of all games in the tourney. populated when the tourney starts
 	//activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later Time.
 	Done chan struct{}
-
-	//For distribution:
-	//GameQue          chan Game
-	//CompletedGameQue chan Game
 }
 
 type TourneyList struct {
 	List         []*Tourney
 	Index        int
 	broadcasting bool
+
+	// Conceptually, it doesn't really make sense to put this in the TourneyList object.
+	// But it's very convenient. This channel is made whenever something stoppable is
+	// started. Like running, hosting, or connecting. To force the stop, close the channel.
+	ForceQuit chan struct{}
 }
 
 func (W *TourneyList) Selected() *Tourney {
@@ -135,8 +136,6 @@ func (W *TourneyList) Add(T *Tourney) {
 }
 
 func RunTourney(T *Tourney) error {
-	// TODO: verify that the settings currently loaded will not cause any problems.
-	// TODO: print opening
 
 	//var state Status
 	if len(T.GameList) == 0 {

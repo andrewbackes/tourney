@@ -1,20 +1,17 @@
-/*
+/*******************************************************************************
 
- Project: Tourney
-
- Module: commands
- Description: handles all of the commands from the user.
-
- Author(s): Andrew Backes, Daniel Sparks
- Created: 7/15/2014
+ Project: 		Tourney
+ Module: 		ui
+ Created: 		7/15/2014
+ Author(s): 	Andrew Backes
+ Description: 	Handles the user interface.
 
 TODO:
 	- Need to prevent the user from using commands that both write to the same
 	  object. Like RunTourney() and HostTourney()
-
 	- delete command can have filepath issues.
 
-*/
+*******************************************************************************/
 
 package main
 
@@ -28,6 +25,31 @@ import (
 	"sync"
 )
 
+type UserCommand struct {
+	label   []string
+	desc    string
+	format  string
+	example string
+	f       func()
+}
+
+func (C UserCommand) String() string {
+	str := "UserCommand:     "
+	for _, c := range C.label {
+		str += c + ", "
+	}
+	str = strings.Trim(str, ", ") + "\n"
+	if C.format != "" {
+
+		str += "How to use:  " + C.format + "\n"
+	}
+	if C.example != "" {
+		str += "Example:     " + C.example + "\n"
+	}
+	str += "Description: " + C.desc
+	return str
+}
+
 //
 // Evaluate a command from the user.
 // There is only one TourneyList and WaitGroup, it should be declared in main()
@@ -39,35 +61,9 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 	words := strings.Fields(command)
 	T := Tourneys.Selected()
 
-	// helper:
-	type Command struct {
-		label   []string
-		desc    string
-		format  string
-		example string
-		f       func()
-	}
-
-	PrintCommand := func(cmd Command) string {
-		str := "Command:     "
-		for _, c := range cmd.label {
-			str += c + ", "
-		}
-		str = strings.Trim(str, ", ") + "\n"
-		if cmd.format != "" {
-
-			str += "How to use:  " + cmd.format + "\n"
-		}
-		if cmd.example != "" {
-			str += "Example:     " + cmd.example + "\n"
-		}
-		str += "Description: " + cmd.desc
-		return str
-	}
-
 	// Slice of possible commands, so we can search through them (or print them) later:
-	var commands []Command
-	commands = []Command{
+	var commands []UserCommand
+	commands = []UserCommand{
 		/*
 			{
 				label: []string{"hud"},
@@ -202,7 +198,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			f: func() {
 				var str string
 				if len(words) > 1 {
-					var cmd Command
+					var cmd UserCommand
 					// find the command to help with:
 					for _, c := range commands {
 						for _, l := range c.label {
@@ -216,9 +212,9 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 						return
 					}
 					// display the help:
-					str = PrintCommand(cmd)
+					str = cmd.String()
 				} else {
-					str = "To get help with a specific command type: help <command>\nFor a list of commands type 'commands'"
+					str = "For a list of commands type 'commands'\nTo get help with a specific command type: help <command>\nFor even more help visit http://www.dirty-bit.com/tourney/support.html"
 				}
 				fmt.Println(str)
 			}},
@@ -242,6 +238,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				wg.Add(1)
 				go func() {
 					Tourneys.Selected().Done = make(chan struct{})
+					fmt.Print("\n\nTo stop hosting this tournament use the 'stop' command.\nThis machine can participate in the tournament by using the 'connect' command.")
 					if err := HostTourney(Tourneys.Selected()); err != nil {
 						fmt.Println(err)
 					}
@@ -272,7 +269,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			}},
 		{
 			label: []string{"dowork"},
-			desc:  "Connects to dirty-bit.com and becomes a worker.",
+			desc:  "Becomes a worker for the Dirt-Bit chess engine. Helps tune the engine.",
 			f: func() {
 				wg.Add(1)
 				go func() {

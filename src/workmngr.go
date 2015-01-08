@@ -5,9 +5,18 @@
  Module: workmanager
  Created: 12/3/2014
  Author(s): Andrew Backes
- Description:
+ Description: This is the hosting module. Workers connect to a host and request
+	games to play. The host gives the worker any engine executable files needed
+	to play a game. This is all primarly done through the use of the rpc
+	package.
 
  TODO:
+ 		- The 'stop' user command doesn't shut down the EngineFilesServer()
+
+ BUG:
+ 		- Goes infinite when an engine file doesnt exist and a user connects.
+ 		  It will just forever try and get that worker to play the game with
+ 		  an engine that isnt there.
 
 *******************************************************************************/
 
@@ -20,6 +29,7 @@ import (
 	"net/http"
 	"net/rpc"
 	"strconv"
+	"strings"
 )
 
 type WorkManager struct {
@@ -64,7 +74,7 @@ func (M *WorkManager) DisconnectAll() {
 	}
 }
 
-func (M *WorkManager) ListenForWorkers() {
+func (M *WorkManager) ListenForWorkers(T *Tourney) {
 	// Setup Server:
 	fmt.Println("Waiting for workers on port", Settings.ServerPort, "...")
 	server, err := net.Listen("tcp", ":"+strconv.Itoa(Settings.ServerPort)) //TODO: user chosen port.
@@ -73,11 +83,20 @@ func (M *WorkManager) ListenForWorkers() {
 		return
 	}
 	defer server.Close()
+	go func() {
+		select {
+		case <-T.Done:
+			server.Close()
+		}
+	}()
 	// Start listening:
 	for {
 		// Wait for a connection:
 		conn, err := server.Accept() // TODO: add a timeout
 		if err != nil {
+			if strings.Contains(err.Error(), "closed network connection") {
+				break
+			}
 			fmt.Println("Client connection error:", err.Error())
 			continue
 		}
@@ -131,7 +150,7 @@ GAMESYNC:
 	}
 }
 
-func ServeEngineFiles(T *Tourney) {
+func (M *WorkManager) ServeEngineFiles(T *Tourney) {
 
 	fmt.Println("Serving game engines on port", Settings.EngineFilePort, "...")
 	//h := NewEngineHandler(T)
@@ -168,8 +187,8 @@ func HostTourney(T *Tourney) error {
 
 	fmt.Println("\n\nHosting:", T.Event)
 	M := NewWorkManager(T)
-	go ServeEngineFiles(T) // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
-	go M.ListenForWorkers()
+	go M.ServeEngineFiles(T) // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
+	go M.ListenForWorkers(T)
 
 	// TODO: refactoring required: consolidate with RunTourney()
 
