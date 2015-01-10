@@ -1,7 +1,7 @@
 /*******************************************************************************
 
  Project: Tourney
- Author(s): Andrew Backes, Daniel Sparks
+ Author(s): Andrew Backes
  Created: 7/14/2014
 
  Description: Plays tournaments between chess engines.
@@ -19,6 +19,9 @@
  	-Vertical score graph. rows will be move#'s, cols will be the graph.
  	-ability to pipe commands
 
+ BUG:
+ 	-current directory could differ from the directory the executable is in.
+
 *******************************************************************************/
 
 package main
@@ -33,45 +36,23 @@ import (
 	"sync"
 )
 
-type GlobalSettings struct {
-	WorkerDirectory   string
-	LogDirectory      string
-	TemplateDirectory string
-	SaveDirectory     string
-	BookDirectory     string
-
-	ServerPort     int
-	WebPort        int
-	EngineFilePort int
-
-	MaxConnectionAttempts int
-}
-
-func DefaultSettings() GlobalSettings {
-	return GlobalSettings{
-		WorkerDirectory:       "worker/",
-		LogDirectory:          "logs/",
-		TemplateDirectory:     "templates/",
-		SaveDirectory:         "",
-		BookDirectory:         "",
-		ServerPort:            9000,
-		WebPort:               8080,
-		EngineFilePort:        9001,
-		MaxConnectionAttempts: 3,
-	}
-}
-
 var Settings GlobalSettings
 
-func main() {
+const SettingsFile = "tourney.settings"
 
-	// TODO: put settings in a file:
-	Settings = DefaultSettings()
+func main() {
 
 	title := "Tourney"
 	fmt.Println("\n" + strings.Repeat(" ", (80-len(title))/2) + title + "\n")
 	//PrintSysStats()
-	//fmt.Println()
+
+	// Load Global Settings:
+	if err := Settings.Load(SettingsFile); err != nil {
+		fmt.Println(err)
+		fmt.Println("Using default program settings.")
+		Settings = DefaultSettings()
+		Settings.Save("tourney.settings")
+	}
 
 	var wg sync.WaitGroup
 	var Tourneys TourneyList
@@ -120,7 +101,8 @@ func main() {
 	if loaddefault {
 		def, _ := LoadDefault()
 		Tourneys.Add(def)
-		ListActiveTourneys(&Tourneys)
+		//ListActiveTourneys(&Tourneys)
+		Eval("ls", &Tourneys, &wg)
 	}
 
 	// Start web services.

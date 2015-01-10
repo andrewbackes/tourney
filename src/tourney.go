@@ -10,15 +10,17 @@
  essentially modify the data feild "state" which is read by playLoop().
 
  TODO:
- 	- Rename Tourney.Done to something more descriptive, like ForceQuit or
- 	  something.
+ 	-Prefilter the .tourney file for engine paths on windows. If the user
+ 	 accidently puts just \ but not a \\ replace the \ with \\
+ 	-Rename Tourney.Done to something more descriptive, like ForceQuit or
+ 	 something.
  	-Worker Normalization
  	-More tournament parameters
  	-Formatting results needs to be able to handle big numbers.
  	 Like: 35000-25000-10000
  	-Saving .tourney / .data / .result / .pgn files when other already exist
 	 should make a xxx1.xxx xxx2.xxx sort of thing.
-	-Use text/template to save result files.
+	-Use text/template to save result files
 
  BUGS:
  	-There may be an issue with things like: changing fields in the .tourney
@@ -108,16 +110,17 @@ type Tourney struct {
 	GameList []Game //list of all games in the tourney. populated when the tourney starts
 	//activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later Time.
 	Done chan struct{}
-
-	//For distribution:
-	//GameQue          chan Game
-	//CompletedGameQue chan Game
 }
 
 type TourneyList struct {
 	List         []*Tourney
 	Index        int
 	broadcasting bool
+
+	// Conceptually, it doesn't really make sense to put this in the TourneyList object.
+	// But it's very convenient. This channel is made whenever something stoppable is
+	// started. Like running, hosting, or connecting. To force the stop, close the channel.
+	ForceQuit chan struct{} // for now it is only used with the 'connect' and 'disconnect' commands.
 }
 
 func (W *TourneyList) Selected() *Tourney {
@@ -132,9 +135,15 @@ func (W *TourneyList) Add(T *Tourney) {
 	W.Index = len(W.List) - 1
 }
 
+// Removes Selected Tourney
+func (W *TourneyList) Remove() {
+	W.List = append(W.List[:W.Index], W.List[W.Index+1:]...)
+	if W.Index > len(W.List)-1 && W.Index > 0 {
+		W.Index = W.Index - 1
+	}
+}
+
 func RunTourney(T *Tourney) error {
-	// TODO: verify that the settings currently loaded will not cause any problems.
-	// TODO: print opening
 
 	//var state Status
 	if len(T.GameList) == 0 {
@@ -294,7 +303,51 @@ func SavePGN(T *Tourney) error {
 	return err
 }
 
+//
+// Saves the Tourney object as a .tourney file
+//
+func SaveSettings(T *Tourney) error {
+	//check if the file exists:
+	if T.filename == "" {
+		return errors.New("No save file specified.")
+	} else if !strings.HasSuffix(T.filename, ".tourney") {
+		T.filename = T.filename + ".tourney"
+	}
+	filename := T.filename
+	filename = filepath.Join(Settings.SaveDirectory, filename)
+	fmt.Print("Saving '" + filename + "'... ")
+	var file *os.File
+	var err error
+	if _, er := os.Stat(filename); os.IsNotExist(er) {
+		// file doesn't exist
+	} else if er == nil {
+		// file does exist
+		os.Remove(filename)
+	}
+
+	file, err = os.Create(filename)
+	defer file.Close()
+
+	var encoded []byte
+	encoded, err = json.MarshalIndent(*T, "", "  ")
+	if err != nil {
+		return err
+	}
+	if _, err = file.Write(encoded); err != nil {
+		return err
+	}
+	return nil
+}
+
+//
+// Opens a .data file. This type of file is a json encoded version of
+// a Tourney.GameList object. Generally this is previously ran
+// tournament data.
+//
 func LoadPreviousResults(T *Tourney) (bool, error) {
+	// BUG:
+	// 		-Index out of range can occur when the .tourney file is loaded and generates games
+	//		 but then this .data file is loaded with potentially more games.
 	filename := T.filename + ".data"
 	var err error
 	if _, err = os.Stat(filename); os.IsNotExist(err) {
@@ -320,6 +373,9 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 	return false, nil
 }
 
+//
+// Opens a .tourney file
+//
 func LoadFile(filename string) (*Tourney, error) {
 
 	// Try to open the file:
@@ -375,6 +431,7 @@ func LoadFile(filename string) (*Tourney, error) {
 	// Check if this tourney was previously stopped midway
 	fmt.Print("Loading previous tourney data... ")
 	if loaded, err := LoadPreviousResults(T); err != nil {
+		// TODO: If the data is corrupt, then ask to the user if they want to delete it and try again.
 		fmt.Println("Failed.", err)
 		return nil, err
 	} else if loaded {
@@ -398,7 +455,6 @@ func LoadFile(filename string) (*Tourney, error) {
 }
 
 func LoadDefault() (*Tourney, error) {
-	//TODO: I dont really like the name of this function
 	var err error
 	// Create the object:
 	var T *Tourney
@@ -550,7 +606,7 @@ func (T *Tourney) AddEngine(name, path, protocol string) {
 	fmt.Println("Done.")
 }
 
-func (T *Tourney) ChangeTimeControl(moves, time, bonus int64, repeating bool) {
+func (T *Tourney) SetTimeControl(moves, time, bonus int64, repeating bool) {
 	T.Moves = moves
 	T.Time = time
 	T.BonusTime = bonus
@@ -562,4 +618,9 @@ func (T *Tourney) ChangeTimeControl(moves, time, bonus int64, repeating bool) {
 		T.GameList[i].Repeating = repeating
 		T.GameList[i].resetTimeControl()
 	}
+}
+
+func (T *Tourney) SetRounds(num int) {
+	T.Rounds = num
+	T.GenerateGames()
 }

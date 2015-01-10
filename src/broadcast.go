@@ -30,6 +30,15 @@ import (
 	"strings"
 )
 
+func renderNothingLoaded(w http.ResponseWriter) {
+	io.WriteString(w, "No Tournament is loaded.\n")
+	io.WriteString(w, "From within Tourney, you can type: 'load [filename]' to load a .tourney file.\n")
+	io.WriteString(w, "To create a new .tourney file type 'new'.\n")
+	io.WriteString(w, "\n")
+	io.WriteString(w, "For a complete list of commands type 'commands'.\n")
+	io.WriteString(w, "Get help with a command by typing 'help [command]'.\n")
+}
+
 func renderTemplate(w http.ResponseWriter, page string, obj interface{}) {
 	tmpl, err := template.ParseFiles(page)
 	if err != nil {
@@ -46,6 +55,10 @@ func renderTemplate(w http.ResponseWriter, page string, obj interface{}) {
 }
 
 func renderTourneyPage(w http.ResponseWriter, T *Tourney) {
+	if T == nil {
+		renderNothingLoaded(w)
+		return
+	}
 	//io.WriteString(w, SummarizeResults(T))
 	//io.WriteString(w, SummarizeGames(T))
 	Records := NewRecordRollup(T)
@@ -53,6 +66,10 @@ func renderTourneyPage(w http.ResponseWriter, T *Tourney) {
 }
 
 func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
+	if T == nil {
+		renderNothingLoaded(w)
+		return
+	}
 	if round < len(T.GameList) && round >= 0 {
 		//io.WriteString(w, "Round: "+strconv.Itoa(round))
 		//io.WriteString(w, fmt.Sprint(T.GameList[round].MoveList))
@@ -64,6 +81,10 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 }
 
 func renderPlyPage(w http.ResponseWriter, T *Tourney, round, ply int) {
+	if T == nil {
+		renderNothingLoaded(w)
+		return
+	}
 	if round < len(T.GameList) && round >= 0 {
 		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "ply.html"), T.GameList[round-1].MoveList[ply])
 	} else {
@@ -72,6 +93,10 @@ func renderPlyPage(w http.ResponseWriter, T *Tourney, round, ply int) {
 }
 
 func renderGameViewer(w http.ResponseWriter, T *Tourney, round int) {
+	if T == nil {
+		renderNothingLoaded(w)
+		return
+	}
 	if round < len(T.GameList) && round >= 0 {
 		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "viewer.html"), T.GameList[round-1])
 	} else {
