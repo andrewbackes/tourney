@@ -26,22 +26,26 @@ import (
 )
 
 type UserCommand struct {
-	label   []string
-	desc    string
-	format  string
-	example string
-	f       func()
+	label          []string
+	desc           string
+	usage          string
+	example        string
+	f              func()
+	classification int
 }
 
+const UI = 0
+const TOURNEY_CONTROL = 1
+
 func (C UserCommand) String() string {
-	str := "UserCommand:     "
+	str := "Command(s):  "
 	for _, c := range C.label {
 		str += c + ", "
 	}
 	str = strings.Trim(str, ", ") + "\n"
-	if C.format != "" {
+	if C.usage != "" {
 
-		str += "How to use:  " + C.format + "\n"
+		str += "Usage:       " + C.usage + "\n"
 	}
 	if C.example != "" {
 		str += "Example:     " + C.example + "\n"
@@ -72,29 +76,52 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 
 				}},
 		*/
+
 		{
-			label: []string{"info"},
-			desc:  "Prints the configuration information for the selected tourney.",
-			f: func() {
-				Tourneys.Selected().Print()
-			}},
-		{
-			label: []string{"settings"},
-			desc:  "Displays Tourney's program settings.",
+			label:          []string{"settings"},
+			desc:           "Displays Tourney's program settings.",
+			classification: UI,
 			f: func() {
 				fmt.Print(Settings)
+			}},
+		{
+			label: []string{"quit", "q", "exit"},
+			desc:  "Stops any running tournament after the next game and quits the program.",
+			f: func() {
+
+				if T != nil && blocks(Tourneys.Selected().Done) {
+					close(Tourneys.Selected().Done)
+				}
+				queQuit = true
+			}},
+
+		/*******************************************************************************
+
+			.tourney Control Commands
+
+		*******************************************************************************/
+
+		{
+			label:          []string{"info"},
+			desc:           "Prints the configuration information for the selected tourney.",
+			classification: TOURNEY_CONTROL,
+			f: func() {
+				Tourneys.Selected().Print()
 			}},
 		{
 			label: []string{"play", "start"},
 			desc:  "Starts playing the currently selected tourney on the local machine. Use the 'stop' command to stop playing.",
 			f: func() {
-				go func() {
-					//T[*selected].Done = make(chan struct{})
-					Tourneys.Selected().Done = make(chan struct{})
-				}()
+				if len(words) > 1 {
+					filename := words[1]
+					Eval("load "+filename, Tourneys, wg)
+				} else if T == nil {
+					fmt.Println("No tournament is selected.")
+					return
+				}
+				Tourneys.Selected().Done = make(chan struct{})
 				wg.Add(1)
 				go func() {
-					//if err := RunTourney(T[*selected]); err != nil {
 					if err := RunTourney(Tourneys.Selected()); err != nil {
 						fmt.Println(err)
 						fmt.Println("To add an engine to play in this tournament type: addengine")
@@ -104,47 +131,26 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				return
 			}},
 		{
-			label: []string{"broadcast"},
-			desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort) + ". Broadcasting is enabled by default. The default port is specified in the 'tourney.settings' file.",
+			label:          []string{"stop"},
+			desc:           "Stops the tourney after the next game completes.",
+			classification: TOURNEY_CONTROL,
 			f: func() {
-				if !Tourneys.broadcasting {
-					fmt.Println("Broadcasting http on port " + strconv.Itoa(Settings.WebPort))
-					go func() {
-						//if err := Broadcast(&T, selected); err != nil {
-						if err := Broadcast(Tourneys); err != nil {
-							fmt.Println(err)
-						} else {
-
-						}
-					}()
-					Tourneys.broadcasting = true
-				} else {
-					fmt.Println("Already broadcasting on port " + strconv.Itoa(Settings.WebPort))
+				if blocks(Tourneys.Selected().Done) {
+					close(Tourneys.Selected().Done)
 				}
-				return
 			}},
 		{
-			label: []string{"stop"},
-			desc:  "Stops the tourney after the next game completes.",
-			f: func() {
-				wg.Add(1)
-				go func() {
-					if blocks(Tourneys.Selected().Done) {
-						close(Tourneys.Selected().Done)
-					}
-					wg.Done()
-				}()
-			}},
-		{
-			label: []string{"results"},
-			desc:  "Displays the results of the currently selected tourney. Results may be displayed even if the tournament is incomplete.",
+			label:          []string{"results"},
+			desc:           "Displays the results of the currently selected tourney. Results may be displayed even if the tournament is incomplete.",
+			classification: TOURNEY_CONTROL,
 			f: func() {
 				fmt.Print(SummarizeResults(Tourneys.Selected()))
 				fmt.Println("To see more details type, 'games' or 'g'")
 			}},
 		{
-			label: []string{"games"},
-			desc:  "Displays the results of each game in the selected tourney.",
+			label:          []string{"games"},
+			desc:           "Displays the results of each game in the selected tourney.",
+			classification: TOURNEY_CONTROL,
 			f: func() {
 				fmt.Print(SummarizeGames(Tourneys.Selected()))
 			}},
@@ -165,6 +171,29 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 			}},
 		{
+			label:          []string{"save"},
+			usage:          "save <filename>",
+			example:        "save example.tourney",
+			desc:           "Saves the currently selected tournaments settings as a .tourney file.",
+			classification: TOURNEY_CONTROL,
+			f: func() {
+				fmt.Println("This command is not yet supported.")
+				return
+
+				var filename string
+				if len(words) > 0 {
+					filename = words[1]
+				} else if Tourneys.Selected().filename != "" {
+					filename = Tourneys.Selected().filename
+				} else {
+					fmt.Println("Please specify a filename. Type 'help save' for command usage info.")
+				}
+				Tourneys.Selected().filename = filename
+				if err := SaveSettings(Tourneys.Selected()); err != nil {
+					fmt.Println(err)
+				}
+			}},
+		{
 			label: []string{"new"},
 			desc:  "Creates a new tourney with default settings.",
 			f: func() {
@@ -178,20 +207,109 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				*/
 			}},
 		{
+			label:          []string{"close"},
+			desc:           "Closes the currently selected tournament.",
+			classification: TOURNEY_CONTROL,
+			f: func() {
+				Eval("stop", Tourneys, wg)
+				Tourneys.Remove()
+				//fmt.Println("This command is not yet supported.")
+			}},
+		{
 			label: []string{"ls"},
 			desc:  "Displays a list of currently loaded tourneys.",
 			f: func() {
 				ListActiveTourneys(Tourneys)
 			}},
 		{
-			label: []string{"quit", "q"},
-			desc:  "Stops any running tournament after the next game and quits the program.",
+			label:          []string{"delete", "rm"},
+			desc:           "Deletes all previous tourney data.",
+			classification: TOURNEY_CONTROL,
 			f: func() {
-				if blocks(Tourneys.Selected().Done) {
-					close(Tourneys.Selected().Done)
+				extensions := []string{".data", ".pgn", ".txt"}
+				for _, v := range extensions {
+					if err := os.Remove(Tourneys.Selected().filename + v); err != nil {
+						fmt.Println(err)
+					} else {
+						fmt.Println("Deleted " + Tourneys.Selected().filename + v)
+					}
 				}
-				queQuit = true
+				for i, _ := range Tourneys.Selected().GameList {
+					path := "logs/" + Tourneys.Selected().Event + " round " + strconv.Itoa(i+1) + ".log"
+					if err := os.Remove(path); err != nil {
+						fmt.Println(err)
+						break
+					} else {
+						fmt.Println("Deleted " + path)
+					}
+				}
+				return
 			}},
+		{
+			label:          []string{"engine", "add", "addengine"},
+			desc:           "Adds an engine to the tournament.",
+			classification: TOURNEY_CONTROL,
+			f: func() {
+				inputReader := bufio.NewReader(os.Stdin)
+				fmt.Println("Adding an engine to the tournament.")
+				fmt.Print("Engine Name: ")
+				name, _ := inputReader.ReadString('\n')
+				fmt.Print("File Path: ")
+				path, _ := inputReader.ReadString('\n')
+				fmt.Print("Protocol (UCI or WINBOARD):")
+				prot, _ := inputReader.ReadString('\n')
+				Tourneys.Selected().AddEngine(strings.Trim(name, "\n"), strings.Trim(path, "\n"), strings.Trim(prot, "\n"))
+				return
+			}},
+		{
+			label:          []string{"timecontrol", "time", "settime"},
+			usage:          "timecontrol <moves>/<milliseconds>:<millisec added after each move>",
+			example:        "time 40/2000:10",
+			desc:           "Modifies the time control of the tournament. Time is measured in milliseconds.",
+			classification: TOURNEY_CONTROL,
+			f: func() {
+				if len(words) > 1 && strings.Contains(words[1], "/") {
+					var m, t, i string
+					m = strings.Split(words[1], "/")[0]
+					t = strings.Split(words[1], "/")[1]
+					if strings.Contains(t, ":") {
+						i = strings.Split(t, ":")[1]
+						t = strings.Split(t, ":")[0]
+					}
+					moves, _ := strconv.Atoi(m)
+					time, _ := strconv.Atoi(t)
+					inc, _ := strconv.Atoi(i)
+					Tourneys.Selected().SetTimeControl(int64(moves), int64(time), int64(inc), Tourneys.Selected().Repeating)
+				} else {
+					fmt.Println("Not enough information to change time control.")
+				}
+			}},
+		{
+			label:          []string{"rounds"},
+			usage:          "rounds <#>",
+			example:        "rounds 10",
+			desc:           "Modifies or Displays the number of rounds in the tournament.",
+			classification: TOURNEY_CONTROL,
+			f: func() {
+				if len(words) > 1 {
+					n, _ := strconv.Atoi(words[1])
+					if n > 0 {
+						T.SetRounds(n)
+					} else {
+						fmt.Println("Can not have 0 rounds.")
+					}
+				} else {
+					fmt.Println("Rounds:", T.Rounds)
+					fmt.Println("If you would like to change the number of rounds type: rounds <#>.")
+				}
+			}},
+
+		/*******************************************************************************
+
+			Help Commands:
+
+		*******************************************************************************/
+
 		{
 			label: []string{"help"},
 			desc:  "Displays help for a specific command.",
@@ -231,10 +349,24 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				cmds = strings.Trim(cmds, ", ")
 				fmt.Println(cmds)
 			}},
+
+		/*******************************************************************************
+
+			Network Commands:
+
+		*******************************************************************************/
+
 		{
 			label: []string{"host"},
 			desc:  "Hosts the currently loaded tournament on the local machine. However, does not start playing in the tournament.",
 			f: func() {
+				if len(words) > 1 {
+					filename := words[1]
+					Eval("load "+filename, Tourneys, wg)
+				} else if Tourneys.Selected() == nil {
+					fmt.Println("No tournament is selected.")
+					return
+				}
 				wg.Add(1)
 				go func() {
 					Tourneys.Selected().Done = make(chan struct{})
@@ -248,7 +380,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			}},
 		{
 			label: []string{"connect", "c"},
-			desc:  "Connects to a host running a tourney.",
+			desc:  "Connects to a host running a tourney. Use the 'disconnect' command to disconnect.",
 			f: func() {
 				address := "127.0.0.1"
 				if len(words) > 1 {
@@ -262,9 +394,19 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 				wg.Add(1)
 				go func() {
-					ConnectAndWait(address)
+					Tourneys.ForceQuit = make(chan struct{})
+					ConnectAndWait(address, Tourneys.ForceQuit)
 					wg.Done()
 				}()
+				return
+			}},
+		{
+			label: []string{"disconnect"},
+			desc:  "Disconnect from a host.",
+			f: func() {
+				if blocks(Tourneys.ForceQuit) {
+					close(Tourneys.ForceQuit)
+				}
 				return
 			}},
 		{
@@ -273,11 +415,39 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			f: func() {
 				wg.Add(1)
 				go func() {
-					WorkForDirtyBit()
+					WorkForDirtyBit(Tourneys.ForceQuit)
 					wg.Done()
 				}()
 				return
 			}},
+		{
+			label: []string{"broadcast"},
+			desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort) + ". Broadcasting is enabled by default. The default port is specified in the 'tourney.settings' file.",
+			f: func() {
+				if !Tourneys.broadcasting {
+					fmt.Println("Broadcasting http on port " + strconv.Itoa(Settings.WebPort))
+					go func() {
+						//if err := Broadcast(&T, selected); err != nil {
+						if err := Broadcast(Tourneys); err != nil {
+							fmt.Println(err)
+						} else {
+
+						}
+						Tourneys.broadcasting = true
+					}()
+
+				} else {
+					fmt.Println("Already broadcasting on port " + strconv.Itoa(Settings.WebPort))
+				}
+				return
+			}},
+
+		/*******************************************************************************
+
+			Book Commands:
+
+		*******************************************************************************/
+
 		{
 			label: []string{"build", "buildbook"},
 			desc:  "Build an opening book from a PGN.",
@@ -325,84 +495,6 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 				return
 			}},
-		{
-			label: []string{"delete", "rm"},
-			desc:  "Deletes all previous tourney data.",
-			f: func() {
-				extensions := []string{".data", ".pgn", ".txt"}
-				for _, v := range extensions {
-					if err := os.Remove(Tourneys.Selected().filename + v); err != nil {
-						fmt.Println(err)
-					} else {
-						fmt.Println("Deleted " + Tourneys.Selected().filename + v)
-					}
-				}
-				for i, _ := range Tourneys.Selected().GameList {
-					path := "logs/" + Tourneys.Selected().Event + " round " + strconv.Itoa(i+1) + ".log"
-					if err := os.Remove(path); err != nil {
-						fmt.Println(err)
-						break
-					} else {
-						fmt.Println("Deleted " + path)
-					}
-				}
-				return
-			}},
-		{
-			label: []string{"engine", "add", "addengine"},
-			desc:  "Adds an engine to the tournament.",
-			f: func() {
-				inputReader := bufio.NewReader(os.Stdin)
-				fmt.Println("Adding an engine to the tournament.")
-				fmt.Print("Engine Name: ")
-				name, _ := inputReader.ReadString('\n')
-				fmt.Print("File Path: ")
-				path, _ := inputReader.ReadString('\n')
-				fmt.Print("Protocol (UCI or WINBOARD):")
-				prot, _ := inputReader.ReadString('\n')
-				Tourneys.Selected().AddEngine(strings.Trim(name, "\n"), strings.Trim(path, "\n"), strings.Trim(prot, "\n"))
-				return
-			}},
-		{
-			label:   []string{"timecontrol", "time", "settime"},
-			format:  "timecontrol <moves>/<milliseconds>:<millisec added after each move>",
-			example: "time 40/2000:10",
-			desc:    "Modifies the time control of the tournament.",
-			f: func() {
-				if len(words) > 1 && strings.Contains(words[1], "/") {
-					var m, t, i string
-					m = strings.Split(words[1], "/")[0]
-					t = strings.Split(words[1], "/")[1]
-					if strings.Contains(t, ":") {
-						i = strings.Split(t, ":")[1]
-						t = strings.Split(t, ":")[0]
-					}
-					moves, _ := strconv.Atoi(m)
-					time, _ := strconv.Atoi(t)
-					inc, _ := strconv.Atoi(i)
-					Tourneys.Selected().SetTimeControl(int64(moves), int64(time), int64(inc), Tourneys.Selected().Repeating)
-				} else {
-					fmt.Println("Not enough information to change time control.")
-				}
-			}},
-		{
-			label:   []string{"rounds"},
-			format:  "rounds <#>",
-			example: "rounds 10",
-			desc:    "Modifies or Displays the number of rounds in the tournament.",
-			f: func() {
-				if len(words) > 1 {
-					n, _ := strconv.Atoi(words[1])
-					if n > 0 {
-						T.SetRounds(n)
-					} else {
-						fmt.Println("Can not have 0 rounds.")
-					}
-				} else {
-					fmt.Println("Rounds:", T.Rounds)
-					fmt.Println("If you would like to change the number of rounds type: rounds <#>.")
-				}
-			}},
 	}
 
 	//helper:
@@ -420,6 +512,12 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 	}
 	for _, command := range commands {
 		if inSlice(command.label, words[0]) {
+			if command.classification == TOURNEY_CONTROL && T == nil {
+				fmt.Println("No Tournament is selected.")
+				fmt.Println("\tFor a list of commands type 'commands'.")
+				fmt.Println("\tFor help with a command type 'help <command>'.")
+				return queQuit
+			}
 			command.f()
 			return queQuit
 		}
@@ -444,22 +542,27 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 
 //func ListActiveTourneys(actT []*Tourney, selT int) {
 func ListActiveTourneys(Tourneys *TourneyList) {
-	fmt.Print("\nThe following tourneys are currently loaded:\n")
-
-	for i, _ := range Tourneys.List {
-		str := ""
-		if i == Tourneys.Index {
-			str += " --> "
-		} else {
-			str += "     "
+	if len(Tourneys.List) > 0 {
+		fmt.Print("\nThe following tourneys are currently loaded:\n")
+		for i, _ := range Tourneys.List {
+			str := ""
+			if i == Tourneys.Index {
+				str += " --> "
+			} else {
+				str += "     "
+			}
+			str += strconv.Itoa(i+1) + ". " + Tourneys.List[i].Event
+			fmt.Println(str)
 		}
-		str += strconv.Itoa(i+1) + ". " + Tourneys.List[i].Event
-		fmt.Println(str)
+		fmt.Println("\nTo select a different tourney from the list, type its name or number. ")
+		fmt.Println("To load a tourney not listed, type 'load [filename]'")
+		fmt.Println("To see this list again, type 'ls'")
+
+	} else {
+		fmt.Println("\nNo Tournaments are currently loaded.")
+		fmt.Println("To load a .tourney file type 'load [filename]'.")
 	}
-	fmt.Println("\nTo select a different tourney from the list, type its name or number. ")
-	fmt.Println("To load a tourney not listed, type 'load [filename]'")
-	fmt.Println("To see this list again, type 'ls'")
-	fmt.Println("For a list of additional commands, type 'help'\n")
+	fmt.Println("For a list of additional commands, type 'commands'\n")
 
 }
 

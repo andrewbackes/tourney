@@ -166,7 +166,7 @@ func (W *Worker) PlayGame(G Game, CompletedGame *Game) error {
 	return nil
 }
 
-func ConnectAndWait(address string) {
+func ConnectAndWait(address string, forceQuit chan struct{}) {
 
 	// First connect to the host:
 	var conn net.Conn
@@ -188,6 +188,15 @@ func ConnectAndWait(address string) {
 		}
 	}
 	defer conn.Close()
+
+	// A bit hacky, but when the user types 'disconnect', close the connection:
+	go func() {
+		select {
+		case <-forceQuit:
+			conn.Close()
+		}
+	}()
+
 	fmt.Println("Success.")
 	fmt.Println("Waiting on server...")
 
@@ -203,7 +212,7 @@ func ConnectAndWait(address string) {
 	fmt.Println("Connection closed.")
 }
 
-func WorkForDirtyBit() {
+func WorkForDirtyBit(forceQuit chan struct{}) {
 	// TEMPORARY !!!!!!!!!!
 	// TODO: REMOVE THIS !!
 
@@ -218,6 +227,6 @@ func WorkForDirtyBit() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	ConnectAndWait(string(ip) + ":9000")
+	ConnectAndWait(string(ip)+":9000", forceQuit)
 
 }

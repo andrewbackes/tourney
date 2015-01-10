@@ -120,7 +120,7 @@ type TourneyList struct {
 	// Conceptually, it doesn't really make sense to put this in the TourneyList object.
 	// But it's very convenient. This channel is made whenever something stoppable is
 	// started. Like running, hosting, or connecting. To force the stop, close the channel.
-	ForceQuit chan struct{}
+	ForceQuit chan struct{} // for now it is only used with the 'connect' and 'disconnect' commands.
 }
 
 func (W *TourneyList) Selected() *Tourney {
@@ -133,6 +133,14 @@ func (W *TourneyList) Selected() *Tourney {
 func (W *TourneyList) Add(T *Tourney) {
 	W.List = append(W.List, T)
 	W.Index = len(W.List) - 1
+}
+
+// Removes Selected Tourney
+func (W *TourneyList) Remove() {
+	W.List = append(W.List[:W.Index], W.List[W.Index+1:]...)
+	if W.Index > len(W.List)-1 && W.Index > 0 {
+		W.Index = W.Index - 1
+	}
 }
 
 func RunTourney(T *Tourney) error {
@@ -296,6 +304,42 @@ func SavePGN(T *Tourney) error {
 }
 
 //
+// Saves the Tourney object as a .tourney file
+//
+func SaveSettings(T *Tourney) error {
+	//check if the file exists:
+	if T.filename == "" {
+		return errors.New("No save file specified.")
+	} else if !strings.HasSuffix(T.filename, ".tourney") {
+		T.filename = T.filename + ".tourney"
+	}
+	filename := T.filename
+	filename = filepath.Join(Settings.SaveDirectory, filename)
+	fmt.Print("Saving '" + filename + "'... ")
+	var file *os.File
+	var err error
+	if _, er := os.Stat(filename); os.IsNotExist(er) {
+		// file doesn't exist
+	} else if er == nil {
+		// file does exist
+		os.Remove(filename)
+	}
+
+	file, err = os.Create(filename)
+	defer file.Close()
+
+	var encoded []byte
+	encoded, err = json.MarshalIndent(*T, "", "  ")
+	if err != nil {
+		return err
+	}
+	if _, err = file.Write(encoded); err != nil {
+		return err
+	}
+	return nil
+}
+
+//
 // Opens a .data file. This type of file is a json encoded version of
 // a Tourney.GameList object. Generally this is previously ran
 // tournament data.
@@ -387,6 +431,7 @@ func LoadFile(filename string) (*Tourney, error) {
 	// Check if this tourney was previously stopped midway
 	fmt.Print("Loading previous tourney data... ")
 	if loaded, err := LoadPreviousResults(T); err != nil {
+		// TODO: If the data is corrupt, then ask to the user if they want to delete it and try again.
 		fmt.Println("Failed.", err)
 		return nil, err
 	} else if loaded {
