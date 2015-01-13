@@ -93,13 +93,13 @@ type Setting struct {
 
 type EvaluationData struct {
 	Depth      int
-	Seldepth   int
+	Seldepth   int `json:",omitempty"`
 	Score      int
-	Lowerbound bool
-	Upperbound bool
+	Lowerbound bool `json:",omitempty"`
+	Upperbound bool `json:",omitempty"`
 	Time       int
-	Nodes      int
-	Pv         string
+	Nodes      int    `json:",omitempty"`
+	Pv         string `json:",omitempty"`
 }
 
 func (E *Engine) Equals(E2 *Engine) bool {

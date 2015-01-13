@@ -46,6 +46,7 @@ import (
 	"strings"
 	//"time"
 	//"runtime"
+	"io/ioutil"
 	"path/filepath"
 )
 
@@ -181,7 +182,8 @@ func RunTourney(T *Tourney) error {
 				//T.GameList[i].PrintHUD()
 
 				// Save progress:
-				if err := Save(T); err != nil {
+				//if err := Save(T); err != nil {
+				if err := AppendGameToFiles(T, &T.GameList[i]); err != nil {
 					return err
 				}
 			} else {
@@ -191,6 +193,45 @@ func RunTourney(T *Tourney) error {
 	}
 	// Show results:
 	fmt.Print(SummarizeResults(T))
+	return nil
+}
+
+//
+// Adds the game data to all of the files
+// that includes the .data .pgn and .txt files
+// The difference between this function and just plain old Save() is that this appends the data
+// Save() re-saves all of the data, not appends.
+//
+func AppendGameToFiles(T *Tourney, G *Game) error {
+
+	// Create the Save directory:
+	if Settings.SaveDirectory != "" {
+		if err := os.MkdirAll(Settings.SaveDirectory, os.ModePerm); err != nil {
+			fmt.Println("Could not make directory:", Settings.SaveDirectory, " - ", err)
+			return err
+		}
+	}
+	// Save results:
+	if err := SaveResults(T); err != nil {
+		fmt.Println("Failed.", err)
+		//return err
+	} else {
+		fmt.Println("Success.")
+	}
+	// Save details:
+	if err := AppendData(T, G); err != nil {
+		fmt.Println("Failed.", err)
+		//return err
+	} else {
+		fmt.Println("Success.")
+	}
+	// Save PGN:
+	if err := SavePGN(T); err != nil {
+		fmt.Println("Failed.", err)
+		//return err
+	} else {
+		fmt.Println("Success.")
+	}
 	return nil
 }
 
@@ -248,6 +289,9 @@ func SaveResults(T *Tourney) error {
 	return err
 }
 
+//
+// Saves all of the games in the GameList to file
+//
 func SaveData(T *Tourney) error {
 	//check if the file exists:
 	filename := T.filename + ".data"
@@ -256,30 +300,88 @@ func SaveData(T *Tourney) error {
 	var file *os.File
 	var err error
 	if _, er := os.Stat(filename); os.IsNotExist(er) {
-		// file doesnt exist
+		// file doesn't exist
 	} else if er == nil {
 		// file does exist
 		os.Remove(filename)
 	}
 
 	file, err = os.Create(filename)
-	defer file.Close()
-
-	var encoded []byte
-	//encoded, err = json.MarshalIndent(T.GameList, "", "  ")
-	encoded, err = json.Marshal(T.GameList)
 	if err != nil {
 		return err
 	}
-	if _, err = file.Write(encoded); err != nil {
+	defer file.Close()
+
+	//var encodedGameList []byte
+	for i, _ := range T.GameList {
+		if err := AppendData(T, &T.GameList[i]); err != nil {
+			return err
+		}
+		/*
+			var encodedGame []byte
+			//encodedGame, err = json.MarshalIndent(T.GameList[i], "", "  ")
+			encodedGame, err = json.Marshal(T.GameList[i])
+			if err != nil {
+				return err
+			}
+			if i != 0 {
+				encodedGameList = append(encodedGameList, ',')
+			}
+			encodedGameList = append(encodedGameList, encodedGame...)
+		*/
+	}
+	/*
+		if _, err = file.Write(encodedGameList); err != nil {
+			return err
+		}
+	*/
+	//fmt.Println("Successfully saved " + filename)
+	return nil
+}
+
+//
+// Appends the Game in json format to the .data file
+//
+func AppendData(T *Tourney, G *Game) error {
+	//check if the file exists:
+	filename := T.filename + ".data"
+	filename = filepath.Join(Settings.SaveDirectory, filename)
+	//fmt.Print("Appending '" + filename + "'... ")
+	var file *os.File
+	var err error
+	if fstat, er := os.Stat(filename); os.IsNotExist(er) {
+		// file doesn't exist
+		file, err = os.Create(filename)
+	} else if er == nil {
+		// file does exist
+		// open to append
+		file, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0600)
+		// check if a comma is needed. Probably not the best way, but for now check its size:
+		if fstat.Size() > int64(len("{}")) {
+			file.WriteString(",")
+		}
+	}
+	if err != nil {
 		return err
 	}
-	//fmt.Println("Successfully saved " + filename)
+	defer file.Close()
+	var encodedGame []byte
+	//encodedGame, err = json.MarshalIndent(G, "", "  ")
+	encodedGame, err = json.Marshal(G)
+	if err != nil {
+		return err
+	}
+	if _, err = file.Write(encodedGame); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // Saves the completed games in pgn format:
 func SavePGN(T *Tourney) error {
+	// TODO: should append any completed games rather than save fresh.
+
 	//check if the file exists:
 	filename := T.filename + ".pgn"
 	filename = filepath.Join(Settings.SaveDirectory, filename)
@@ -355,17 +457,27 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 		return false, nil
 	} else if err == nil {
 		// file does exist
-		file, err := os.Open(filename)
-		defer file.Close()
-		jsonParser := json.NewDecoder(file)
-		gamelist := make([]Game, len(T.GameList), len(T.GameList))
-		if err = jsonParser.Decode(&gamelist); err != nil {
+		//file, err := os.Open(filename)
+		//defer file.Close()
+		filedata, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return false, err
+		}
+		filedata = append([]byte{'['}, filedata...)
+		filedata = append(filedata, ']')
+		//gamelist := make([]Game, len(T.GameList), len(T.GameList))
+		var gamelist []Game
+		if err = json.Unmarshal(filedata, &gamelist); err != nil {
+
+			//jsonParser := json.NewDecoder(file)
+
+			//if err = jsonParser.Decode(&gamelist); err != nil {
 			return false, err
 		}
 		// only load the completed games:
 		for i, _ := range gamelist {
-			if gamelist[i].Completed {
-				T.GameList[i] = gamelist[i]
+			if gamelist[i].Completed && gamelist[i].Round <= len(T.GameList) && gamelist[i].Round > 0 {
+				T.GameList[gamelist[i].Round-1] = gamelist[i]
 			}
 		}
 		return true, nil

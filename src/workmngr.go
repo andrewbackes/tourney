@@ -140,7 +140,8 @@ GAMESYNC:
 			fmt.Println("Syncronizing round", GameToUpdate.Round)
 			T.GameList[GameToUpdate.Round-1] = GameToUpdate
 			// Save progress:
-			if err := Save(T); err != nil {
+			//if err := Save(T); err != nil {
+			if err := AppendGameToFiles(T, &GameToUpdate); err != nil {
 				fmt.Println(err)
 			}
 		default:
