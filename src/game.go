@@ -97,6 +97,9 @@ func PlayGame(G *Game) error {
 	defer G.AppendLog()
 
 	fmt.Println("Playing Game...")
+	y, m, d := time.Now().Date()
+	hr, min, sec := time.Now().Clock()
+	G.Date = fmt.Sprint(y, ".", int(m), ".", d, " ", hr, ":", min, ":", sec) // TODO: this is not valid PGN format.
 	// Start up the engines:
 	defer G.Player[WHITE].Shutdown()
 	if err := G.Player[WHITE].Start(&G.logBuffer); err != nil {
