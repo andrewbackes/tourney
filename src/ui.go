@@ -495,6 +495,24 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 				return
 			}},
+		{
+			label: []string{"test"},
+			desc:  "Testbed for experimental functions. Used for developement only.",
+			f: func() {
+				R := GenerateResults(T, true)
+				fmt.Println(R.RenderTemplate())
+				/*
+					for player, _ := range R.Records {
+						for i, opponent := range R.OrderedKeys[player] {
+							rec := R.Records[player][opponent]
+							fmt.Println(i+1, player, "vs", opponent, "--> ", rec.Wins, "-", rec.Losses, "-", rec.Draws, "--> ", rec.Score(), "--> ", rec.Rate(), "%")
+							fmt.Print(string(rec.Graph), "\n")
+						}
+						fmt.Println()
+					}
+				*/
+				return
+			}},
 	}
 
 	//helper:

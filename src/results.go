@@ -19,9 +19,13 @@ TODO:
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
+	"text/template"
 )
 
 type Record struct {
@@ -289,4 +293,182 @@ func SummarizeGames(T *Tourney) string {
 		summary += g.ResultDetail + fmt.Sprintln()
 	}
 	return summary
+}
+
+/*******************************************************************************
+
+ REFACTOR:
+
+*******************************************************************************/
+
+type PlayerRecord struct {
+	Wins       int64
+	Losses     int64
+	Draws      int64
+	Incomplete int64
+	Graph      []byte
+}
+
+func (P PlayerRecord) Score() float32 {
+	return float32(P.Wins) + (0.5 * float32(P.Draws))
+}
+
+func (P PlayerRecord) Rate() float32 {
+	n := 10000*P.Wins + 5000*P.Draws
+	d := P.TotalGames()
+	return float32(n/d) / float32(100)
+}
+
+func (P PlayerRecord) TotalGames() int64 {
+	return P.Wins + P.Losses + P.Draws
+}
+
+type Result struct {
+	Records     map[string]map[string]PlayerRecord
+	OrderedKeys map[string][]string
+}
+
+func GenerateResults(T *Tourney, drawGraph bool) *Result {
+	TourneyResults := Result{}
+	TourneyResults.Records = make(map[string]map[string]PlayerRecord)
+	TourneyResults.OrderedKeys = make(map[string][]string)
+	TourneyResults.Records["All"] = make(map[string]PlayerRecord)
+	for j, _ := range T.Engines {
+		TourneyResults.Records[T.Engines[j].Name] = make(map[string]PlayerRecord)
+	}
+	for i, _ := range T.GameList {
+		TourneyResults.Update(&T.GameList[i], drawGraph)
+		//UpdateResultsFromGame(&TourneyResults, &T.GameList[i], drawGraph)
+	}
+	TourneyResults.SortKeys()
+	return &TourneyResults
+}
+func (R *Result) Update(G *Game, updateGraph bool) {
+	//func UpdateResultsFromGame(R *Result, G *Game, updateGraph bool) {
+	w := G.Player[0].Name
+	b := G.Player[1].Name
+	rec := []PlayerRecord{
+		R.Records[w][b],
+		R.Records[b][w],
+		R.Records["All"][w],
+		R.Records["All"][b],
+	}
+	if G.Completed == false {
+		for i, _ := range rec {
+			rec[i].Incomplete++
+		}
+	} else if G.Result != DRAW {
+		rec[G.Result].Wins++
+		rec[G.Result+2].Wins++
+		rec[1-G.Result].Losses++
+		rec[(1-G.Result)+2].Losses++
+		if updateGraph {
+			rec[G.Result].Graph = append(rec[G.Result].Graph, '1')
+			rec[G.Result+2].Graph = append(rec[G.Result+2].Graph, '1')
+			rec[1-G.Result].Graph = append(rec[1-G.Result].Graph, '0')
+			rec[(1-G.Result)+2].Graph = append(rec[(1-G.Result)+2].Graph, '0')
+		}
+	} else {
+		for i, _ := range rec {
+			rec[i].Draws++
+			if updateGraph {
+				rec[i].Graph = append(rec[i].Graph, '=')
+			}
+		}
+	}
+	R.Records[w][b] = rec[0]
+	R.Records[b][w] = rec[1]
+	R.Records["All"][w] = rec[2]
+	R.Records["All"][b] = rec[3]
+}
+
+func (R *Result) RenderTemplate() string {
+	file := filepath.Join(Settings.TemplateDirectory, "results.txt")
+	tmpl, err := template.ParseFiles(file)
+
+	if err != nil {
+		fmt.Println(err)
+		//io.WriteString(w, fmt.Sprint("Error opening '", file, "' - ", err))
+		return ""
+	}
+	//tmpl.Funcs(template.FuncMap{"isMatchup": func(s string) bool { return s != "All" }})
+	//tmpl = tmpl.Funcs(template.FuncMap{"isMatchup": func(s string) bool { return s != "All" }})
+	var w bytes.Buffer
+	err = tmpl.Funcs(template.FuncMap{"isMatchup": func(s string) bool { return s != "All" }}).Execute(&w, R)
+	if err != nil {
+		fmt.Println(err)
+		//io.WriteString(w, fmt.Sprint("Error executing parse on '", file, "' - ", err))
+		return ""
+	}
+	return w.String()
+}
+
+//
+// This function requires the keys are sorted before calling.
+//
+/*
+func (R *Result) EngineRecords() []PlayerRecord {
+	var records []PlayerRecord
+	keys := R.OrderedKeys["All"]
+	for i, _ := range keys {
+		records = append(records, R.Records["All"][key])
+	}
+	return records
+}
+
+func (R *Result) MatchupRecords() []PlayerRecord {
+	var records []PlayerRecord
+
+	for players, recs := range R.Records {
+		if player == "All" {
+			continue
+		}
+		for opponents, rec := range R.Records[players] {
+			records = append()
+		}
+	}
+}
+*/
+
+/*******************************************************************************
+
+	Sorting:
+
+*******************************************************************************/
+
+type RecordSorter struct {
+	Keys    []string
+	Records map[string]PlayerRecord
+}
+
+func (S RecordSorter) Len() int {
+	return len(S.Keys)
+}
+
+// Less reports whether the element with
+// index i should sort before the element with index j.
+func (S RecordSorter) Less(i, j int) bool {
+	a := S.Records[S.Keys[i]]
+	b := S.Records[S.Keys[j]]
+	return a.Score() > b.Score()
+}
+
+// Swap swaps the elements with indexes i and j.
+func (S RecordSorter) Swap(i, j int) {
+	S.Keys[i], S.Keys[j] = S.Keys[j], S.Keys[i]
+}
+
+func (R *Result) SortKeys() {
+	// Populate the list of Keys:
+	for player, record := range R.Records {
+		for opponent, _ := range record {
+			R.OrderedKeys[player] = append(R.OrderedKeys[player], opponent)
+		}
+		// Sort the list of Keys based on score:
+		data := RecordSorter{
+			Keys:    R.OrderedKeys[player],
+			Records: R.Records[player],
+		}
+		sort.Sort(data)
+	}
 }
