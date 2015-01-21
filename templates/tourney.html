@@ -1,11 +1,11 @@
 <!-- Template for tourney results -->
 <html>
 	<head>
-		<title>Results</title>
+		<title>Standings</title>
 	</head>
 	<body>
 		
-		<h1>{{ $event := .Info.Event }}{{ $event }}</h1>
+		<h1>{{ $event := .Event }}{{ $event }} Standings</h1>
 		<h2>Info</h2>
 
 		<!-- Parameters -->
@@ -16,11 +16,11 @@
 			</tr>
 			<tr>
 				<th>Site</th>
-				<td>{{ .Info.Site }}</td>
+				<td>{{ .Site }}</td>
 			</tr>
 			<tr>
 				<th>Date</th>
-				<td>{{.Info.Date}}</td>
+				<td>{{.Date}}</td>
 			</tr>
 		<table>
 
@@ -28,24 +28,24 @@
 		<table>
 			<tr>
 				<th>Moves</th>
-				<td>{{.Info.Moves}}</td>
+				<td>{{.Moves}}</td>
 			</tr>
 			<tr>
 				<th>Time</th>
-				<td>{{.Info.Time}}</td>
+				<td>{{.Time}}</td>
 			</tr>
 			<tr>
 				<th>Bonus Time</th>
-				<td>{{.Info.BonusTime}}</td>
+				<td>{{.BonusTime}}</td>
 			</tr>
 			<tr>
 				<th>Repeating</th>
-				<td>{{.Info.Repeating}}</td>
+				<td>{{.Repeating}}</td>
 			</tr>
 		</table>
 
-		<!-- Results -->
-		<h2>Results</h2>
+		<!-- Standings -->
+		<h2>Standings</h2>
 		<table>
 			<tr>
 				<th>#</th>
@@ -53,69 +53,49 @@
 				<th>W-L-D</th>
 				<th>Incomplete</th>
 				<th>Score</th>
+				<th>Played</th>
 				<th>Win %</th>
 			</tr>
-
-			{{ range $i, $v := .EngineRecords }}
+			{{ range $i, $v := .PlayerStandings.OverallStandings }}
 			<tr>
 				<td><script> document.write({{$i}}+1);</script></td>
-				<td>{{ .Player.Name }}</td>
+				<td>{{ .Name }}</td>
 				<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
 				<td>{{ .Incomplete }}</td>
-				<td><script>
-						var score = {{.Wins}} + ({{.Draws}}*0.5);
-						document.write(score);
-					</script>
-				</td>
-				<td><script>
-						var games_played = {{.Wins}} + {{.Losses}} + {{.Draws}};
-						if(games_played>0){
-							document.write( Math.round((score/games_played)*10000)/100 );
-						} else {
-							document.write("-");
-						}
-						document.write("%")
-					</script>
-				</td>
+				<td>{{ .Score }}</td>
+				<td>{{.TotalGames}}</td>
+				<td>{{ .Rate }}%</td>
 			</tr>
 			{{ end }}
 		</table>
 
 		<!-- Matchups -->
-		<h2>Matchup Overview</h2>
+		<h2>Matchup Standings</h2>
+		{{ range $i, $player := .PlayerStandings.Players }}
+		<h3><script> document.write({{$i}}+1);</script>. {{$player}} (vs)</h3>
 		<table>
 			<tr>
+				<th>#</th>
 				<th>Engine</th>
-				<th>Opponent</th>
 				<th>W-L-D</th>
+				<th>Incomplete</th>
 				<th>Score</th>
+				<th>Played</th>
 				<th>Win %</th>
 			</tr>
-
-			{{ range .MatchupRecords }}
+			 {{ range $j, $record := $.PlayerStandings.MatchupStandings $player }}
 			<tr>
-				<td>{{ .Player.Name }}</td>
-				<td>{{ .Opponent.Name }}</td>
+				<td><script> document.write({{$j}}+1);</script></td>
+				<td>{{ .Name }}</td>
 				<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
-				<td><script>
-						var score = {{.Wins}} + ({{.Draws}}*0.5);
-						document.write(score);
-					</script>
-				</td>
-				<td><script>
-						var games_played = {{.Wins}} + {{.Losses}} + {{.Draws}};
-						if(games_played>0){
-							document.write( Math.round((score/games_played)*10000)/100 );
-						} else {
-							document.write("-");
-						}
-						document.write("%")
-					</script>
-				</td>
+				<td>{{ .Incomplete }}</td>
+				<td>{{ .Score }}</td>
+				<td>{{.TotalGames}}</td>
+				<td>{{ .Rate }}%</td>
 			</tr>
 			{{ end }}
 		</table>
-
+		{{ end }}
 		<!-- Game List -->
 		<h2>Game History</h2>
 		<table>
@@ -129,9 +109,9 @@
 				<th>Details</th>
 				<th>Log</th>
 				<th>Worker</th>
-				<th>OpeningFEN</th>
+				<!-- <th>OpeningFEN</th> -->
 			</tr>
-			{{ range .Info.GameList }}
+			{{ range .GameList }}
 			<tr>
 				<td>{{ .Round }}</a></td>
 				<td>{{ (index .Player 0).Name }}</td>
@@ -145,7 +125,7 @@
 					}
 				</script>
 				<td>{{ .Site }}</td>
-				<td>{{ .StartingFEN }}</td>
+				<!-- <td>{{ .StartingFEN }}</td> -->
 			</tr>
 			{{ end }}
 		</table>

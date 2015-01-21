@@ -59,10 +59,13 @@ func renderTourneyPage(w http.ResponseWriter, T *Tourney) {
 		renderNothingLoaded(w)
 		return
 	}
-	//io.WriteString(w, SummarizeResults(T))
-	//io.WriteString(w, SummarizeGames(T))
-	Records := NewRecordRollup(T)
-	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "tourney.html"), Records)
+	T.PlayerStandings = *CollectGameRecords(T, true)
+	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "tourney.html"), T)
+
+	//Records := NewRecordRollup(T)
+	//T.PlayerRecords
+	//renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "tourney.html"), Records)
+
 }
 
 func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {

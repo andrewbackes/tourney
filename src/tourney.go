@@ -93,7 +93,7 @@ type Tourney struct {
 	//BookIteratorReverseMap []int
 	//BookIteratorIndex      int
 
-	// if engine A vs engine B uses opening X then the next occurence
+	// if engine A vs engine B uses opening X then the next occurrence
 	// of engine B vs engine A will also use opening X:
 	BookMirroring bool
 
@@ -104,12 +104,9 @@ type Tourney struct {
 
 	QuitAfter bool // Quit after the tourney is complete.
 
-	// Control settings (Determined while tourney is running, or when the tourney starts)
-	//State     Status //flag to indicate: running, paused, stopped
-	//StateFlow chan Status
-	//Flow     Context
-	GameList []Game //list of all games in the tourney. populated when the tourney starts
-	//activeGame *Game  //points to the currently running game in the list. Rethink this for multiple running games at a later Time.
+	GameList        []Game //list of all games in the tourney. populated when the tourney starts
+	PlayerStandings TourneyStandings
+
 	Done chan struct{}
 }
 
