@@ -495,16 +495,45 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 				return
 			}},
+
+		/*******************************************************************************
+
+			Testing only:
+
+		*******************************************************************************/
+
 		{
 			label: []string{"test"},
 			desc:  "Testbed for experimental functions. Used for developement only.",
 			f: func() {
-				R := GenerateResults(T, true)
+				R := CollectGameRecords(T, true)
+				//R.SortAllKeys()
+				/*
+					for k, v := range R.records {
+						fmt.Println(k)
+						fmt.Println("\t", v)
+						fmt.Println()
+					}
+
+					fmt.Println("----------")
+					standings := R.OverallStandings()
+					fmt.Println(standings)
+					fmt.Println()
+
+					for _, engine := range T.Engines {
+						player := engine.Name
+						matchups := R.MatchupStandings(player)
+						fmt.Println(player)
+						fmt.Println(matchups)
+						fmt.Println()
+					}
+					fmt.Println("----------")
+				*/
 				fmt.Println(R.RenderTemplate())
 				/*
-					for player, _ := range R.Records {
-						for i, opponent := range R.OrderedKeys[player] {
-							rec := R.Records[player][opponent]
+					for player, _ := range R.records {
+						for i, opponent := range R.orderedKeys[player] {
+							rec := R.records[player][opponent]
 							fmt.Println(i+1, player, "vs", opponent, "--> ", rec.Wins, "-", rec.Losses, "-", rec.Draws, "--> ", rec.Score(), "--> ", rec.Rate(), "%")
 							fmt.Print(string(rec.Graph), "\n")
 						}

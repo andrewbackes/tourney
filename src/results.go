@@ -301,7 +301,14 @@ func SummarizeGames(T *Tourney) string {
 
 *******************************************************************************/
 
+type TourneyStandings struct {
+	//			   [player]   [opponent]
+	records     map[string]map[string]*PlayerRecord
+	orderedKeys map[string][]string
+}
+
 type PlayerRecord struct {
+	Name       string
 	Wins       int64
 	Losses     int64
 	Draws      int64
@@ -323,35 +330,47 @@ func (P PlayerRecord) TotalGames() int64 {
 	return P.Wins + P.Losses + P.Draws
 }
 
-type Result struct {
-	Records     map[string]map[string]PlayerRecord
-	OrderedKeys map[string][]string
-}
-
-func GenerateResults(T *Tourney, drawGraph bool) *Result {
-	TourneyResults := Result{}
-	TourneyResults.Records = make(map[string]map[string]PlayerRecord)
-	TourneyResults.OrderedKeys = make(map[string][]string)
-	TourneyResults.Records["All"] = make(map[string]PlayerRecord)
+//
+// Goes through the Tourney's game list and generates all of the records.
+// This function should not really be needed since after each game
+// the records should be updated.
+//
+func CollectGameRecords(T *Tourney, drawGraph bool) *TourneyStandings {
+	TourneyResults := TourneyStandings{}
+	TourneyResults.records = make(map[string]map[string]*PlayerRecord)
+	TourneyResults.records["All"] = make(map[string]*PlayerRecord)
 	for j, _ := range T.Engines {
-		TourneyResults.Records[T.Engines[j].Name] = make(map[string]PlayerRecord)
+		TourneyResults.records[T.Engines[j].Name] = make(map[string]*PlayerRecord)
 	}
 	for i, _ := range T.GameList {
-		TourneyResults.Update(&T.GameList[i], drawGraph)
+		TourneyResults.AddGameToStandings(&T.GameList[i], drawGraph)
 		//UpdateResultsFromGame(&TourneyResults, &T.GameList[i], drawGraph)
 	}
-	TourneyResults.SortKeys()
+	//TourneyResults.SortKeys()
 	return &TourneyResults
 }
-func (R *Result) Update(G *Game, updateGraph bool) {
-	//func UpdateResultsFromGame(R *Result, G *Game, updateGraph bool) {
-	w := G.Player[0].Name
-	b := G.Player[1].Name
-	rec := []PlayerRecord{
-		R.Records[w][b],
-		R.Records[b][w],
-		R.Records["All"][w],
-		R.Records["All"][b],
+
+//
+// Takes the information from a Game struct and adds it to the standings
+// for the tournament. Adjusts/Sorts the rankings accordingly.
+//
+func (R *TourneyStandings) AddGameToStandings(G *Game, updateGraph bool) {
+	w, b := G.Player[0].Name, G.Player[1].Name
+
+	rec := []PlayerRecord{PlayerRecord{Name: b}, PlayerRecord{Name: w}, PlayerRecord{Name: w}, PlayerRecord{Name: b}}
+	rec_pntr := []*PlayerRecord{R.records[w][b], R.records[b][w], R.records["All"][w], R.records["All"][b]}
+	player_keys := []string{w, b, "All", "All"}
+	opponent_keys := []string{b, w, w, b}
+
+	for i, _ := range rec_pntr {
+		if rec_pntr[i] != nil {
+			rec[i] = *rec_pntr[i]
+		} else {
+			if R.orderedKeys == nil {
+				R.orderedKeys = make(map[string][]string)
+			}
+			R.orderedKeys[player_keys[i]] = append(R.orderedKeys[player_keys[i]], opponent_keys[i])
+		}
 	}
 	if G.Completed == false {
 		for i, _ := range rec {
@@ -376,13 +395,60 @@ func (R *Result) Update(G *Game, updateGraph bool) {
 			}
 		}
 	}
-	R.Records[w][b] = rec[0]
-	R.Records[b][w] = rec[1]
-	R.Records["All"][w] = rec[2]
-	R.Records["All"][b] = rec[3]
+	R.records[w][b], R.records[b][w] = &rec[0], &rec[1]
+	R.records["All"][w], R.records["All"][b] = &rec[2], &rec[3]
+
+	// Sort:
+	R.SortRecordsForPlayer(w)
+	R.SortRecordsForPlayer(b)
+	R.SortRecordsForPlayer("All")
+
 }
 
-func (R *Result) RenderTemplate() string {
+//
+// Provides a list of the overall rankings of the players.
+//
+func (S *TourneyStandings) OverallStandings() []*PlayerRecord {
+	return S.MatchupStandings("All")
+}
+
+//
+// Returns the records of all the opponents against the given player.
+// The records should be sorted before hand.
+//
+func (S *TourneyStandings) MatchupStandings(player string) []*PlayerRecord {
+	// create the slice to return:
+	records := make([]*PlayerRecord, len(S.orderedKeys[player]))
+	// loop through gettings the records in order:
+	for i, key := range S.orderedKeys[player] {
+		records[i] = S.records[player][key]
+	}
+	return records
+}
+func (S *TourneyStandings) AllMatchupStandings() []*PlayerRecord {
+	var records []*PlayerRecord
+	for _, player := range S.Players() {
+		records = append(records, S.MatchupStandings(player)...)
+	}
+	return records
+}
+
+//
+// Provides a list of players that have standings in order of ranking
+//
+func (S *TourneyStandings) Players() []string {
+	A := S.OverallStandings()
+	r := make([]string, len(A))
+	for i, _ := range A {
+		r[i] = A[i].Name
+	}
+	return r
+}
+
+//
+// Spits the player rankings out in the format given by the template.
+//
+func (R *TourneyStandings) RenderTemplate() string {
 	file := filepath.Join(Settings.TemplateDirectory, "results.txt")
 	tmpl, err := template.ParseFiles(file)
 
@@ -391,10 +457,8 @@ func (R *Result) RenderTemplate() string {
 		//io.WriteString(w, fmt.Sprint("Error opening '", file, "' - ", err))
 		return ""
 	}
-	//tmpl.Funcs(template.FuncMap{"isMatchup": func(s string) bool { return s != "All" }})
-	//tmpl = tmpl.Funcs(template.FuncMap{"isMatchup": func(s string) bool { return s != "All" }})
 	var w bytes.Buffer
-	err = tmpl.Funcs(template.FuncMap{"isMatchup": func(s string) bool { return s != "All" }}).Execute(&w, R)
+	err = tmpl.Execute(&w, R)
 	if err != nil {
 		fmt.Println(err)
 		//io.WriteString(w, fmt.Sprint("Error executing parse on '", file, "' - ", err))
@@ -402,33 +466,6 @@ func (R *Result) RenderTemplate() string {
 	}
 	return w.String()
 }
-
-//
-// This function requires the keys are sorted before calling.
-//
-/*
-func (R *Result) EngineRecords() []PlayerRecord {
-	var records []PlayerRecord
-	keys := R.OrderedKeys["All"]
-	for i, _ := range keys {
-		records = append(records, R.Records["All"][key])
-	}
-	return records
-}
-
-func (R *Result) MatchupRecords() []PlayerRecord {
-	var records []PlayerRecord
-
-	for players, recs := range R.Records {
-		if player == "All" {
-			continue
-		}
-		for opponents, rec := range R.Records[players] {
-			records = append()
-		}
-	}
-}
-*/
 
 /*******************************************************************************
 
@@ -438,7 +475,7 @@ func (R *Result) MatchupRecords() []PlayerRecord {
 
 type RecordSorter struct {
 	Keys    []string
-	Records map[string]PlayerRecord
+	Records map[string]*PlayerRecord
 }
 
 func (S RecordSorter) Len() int {
@@ -448,8 +485,8 @@ func (S RecordSorter) Len() int {
 // Less reports whether the element with
 // index i should sort before the element with index j.
 func (S RecordSorter) Less(i, j int) bool {
-	a := S.Records[S.Keys[i]]
-	b := S.Records[S.Keys[j]]
+	a := *S.Records[S.Keys[i]]
+	b := *S.Records[S.Keys[j]]
 	return a.Score() > b.Score()
 }
 
@@ -458,17 +495,34 @@ func (S RecordSorter) Swap(i, j int) {
 	S.Keys[i], S.Keys[j] = S.Keys[j], S.Keys[i]
 }
 
-func (R *Result) SortKeys() {
+//
+// Sorts all of the records in the TourneyStandings at a matchup level.
+// Highest score to lowest.
+//
+func (R *TourneyStandings) SortAllKeys() {
+	R.orderedKeys = make(map[string][]string)
 	// Populate the list of Keys:
-	for player, record := range R.Records {
+	for player, record := range R.records {
 		for opponent, _ := range record {
-			R.OrderedKeys[player] = append(R.OrderedKeys[player], opponent)
+			R.orderedKeys[player] = append(R.orderedKeys[player], opponent)
 		}
 		// Sort the list of Keys based on score:
 		data := RecordSorter{
-			Keys:    R.OrderedKeys[player],
-			Records: R.Records[player],
+			Keys:    R.orderedKeys[player],
+			Records: R.records[player],
 		}
 		sort.Sort(data)
 	}
+}
+
+//
+// Sorts the opponents records of the specified played.
+// Arranges highest score to lowest.
+//
+func (R *TourneyStandings) SortRecordsForPlayer(player string) {
+	data := RecordSorter{
+		Keys:    R.orderedKeys[player],
+		Records: R.records[player],
+	}
+	sort.Sort(data)
 }

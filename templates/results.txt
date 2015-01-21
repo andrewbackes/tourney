@@ -1,14 +1,13 @@
-{{ $AllRecords := (index .Records "All") }}{{ $OrderedRecords := .OrderedKeys }}{{ $RankedEngines := index .Records "All" }}
+
 ================================================================================
 	Summary:
 ================================================================================
-{{ range $player := index $OrderedRecords "All" }}{{ $currentRecord := index $AllRecords $player}}
-{{ $player }}	{{$currentRecord.Wins}}-{{$currentRecord.Losses}}-{{$currentRecord.Draws}}	{{$currentRecord.Score}}/{{$currentRecord.TotalGames}}		{{$currentRecord.Rate}}%{{ end }}
+{{ range .OverallStandings }}
+{{.Name}}		{{.Wins}}-{{.Losses}}-{{.Draws}}	{{.Score}}/{{.TotalGames}}		{{.Rate}}%{{ end }}
 
 ================================================================================
 	Matchups:
 ================================================================================
-
-{{ range $player, $records := .Records }}{{if ne $player "All"}}{{ $player }}
-{{ range $opponent := index $OrderedRecords $player }}{{$currentRecord := index $records $opponent }}	 vs {{$opponent}}	{{$currentRecord.Wins}}-{{$currentRecord.Losses}}-{{$currentRecord.Draws}}	{{$currentRecord.Score}}/{{$currentRecord.TotalGames}}		{{$currentRecord.Rate}}%
-{{ end }}{{ end }}{{ end }}
+{{ range $i, $player := .Players }}
+{{$player}} vs {{ range $j, $record := $.MatchupStandings $player }}
+	{{.Name}}		{{.Wins}}-{{.Losses}}-{{.Draws}}	{{.Score}}/{{.TotalGames}}		{{.Rate}}%{{end}}{{ end }}
