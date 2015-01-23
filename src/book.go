@@ -174,7 +174,7 @@ func LoadOrBuildBook(filename string, MoveNumber int, filters []PGNFilter) (*Boo
 // Opens a .book file:
 func OpenBook(filename string) (*Book, error) {
 	// Try to open the file:
-	fmt.Print("Loading opening book: '", filename, "'...\n")
+	fmt.Print("Using opening book: '", filename, "'...\n")
 	bookFile, err := os.Open(filename)
 	defer bookFile.Close()
 	if err != nil {

@@ -78,6 +78,14 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 	}
 }
 
+func renderGameListPage(w http.ResponseWriter, T *Tourney) {
+	if T == nil {
+		renderNothingLoaded(w)
+		return
+	}
+	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "gamelist.html"), T)
+}
+
 func renderPlyPage(w http.ResponseWriter, T *Tourney, round, ply int) {
 	if T == nil {
 		renderNothingLoaded(w)
@@ -110,6 +118,11 @@ func Broadcast(Tourneys *TourneyList) error {
 	// Summary Requests:
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		renderTourneyPage(w, Tourneys.Selected())
+	})
+
+	// Game History Requests:
+	http.HandleFunc("/gamelist/", func(w http.ResponseWriter, req *http.Request) {
+		renderGameListPage(w, Tourneys.Selected())
 	})
 
 	// Round Requests:
