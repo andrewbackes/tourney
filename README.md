@@ -1,7 +1,27 @@
-Project Tourney
-===============
+Tourney
+=======
+
+What is it?
+-----------
+
+Tourney is a lightweight piece of software for running chess tournaments between engines. Tournaments can be watched over the web by anybody. With Tourney, multiple computers can participate in the same tournament.
 
 
+Who would want to use it?
+-------------------------
+
+Those who develop chess engines and those who maintain chess engine ranking lists may be interested in how Tourney can help them. However, any chess engines enthusiast could find Tourney useful. 
+
+
+What can it do?
+---------------
+
+Tourney is a work in progress. The major features of playing tournaments, remotely viewing, and remotely playing are all supported. I have plans for many more features and a lot more testing is needed.
+
+For an up to date list of features visit http://www.dirty-bit.com/tourney/features.html
+
+
+<!--
 What is it?
 -----------
 
@@ -69,4 +89,4 @@ Difficulties:
 Incapabilities: 
  * Can not check the results of a tournament remotely. Much less start, reset, or modify a tournament remotely.
  * Can not set a gauntlet for more than one engine to play against all the rest. I call this multi-gauntlet.
-
+-->

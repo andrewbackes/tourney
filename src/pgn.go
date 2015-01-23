@@ -8,14 +8,7 @@
  Description: PGN tools
 
  TODO:
- 		-read line by line and decode that way, instead of putting it in a
- 		 string. A huge PGN file could be a problem.
- 		-shouldnt just crash with an invalid pgn file
- 		-rewrite the pgn parsing function. can be prone to errors when tags
- 		 don't follow the pgn standard.
- 		-return as *[]Game not []Game
  		-finish tags: ELO, time, timecontrol
- 		-reading PGN with split \n probably has some consequences with \r\n
 
 *******************************************************************************/
 
@@ -88,7 +81,7 @@ func EncodePGN(G *Game) string {
 	for _, t := range tags {
 		pgn += fmt.Sprintln("[" + t[0] + " \"" + t[1] + "\"]")
 	}
-	pgn += fmt.Sprintln()
+	pgn += fmt.Sprintln("")
 
 	for j, _ := range G.MoveList {
 		// TODO: replaced this code without testing:
@@ -103,8 +96,8 @@ func EncodePGN(G *Game) string {
 		pgn += G.MoveList[j].Algebraic + " "
 	}
 	pgn += tags[6][1]
-	pgn += fmt.Sprintln()
-	pgn += fmt.Sprintln()
+	pgn += fmt.Sprintln("")
+	pgn += fmt.Sprintln("")
 
 	return pgn
 }
