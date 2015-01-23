@@ -3,11 +3,11 @@
 	Summary:
 ================================================================================
 {{ range .OverallStandings }}
-{{.Name}}		{{.Wins}}-{{.Losses}}-{{.Draws}}	{{.Score}}/{{.TotalGames}}		{{.Rate}}%{{ end }}
+  {{.Name}}		{{.Wins}}-{{.Losses}}-{{.Draws}}	{{.Score}}/{{.TotalGames}}		{{.Rate}}%{{ end }}
 
 ================================================================================
 	Matchups:
 ================================================================================
 {{ range $i, $player := .Players }}
-{{$player}} vs {{ range $j, $record := $.MatchupStandings $player }}
+  {{$player}} vs. {{ range $j, $record := $.MatchupStandings $player }}
 	{{.Name}}		{{.Wins}}-{{.Losses}}-{{.Draws}}	{{.Score}}/{{.TotalGames}}		{{.Rate}}%{{end}}{{ end }}

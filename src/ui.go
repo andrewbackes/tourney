@@ -140,11 +140,14 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 			}},
 		{
-			label:          []string{"results"},
+			label:          []string{"results", "standings"},
 			desc:           "Displays the results of the currently selected tourney. Results may be displayed even if the tournament is incomplete.",
 			classification: TOURNEY_CONTROL,
 			f: func() {
-				fmt.Print(SummarizeResults(Tourneys.Selected()))
+				//standings := GenerateGameRecords(T, true)
+				T.PlayerStandings.PrintStandings()
+				//fmt.Print(standings.RenderTemplate())
+				//fmt.Print(SummarizeResults(Tourneys.Selected()))
 				fmt.Println("To see more details type, 'games' or 'g'")
 			}},
 		{
@@ -152,7 +155,8 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			desc:           "Displays the results of each game in the selected tourney.",
 			classification: TOURNEY_CONTROL,
 			f: func() {
-				fmt.Print(SummarizeGames(Tourneys.Selected()))
+				T.PrintGameList()
+				//fmt.Print(SummarizeGames(Tourneys.Selected()))
 			}},
 		{
 			label: []string{"load", "l"},
@@ -506,7 +510,8 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"test"},
 			desc:  "Testbed for experimental functions. Used for developement only.",
 			f: func() {
-				R := CollectGameRecords(T, true)
+				T.PlayerStandings.PrintStandings()
+				//R := GenerateGameRecords(T, true)
 				//R.SortAllKeys()
 				/*
 					for k, v := range R.records {
@@ -529,7 +534,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 					}
 					fmt.Println("----------")
 				*/
-				fmt.Println(R.RenderTemplate())
+				//fmt.Println(R.RenderTemplate())
 				/*
 					for player, _ := range R.records {
 						for i, opponent := range R.orderedKeys[player] {
