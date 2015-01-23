@@ -430,6 +430,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			f: func() {
 				if !Tourneys.broadcasting {
 					fmt.Println("Broadcasting http on port " + strconv.Itoa(Settings.WebPort))
+					fmt.Println("Navigate your web browser to http://localhost:" + strconv.Itoa(Settings.WebPort))
 					go func() {
 						//if err := Broadcast(&T, selected); err != nil {
 						if err := Broadcast(Tourneys); err != nil {

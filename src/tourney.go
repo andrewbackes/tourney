@@ -218,7 +218,8 @@ func AppendGameToFiles(T *Tourney, G *Game) error {
 	} else {
 		fmt.Println("Success.")
 	}
-	// Save details:
+	// Save game list:
+	fmt.Print("Backing up data... ")
 	if err := AppendData(T, G); err != nil {
 		fmt.Println("Failed.", err)
 		//return err

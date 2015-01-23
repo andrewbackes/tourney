@@ -1,0 +1,44 @@
+<!-- Template for tourney game history -->
+<html>
+	<head>
+		<title>Game History</title>
+	</head>
+	<body>
+		
+		<h1>{{ $event := .Event }}{{ $event }}</h1>
+
+		<h2>Game History</h2>
+		<table>
+			<tr>
+				<th>Round</th>
+				<th>White</th>
+				<th>Black</th>
+				<th>Result</th>
+				<th>Ending Condition</th>
+				<th>View</th>
+				<th>Details</th>
+				<th>Log</th>
+				<th>Worker</th>
+				<!-- <th>OpeningFEN</th> -->
+			</tr>
+			{{ range .GameList }}
+			<tr>
+				<td>{{ .Round }}</a></td>
+				<td>{{ (index .Player 0).Name }}</td>
+				<td>{{ (index .Player 1).Name }}</td>
+				<script>if({{.Completed}} || ({{ .ResultDetail }}!="") ) {
+						document.write('<td>');
+						document.write(["1-0","0-1","1/2-1/2"][{{ .Result }}]);
+						document.write('</td><td>{{ .ResultDetail }}</td><td><a href="../viewer/{{ .Round }}">View</a></td><td><a href="../round/{{ .Round }}">Details</a></td><td><a href="../logs/{{ $event }} round {{ .Round }}.log">Log</a></td>');
+					} else {
+						document.write('<td></td><td></td><td></td><td></td><td></td>');
+					}
+				</script>
+				<td>{{ .Site }}</td>
+				<!-- <td>{{ .StartingFEN }}</td> -->
+			</tr>
+			{{ end }}
+		</table>
+
+	</body>
+</html>
