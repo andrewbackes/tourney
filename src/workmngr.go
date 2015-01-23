@@ -139,8 +139,11 @@ GAMESYNC:
 		case GameToUpdate := <-M.CompletedGames:
 			fmt.Println("Syncronizing round", GameToUpdate.Round)
 			T.GameList[GameToUpdate.Round-1] = GameToUpdate
+
+			// Update the player standings:
+			T.PlayerStandings.AddOrUpdateGame(&GameToUpdate, false, true)
+
 			// Save progress:
-			//if err := Save(T); err != nil {
 			if err := AppendGameToFiles(T, &GameToUpdate); err != nil {
 				fmt.Println(err)
 			}
@@ -252,7 +255,7 @@ func HostTourney(T *Tourney) error {
 	}
 
 	// Show results:
-	fmt.Print(SummarizeResults(T))
+	T.PlayerStandings.PrintStandings()
 
 	M.DisconnectAll()
 	return nil

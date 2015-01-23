@@ -176,20 +176,23 @@ func RunTourney(T *Tourney) error {
 					break
 				}
 				fmt.Println("Game stopped.")
-				//T.GameList[i].PrintHUD()
+
+				// Update the player standings:
+				T.PlayerStandings.AddOrUpdateGame(&T.GameList[i], false, true)
 
 				// Save progress:
-				//if err := Save(T); err != nil {
 				if err := AppendGameToFiles(T, &T.GameList[i]); err != nil {
 					return err
 				}
+
 			} else {
 				fmt.Print(" -> ", []string{"1-0", "0-1", "1/2-1/2"}[T.GameList[i].Result], " - ", T.GameList[i].ResultDetail, "\n")
 			}
 		}
 	}
 	// Show results:
-	fmt.Print(SummarizeResults(T))
+	T.PlayerStandings.PrintStandings()
+
 	return nil
 }
 
@@ -223,7 +226,8 @@ func AppendGameToFiles(T *Tourney, G *Game) error {
 		fmt.Println("Success.")
 	}
 	// Save PGN:
-	if err := SavePGN(T); err != nil {
+	//if err := SavePGN(T); err != nil {
+	if err := AppendPGN(T, G); err != nil {
 		fmt.Println("Failed.", err)
 		//return err
 	} else {
@@ -232,6 +236,11 @@ func AppendGameToFiles(T *Tourney, G *Game) error {
 	return nil
 }
 
+//
+// Generates from scratch and saves all the data related to this tournament.
+// This includes the game list, pgn file, and standings. For large tournaments
+// this can be very time consuming.
+//
 func Save(T *Tourney) error {
 
 	// Create the Save directory:
@@ -280,7 +289,7 @@ func SaveResults(T *Tourney) error {
 	}
 	file, err := os.Create(filename)
 	defer file.Close()
-	summary := SummarizeResults(T) + SummarizeGames(T)
+	summary := T.PlayerStandings.RenderTemplate("standings.txt")
 	_, err = file.WriteString(summary)
 
 	return err
@@ -403,6 +412,37 @@ func SavePGN(T *Tourney) error {
 }
 
 //
+// Appends a completed game to the tourney's pgn file.
+//
+func AppendPGN(T *Tourney, G *Game) error {
+	//check if the file exists:
+	filename := T.filename + ".pgn"
+	filename = filepath.Join(Settings.SaveDirectory, filename)
+	//fmt.Print("Appending '" + filename + "'... ")
+	fmt.Print("Updating '" + filename + "'... ")
+	var file *os.File
+	var err error
+	if _, er := os.Stat(filename); os.IsNotExist(er) {
+		// file doesn't exist
+		file, err = os.Create(filename)
+	} else if er == nil {
+		// file does exist
+		// open to append
+		file, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0600)
+		// check if a comma is needed. Probably not the best way, but for now check its size:
+	}
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// encode the game in pgn:
+	pgn := EncodePGN(G)
+	_, err = file.WriteString(pgn)
+	return err
+}
+
+//
 // Saves the Tourney object as a .tourney file
 //
 func SaveSettings(T *Tourney) error {
@@ -475,6 +515,7 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 		for i, _ := range gamelist {
 			if gamelist[i].Completed && gamelist[i].Round <= len(T.GameList) && gamelist[i].Round > 0 {
 				T.GameList[gamelist[i].Round-1] = gamelist[i]
+				T.PlayerStandings.AddOrUpdateGame(&gamelist[i], false, true)
 			}
 		}
 		return true, nil
@@ -523,19 +564,6 @@ func LoadFile(filename string) (*Tourney, error) {
 			//fmt.Print("Success. (", len(T.openingBook.Positions[T.BookMoves-1]), " unique openings.)\n")
 		}
 	}
-	/*
-		if T.BookLocation != "" {
-			fmt.Print("Loading opening book: '", T.BookLocation, "'... ")
-			if err := LoadBook(T); err != nil {
-				fmt.Println("Failed to load opening book:", err)
-				return nil, err
-			} else {
-				fmt.Println("Success (", len(T.BookPGN), "Openings ).")
-			}
-		} else {
-			fmt.Println("No opening book specified.")
-		}
-	*/
 
 	// Check if this tourney was previously stopped midway
 	fmt.Print("Loading previous tourney data... ")
@@ -647,6 +675,9 @@ func (T *Tourney) GenerateGames() {
 	for i, _ := range T.GameList {
 		T.GameList[i].Round = i + 1
 	}
+	// Populate the standings:
+	// TODO: Should probably add the game record when appending the game to the game list.
+	T.PlayerStandings = *GenerateGameRecords(T, false)
 }
 
 // Print the settings of the tourney:
@@ -675,6 +706,21 @@ func (T *Tourney) Print() {
 	summary += " Randomize:    " + strconv.FormatBool(T.RandomBook) + "\n"
 
 	fmt.Println(summary)
+}
+
+func (T *Tourney) PrintGameList() {
+	for i, _ := range T.GameList {
+		G := &T.GameList[i]
+		fmt.Print(G.Round, ".\t", G.Player[0].Name, "\tvs. ", G.Player[1].Name)
+		if G.Site != "" {
+			fmt.Print("\t @ ", G.Site)
+		}
+		fmt.Print("\t= ", G.ResultAsString())
+		if G.ResultDetail != "" {
+			fmt.Print(" (", G.ResultDetail, ")")
+		}
+		fmt.Print("\n")
+	}
 }
 
 // Figures out if the tourney is complete:

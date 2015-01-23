@@ -570,6 +570,13 @@ func NewGame() Game {
 
 *******************************************************************************/
 
+func (G *Game) ResultAsString() string {
+	if G.Completed {
+		return []string{"1-0", "0-1", "1/2-1/2"}[G.Result]
+	}
+	return "*"
+}
+
 func (G *Game) Print() {
 	// TODO: this should instead take in *Game as an arguement
 	G.Board.Print()

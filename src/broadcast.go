@@ -59,12 +59,7 @@ func renderTourneyPage(w http.ResponseWriter, T *Tourney) {
 		renderNothingLoaded(w)
 		return
 	}
-	T.PlayerStandings = *CollectGameRecords(T, true)
 	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "tourney.html"), T)
-
-	//Records := NewRecordRollup(T)
-	//T.PlayerRecords
-	//renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "tourney.html"), Records)
 
 }
 
