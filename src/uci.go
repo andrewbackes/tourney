@@ -71,11 +71,11 @@ func (U UCI) NewGame(Time, Moves int64) string {
 	return "ucinewgame"
 }
 
-func (U UCI) SetBoard(movesSoFar []Move) string {
+func (U UCI) SetBoard(movesSoFar []Move, analysisSoFar []MoveAnalysis) string {
 	var ml []string
 
 	for _, m := range movesSoFar {
-		ml = append(ml, m.Algebraic)
+		ml = append(ml, string(m))
 	}
 
 	var pos string
@@ -179,80 +179,29 @@ func parseInfo(line string) EvaluationData {
 		}
 	}
 
-	return EvaluationData{Depth: d, Seldepth: sd, Nodes: n, Score: s, Upperbound: u, Lowerbound: l, Time: t, Pv: strings.Trim(pv, " ")}
+	return EvaluationData{D: d, S: sd, N: n, V: s, U: u, L: l, T: t, P: strings.Trim(pv, " ")}
 }
 
-func (U UCI) ExtractMove(output string) Move {
+func (U UCI) ExtractMove(output string) (Move, MoveAnalysis) {
 
 	output = strings.Replace(output, "\r", "", -1)
 	lines := strings.Split(output, "\n")
-	mv := Move{}
+	var mv Move
+	var ma MoveAnalysis
 	for _, line := range lines {
 		eval := parseInfo(line)
-		if eval.Depth != 0 {
-			mv.Evaluation = append(mv.Evaluation, eval)
+		if eval.Depth() != 0 {
+			ma.Evaluation = append(ma.Evaluation, eval)
 		}
 		if strings.HasPrefix(line, "bestmove") {
 			words := strings.Fields(line)
 			if len(words) >= 2 {
-				mv.Algebraic = words[1]
+				mv = Move(words[1])
 			}
 			if len(words) >= 4 && words[2] == "ponder" {
-				mv.Ponder = words[3]
+				ma.Ponder = words[3]
 			}
 		}
 	}
-	return mv
-
-	/*
-		// TODO: REFACTOR: this replace also happens in Engine.Recieve()
-		output = strings.Replace(output, "\n\r", " ", -1)
-		output = strings.Replace(output, "\n", " ", -1)
-
-		words := strings.Split(output, " ")
-
-		// Helper functions:
-		LastNValuesOf := func(key string, N int) string {
-			for i := len(words) - 1; i >= 0; i-- {
-				if words[i] == key {
-					if i+N <= len(words)-1 {
-						return strings.Join(words[i+1:i+N+1], " ")
-					}
-				}
-			}
-			return ""
-		}
-		LastValueOf := func(key string) string {
-			//returns the word after the word given as an arg
-			return LastNValuesOf(key, 1)
-		}
-
-		// ***
-
-		keys := []string{"depth", "time", "nodes"}
-		values := [4]int{0, 0, 0, 0}
-		for i, key := range keys {
-			temp := LastValueOf(key)
-			if isNumber(temp) {
-				values[i], _ = strconv.Atoi(temp)
-			}
-		}
-		skey := LastValueOf("score")
-		var sval int
-		if skey == "cp" {
-			sval, _ = strconv.Atoi(LastValueOf(skey))
-		} else if skey == "mate" {
-			sval, _ = strconv.Atoi(LastValueOf(skey))
-			sval = MateIn(sval)
-		}
-
-		return (Move{
-			Algebraic: LastValueOf("bestmove"),
-			Depth:     values[0],
-			Time:      values[1],
-			Nodes:     values[2],
-			Score:     sval,
-			Pv:        LastNValuesOf("pv", values[0]),
-		})
-	*/
+	return mv, ma
 }

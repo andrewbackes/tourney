@@ -77,10 +77,8 @@ func (W WINBOARD) NewGame(Time, Moves int64) string {
 	return "new\nrandom\n" + level + "post\nhard\neasy\ncomputer"
 }
 
-func (W *WINBOARD) SetBoard(movesSoFar []Move) string {
-
-	// DEBUG:
-	//fmt.Print("\nW.features[usermove]='", W.features["usermove"], "'\n\n")
+func (W *WINBOARD) SetBoard(movesSoFar []Move, analysisSoFar []MoveAnalysis) string {
+	// TODO: instead of passing []MoveAnalysis say how many moves in the book there are.
 
 	var pos string
 
@@ -91,8 +89,8 @@ func (W *WINBOARD) SetBoard(movesSoFar []Move) string {
 		if v := W.features["usermove"]; v == "1" {
 			pos += "usermove "
 		}
-		pos += movesSoFar[i].Algebraic + "\n"
-		if movesSoFar[i].Comment != BOOKMOVE {
+		pos += string(movesSoFar[i]) + "\n"
+		if analysisSoFar[i].Comment != BOOKMOVE {
 			movesOutOfBook++
 		}
 	}
@@ -104,7 +102,7 @@ func (W *WINBOARD) SetBoard(movesSoFar []Move) string {
 		if v := W.features["usermove"]; v == "1" {
 			pos += "usermove "
 		}
-		pos += movesSoFar[len(movesSoFar)-1].Algebraic //only the last move is needed
+		pos += string(movesSoFar[len(movesSoFar)-1]) //only the last move is needed
 	}
 
 	return pos
@@ -143,32 +141,33 @@ func parsePost(line string) EvaluationData {
 		u = (pv[len(pv)-1] == '?')
 	}
 
-	return EvaluationData{Depth: d, Score: s, Upperbound: u, Lowerbound: l, Time: t, Nodes: n, Pv: pv}
+	return EvaluationData{D: d, V: s, U: u, L: l, T: t, N: n, P: pv}
 }
 
-func (W WINBOARD) ExtractMove(output string) Move {
+func (W WINBOARD) ExtractMove(output string) (Move, MoveAnalysis) {
 
 	output = strings.Replace(output, "\r", " ", -1)
 	lines := strings.Split(output, "\n")
-	mv := Move{}
+	var mv Move
+	var ma MoveAnalysis
 	for _, line := range lines {
 		if strings.HasPrefix(line, "move ") {
 			words := strings.Fields(line)
 			//words := strings.Split(line, " ")
 			if len(words) >= 2 {
-				mv.Algebraic = words[1]
+				mv = Move(words[1])
 			}
 			break
 		} else if strings.Contains(line, "resign") {
-			mv.Algebraic = "0000"
+			mv = "0000"
 		} else {
 			eval := parsePost(line)
-			if eval.Depth != 0 {
-				mv.Evaluation = append(mv.Evaluation, eval)
+			if eval.Depth() != 0 {
+				ma.Evaluation = append(ma.Evaluation, eval)
 			}
 		}
 	}
-	return mv
+	return mv, ma
 }
 
 func (W *WINBOARD) RegisterEngineOptions(output string, options map[string]Setting) {

@@ -1,7 +1,8 @@
 <!-- Template for game summary -->
+{{ $r := .Round }}
 <html>
 	<head>
-		<title>Round {{ $r := .Round }}{{$r}}</title>
+		<title>Round {{$r}}</title>
 	</head>
 	<body>
 		<h1>Round {{ $r }}</h1>
@@ -16,15 +17,15 @@
 				<th>Nodes</th>
 				<th>Pv</th>
 			</tr>
-			{{ range $i, $v := .MoveList }}
+			{{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}
 			<tr>
 				<td><script> if( ({{$i}}/2)%1==0 ) { document.write({{$i}}/2 +1); } </script></td>
-				<td><script> if( ({{$i}}/2)%1!=0 ) { document.write(" ... "); } </script> <a href="/round/{{ $r}}/ply/{{$i}}">{{ .Algebraic }}</a></td>
-				<td>{{ .Score }}</td>
-				<td>{{ .Depth }}</td>
-				<td>{{ .Time }}</td>
-				<td>{{ .Nodes }}</td>
-				<td>{{ .Pv }}</td>
+				<td><script> if( ({{$i}}/2)%1!=0 ) { document.write(" ... "); } </script> <a href="/round/{{ $r}}/ply/{{$i}}">{{ $v }}</a></td>
+				<td>{{ $analysis.Score }}</td>
+				<td>{{ $analysis.Depth }}</td>
+				<td>{{ $analysis.Time }}</td>
+				<td>{{ $analysis.Nodes }}</td>
+				<td>{{ $analysis.Pv }}</td>
 			</tr>
 			{{ end }}
 		</table>

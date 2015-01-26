@@ -138,7 +138,8 @@ func shouldMirror(T *Tourney, GameIndex int) (bool, string) {
 
 func applyOpeningToGame(opening BookPosition, fen string, G *Game) error {
 	for _, move := range opening.MoveList {
-		G.MakeMove(Move{Algebraic: move.Algebraic, Comment: BOOKMOVE})
+		G.MakeMove(move)
+		G.AddMoveAnalysis(MoveAnalysis{Comment: BOOKMOVE})
 	}
 	G.StartingFEN = fen
 	return nil

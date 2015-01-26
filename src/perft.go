@@ -144,7 +144,7 @@ func divide(G Game, depth int) {
 			//Count it for mate:
 			moveCount += 1
 			n, _, _, _, _, _, _ := perft(temp, depth-1)
-			fmt.Println(mv.Algebraic, ":", n)
+			fmt.Println(mv, ":", n)
 			nodes += n
 		}
 	}
@@ -158,10 +158,10 @@ func divide(G Game, depth int) {
 *******************************************************************************/
 
 func isCastle(G *Game, m Move) bool {
-	from, _ := getIndex(m.Algebraic)
+	from, _ := getIndex(string(m))
 	_, p := G.Board.onSquare(from)
 	if p == KING {
-		if (m.Algebraic == "e1g1") || (m.Algebraic == "e1c1") || (m.Algebraic == "e8g8") || (m.Algebraic == "e8c8") {
+		if (m == "e1g1") || (m == "e1c1") || (m == "e8g8") || (m == "e8c8") {
 			return true
 		}
 	}
@@ -169,21 +169,21 @@ func isCastle(G *Game, m Move) bool {
 }
 
 func isCapture(G *Game, m Move) bool {
-	_, to := getIndex(m.Algebraic)
+	_, to := getIndex(string(m))
 	_, cap := G.Board.onSquare(to)
 	return (cap != NONE)
 }
 
 func isPromotion(G *Game, m Move) bool {
 	// TODO: will not work when more notation is added
-	return (len(m.Algebraic) > 4)
+	return (len(m) > 4)
 }
 
 func isEnPassant(G *Game, m Move) bool {
 	if G.EnPassant == 64 {
 		return false
 	}
-	from, to := getIndex(m.Algebraic)
+	from, to := getIndex(string(m))
 	_, p := G.Board.onSquare(from)
 	return (p == PAWN) && (to == G.EnPassant) && ((from-to)%8 != 0)
 }

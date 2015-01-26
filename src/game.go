@@ -1,7 +1,7 @@
 /*******************************************************************************
 
  Project: Tourney
- Author(s): Andrew Backes, Daniel Sparks
+ Author(s): Andrew Backes
  Created: 7/16/2014
 
  Module: games
@@ -12,7 +12,6 @@
  	same fen comes out after loading.
  	-check state before each modifying function and functions that print to
  	the screen
- 	-add support for processing nullmoves.
  	-double check 3 fold and 50 move rules.
  	-optimize 3 fold.
  	-some of the Game data members can be omitted from json.
@@ -72,7 +71,8 @@ type Game struct {
 	EnPassant    uint8
 	CastleRights [2][2]bool
 	MoveList     []Move //move history
-	Completed    bool   // TODO:  change this to reflect how the game ended. time, checkmate, adjunction, etc
+	AnalysisList []MoveAnalysis
+	Completed    bool // TODO:  change this to reflect how the game ended. time, checkmate, adjunction, etc
 
 	// Post game info:
 	Result       Color //WHITE,BLACK,DRAW
@@ -151,12 +151,12 @@ func ExecuteNextTurn(G *Game) bool {
 	color := G.toMove()
 	otherColor := []Color{BLACK, WHITE}[color]
 	// Tell the engine to set its internal board:
-	if err := G.Player[color].Set(G.MoveList); err != nil { //TODO: should probably pass by ref
+	if err := G.Player[color].Set(G.MoveList, G.AnalysisList); err != nil {
 		G.GameOver(color, err.Error())
 		return true
 	}
 	// Request a move from the engine:
-	engineMove, lapsed, err := G.Player[color].Move(G.Timer, G.MovesToGo, color)
+	engineMove, engineAnalysis, lapsed, err := G.Player[color].Move(G.Timer, G.MovesToGo, color)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
@@ -170,7 +170,7 @@ func ExecuteNextTurn(G *Game) bool {
 	}
 	// Convert the notation from the engines notation to pure coordinate notation
 	parsedMove := engineMove
-	parsedMove.Algebraic, err = ConvertToPCN(G, parsedMove.Algebraic)
+	parsedMove, err = ConvertToPCN(G, string(parsedMove))
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
@@ -180,10 +180,10 @@ func ExecuteNextTurn(G *Game) bool {
 	if color == WHITE {
 		fmt.Print(len(G.MoveList)/2+1, ". ")
 	}
-	fmt.Print(parsedMove.Algebraic, " ")
+	fmt.Print(parsedMove, " ")
 
 	// Check for nullmove/resign:
-	if parsedMove.Algebraic == "0000" {
+	if parsedMove == "0000" {
 		G.GameOver(color, []string{"White", "Black"}[color]+" resigned.")
 		return true
 	}
@@ -191,7 +191,7 @@ func ExecuteNextTurn(G *Game) bool {
 	// Check legality of move.
 	LegalMoves := LegalMoveList(G)
 	if !contains(LegalMoves, parsedMove) {
-		G.GameOver(color, "Illegal move: "+parsedMove.Algebraic+" (raw: "+engineMove.Algebraic+").")
+		G.GameOver(color, "Illegal move: "+string(parsedMove)+" (raw: "+string(engineMove)+").")
 		return true
 	}
 	// Adjust the internal board:
@@ -199,6 +199,9 @@ func ExecuteNextTurn(G *Game) bool {
 		G.GameOver(color, err.Error()) // illegal move
 		return true
 	}
+	// Keep track of the move analysis:
+	G.AddMoveAnalysis(engineAnalysis)
+
 	// Check:
 	check := G.isInCheck(otherColor)
 	// Mate:
@@ -234,7 +237,7 @@ func ExecuteNextTurn(G *Game) bool {
 
 func contains(list []Move, move Move) bool {
 	for i, _ := range list {
-		if move.Algebraic == list[i].Algebraic {
+		if move == list[i] {
 			return true
 		}
 	}
@@ -347,6 +350,11 @@ func (G *Game) GameOver(looser Color, reason string) {
 
 *******************************************************************************/
 
+func (G *Game) AddMoveAnalysis(a MoveAnalysis) {
+	// TODO: check if the analysis list is nil first
+	G.AnalysisList = append(G.AnalysisList, a)
+}
+
 func (G *Game) MakeMove(m Move) error {
 	// TODO: 	Proper error checking along the way
 
@@ -356,7 +364,7 @@ func (G *Game) MakeMove(m Move) error {
 
 	G.MoveList = append(G.MoveList, m)
 
-	from, to := getIndex(m.Algebraic)
+	from, to := getIndex(string(m))
 
 	capturedColor, capturedPiece := G.Board.onSquare(to)
 
@@ -413,7 +421,7 @@ func (G *Game) MakeMove(m Move) error {
 			G.EnPassant = 64
 		}
 
-		promotes := getPromotion(m.Algebraic)
+		promotes := getPromotion(string(m))
 		// Handle Promotions:
 		if promotes != NONE {
 			G.Board.PieceBB[color][piece] ^= (1 << to)    // remove pawn
@@ -483,7 +491,7 @@ func (G *Game) LoadFEN(fen string) error {
 	words := strings.Split(fen, " ")
 
 	// Move Count & toMove:
-	unknownMove := Move{Algebraic: ""}
+	unknownMove := Move("")
 	fullMoves, _ := strconv.ParseUint(words[5], 10, 0)
 	halfMoves := ((fullMoves - 1) * 2) + map[string]uint64{"w": 0, "b": 1}[words[1]]
 	for i := uint64(0); i < halfMoves; i++ {
@@ -570,6 +578,11 @@ func NewGame() Game {
 
 *******************************************************************************/
 
+func (G *Game) GetMoveAnalysis(index int) MoveAnalysis {
+	// TODO: load to and from file in this function
+	return G.AnalysisList[index]
+}
+
 func (G *Game) ResultAsString() string {
 	if G.Completed {
 		return []string{"1-0", "0-1", "1/2-1/2"}[G.Result]
@@ -597,8 +610,8 @@ func (G *Game) Print() {
 func (G *Game) PrintHUD() {
 	toMove := G.toMove()
 	lastMoveSource, lastMoveDestination := uint8(64), uint8(64)
-	if len(G.MoveList) > 0 && G.MoveList[len(G.MoveList)-1].Algebraic != "" {
-		lastMoveSource, lastMoveDestination = getIndex(G.MoveList[len(G.MoveList)-1].Algebraic)
+	if len(G.MoveList) > 0 && G.MoveList[len(G.MoveList)-1] != "" {
+		lastMoveSource, lastMoveDestination = getIndex(string(G.MoveList[len(G.MoveList)-1]))
 	}
 	abbrev := [2][6]string{{"P", "N", "B", "R", "Q", "K"}, {"p", "n", "b", "r", "q", "k"}}
 	fmt.Println("   +---+---+---+---+---+---+---+---+")
@@ -657,7 +670,7 @@ func (G *Game) PrintHUD() {
 				fmt.Print("         ", FormatPiecesInPlay(G)[BLACK])
 			case 0:
 				if len(G.MoveList) > 0 {
-					fmt.Print("Last move: ", G.MoveList[len(G.MoveList)-1].Algebraic)
+					fmt.Print("Last move: ", G.MoveList[len(G.MoveList)-1])
 				}
 			}
 

@@ -13,6 +13,10 @@
  	-error handling
  	-Consolidate locations of error handling.
 
+ Notes:
+ 	- Command used to create the default book:
+ 		buildbook /Users/Andrew/Documents/millionbase-2.22.pgn 14 Result =1/2-1/2 WhiteElo >2699 BlackElo >2699
+
 *******************************************************************************/
 
 package main
@@ -91,7 +95,7 @@ func (B *Book) String() string {
 				weightSum += v.Weight
 				s += strconv.Itoa(v.Index) + ".\t"
 				for _, m := range v.MoveList {
-					s += m.Algebraic + " "
+					s += m + " "
 				}
 				s += fmt.Sprint(" (x", v.Weight, ") = [", i, "][", k, "]\n")
 			}
@@ -204,7 +208,7 @@ func (B *Book) SaveBook(filename string) error {
 
 	//check if the file exists:
 
-	filename = filepath.Join(Settings.BookDirectory, filename)
+	//filename = filepath.Join(Settings.BookDirectory, filename)
 
 	fmt.Println("Saving '" + filename + "'... ")
 	var file *os.File
@@ -265,19 +269,19 @@ func BuildBookFromPGN(PGNfilename string, MoveNumber int, filters []PGNFilter) (
 				break
 			}
 			//white move:
-			wmv, err := ConvertToPCN(&dummyGame, StripAnnotations((*PGN)[i].MoveList[ply-1].Algebraic))
+			wmv, err := ConvertToPCN(&dummyGame, StripAnnotations(string((*PGN)[i].MoveList[ply-1])))
 			if err != nil {
 				break
 			}
-			if err := dummyGame.MakeMove(Move{Algebraic: wmv}); err != nil {
+			if err := dummyGame.MakeMove(Move(wmv)); err != nil {
 				break
 			}
 			//black move:
-			bmv, err := ConvertToPCN(&dummyGame, StripAnnotations((*PGN)[i].MoveList[ply].Algebraic))
+			bmv, err := ConvertToPCN(&dummyGame, StripAnnotations(string((*PGN)[i].MoveList[ply])))
 			if err != nil {
 				break
 			}
-			if err := dummyGame.MakeMove(Move{Algebraic: bmv}); err != nil {
+			if err := dummyGame.MakeMove(Move(bmv)); err != nil {
 				break
 			}
 			//get fen:
@@ -303,141 +307,3 @@ func BuildBookFromPGN(PGNfilename string, MoveNumber int, filters []PGNFilter) (
 func (B *Book) uniquePositions(BookMoves int) int {
 	return len(B.Positions[BookMoves-1])
 }
-
-/*
-// figure out if there are enough unique positions in the opening book
-// for each matchup to get a different one.
-func EnoughPositionsInBook(T *Tourney, B *Book) bool {
-	// TODO: This function does not work as intended!!!
-	// 		 ex: 3 rounds, repeating, mirroring.
-
-	if T.RepeatOpenings {
-		roundsAsWhite := T.Rounds / 2
-		if T.Rounds%2 == 1 {
-			roundsAsWhite = (T.Rounds + 1) / 2
-		}
-		if T.BookMirroring {
-			return (B.uniquePositions(T.BookMoves) >= roundsAsWhite)
-		}
-		return (B.uniquePositions(T.BookMoves) >= T.Rounds)
-	}
-	maxUniqueRounds := len(T.GameList)
-	if T.BookMirroring && T.Rounds > 1 {
-		maxUniqueRounds += (maxUniqueRounds % 2)
-		maxUniqueRounds = maxUniqueRounds / 2
-	}
-	return B.uniquePositions(T.BookMoves) >= maxUniqueRounds
-}
-*/
-
-// **********************
-// OLD CODE:
-// **********************
-
-/*
-func LoadBook(T *Tourney) error {
-	// Check for pgn type:
-	// TODO: check based on file contents not file name
-	if strings.HasSuffix(T.BookLocation, ".pgn") {
-		pgn, err := ioutil.ReadFile(T.BookLocation)
-		if err != nil {
-			return err
-		}
-		T.BookPGN = DecodePGN(string(pgn))
-	}
-	return nil
-}
-
-func CopyStartingPosition(From *Game, To *Game) error {
-	To.StartingFEN = From.StartingFEN
-	//Play the moves until the FEN matches the starting FEN:
-	for i := 0; i < len(From.MoveList); i++ {
-		if To.FEN() == To.StartingFEN {
-			break
-		}
-		if err := To.MakeMove(From.MoveList[i]); err != nil {
-			return err
-		}
-
-	}
-	return nil
-}
-*/
-
-/*
-// Plays the opening from the pgn book for a single game:
-func PlayOpeningOLD(T *Tourney, GameIndex int) error {
-
-	// Helper function:
-	alreadyUsed := func(n string) bool {
-		for i, _ := range T.GameList {
-			if n == T.GameList[i].StartingFEN {
-				return true
-			}
-		}
-		return false
-	}
-
-	rand.Seed(time.Now().Unix())
-	if T.GameList[GameIndex].Completed {
-		fmt.Println("Game already played.") //TODO: consolidate locaions of error handling.
-		return nil
-	}
-	// Check if the opening has already been played on this game:
-	if len(T.GameList[GameIndex].MoveList) > 0 {
-		// TODO: better checking!
-		fmt.Println("Opening already played.") //TODO: consolidate locaions of error handling.
-		return nil
-	}
-
-	if T.Rounds%2 == 0 && GameIndex%2 == 1 && GameIndex > 0 {
-		if T.BookMoves > 0 && T.GameList[GameIndex-1].StartingFEN == "" {
-			return errors.New("No starting position to mirror.")
-		}
-		if err := CopyStartingPosition(&T.GameList[GameIndex-1], &T.GameList[GameIndex]); err != nil {
-			return err
-		}
-		return nil
-	}
-	var dummy Game
-	alreadyListed := true // hack to get the for loop to go at least once
-	// Loop until a unique FEN is found:
-	attempts := 0
-	for alreadyListed {
-		// escape if going infinite:
-		if attempts > len(T.BookPGN) {
-			return errors.New("Not enough unique positions in the opening book.")
-		}
-		// pick a game from the book to use:
-		var index int = GameIndex
-		if T.RandomBook {
-			index = rand.Intn(len(T.BookPGN))
-		}
-		// play out the opening on a dummy game:
-		dummy = T.GameList[GameIndex]
-		for j := 0; j < 2*T.BookMoves; j++ {
-			b := &T.BookPGN[index]
-			// make sure we dont try to play more moves than what is in the book:
-			if j >= len(b.MoveList) {
-				break
-			}
-			mv := b.MoveList[j].Algebraic
-			mv = StripAnnotations(mv)
-			var err error
-			mv, err = ConvertToPCN(&dummy, mv)
-			if err != nil {
-				return errors.New("Book notation error: '" + err.Error())
-			}
-			dummy.MakeMove(Move{Algebraic: mv, Comment: BOOKMOVE})
-		}
-		alreadyListed = alreadyUsed(dummy.FEN())
-		attempts++
-	}
-	T.GameList[GameIndex] = dummy
-	T.GameList[GameIndex].StartingFEN = dummy.FEN()
-
-	// TODO : This will not work for for non-Carousel
-
-	return nil
-}
-*/

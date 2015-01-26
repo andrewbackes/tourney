@@ -69,10 +69,7 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 		return
 	}
 	if round < len(T.GameList) && round >= 0 {
-		//io.WriteString(w, "Round: "+strconv.Itoa(round))
-		//io.WriteString(w, fmt.Sprint(T.GameList[round].MoveList))
 		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "game.html"), T.GameList[round-1])
-		//renderTemplate(w, "templates/viewer.html", T.GameList[round])
 	} else {
 		io.WriteString(w, "That is not a valid round in this Tourney.")
 	}
@@ -92,7 +89,7 @@ func renderPlyPage(w http.ResponseWriter, T *Tourney, round, ply int) {
 		return
 	}
 	if round < len(T.GameList) && round >= 0 {
-		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "ply.html"), T.GameList[round-1].MoveList[ply])
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "ply.html"), T.GameList[round-1].AnalysisList[ply])
 	} else {
 		io.WriteString(w, "That is not a valid ply of a round in this Tourney.")
 	}

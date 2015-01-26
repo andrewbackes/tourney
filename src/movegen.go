@@ -88,9 +88,9 @@ func (G *Game) MoveGen() []Move {
 			to := bitscan(destinations)
 			p := []string{"q", "r", "b", "n"}
 			for i := 0; i < 4; i++ {
-				mv := getMove(from, to)
-				mv.Algebraic += p[i]
-				list = append(list, mv)
+				mv := string(getMove(from, to))
+				mv += p[i]
+				list = append(list, Move(mv))
 			}
 			destinations ^= (1 << to)
 		}
