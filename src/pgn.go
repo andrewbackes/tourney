@@ -86,14 +86,14 @@ func EncodePGN(G *Game) string {
 	for j, _ := range G.MoveList {
 		// TODO: replaced this code without testing:
 		//if len(G.MoveList[j].log) > 0 && strings.Contains(G.MoveList[j].log[0], "Book Move.") {
-		if G.MoveList[j].Comment == BOOKMOVE {
+		if G.AnalysisList[j].Comment == BOOKMOVE {
 			// dont print book moves, since the FEN tag would mess it up.
 			continue
 		}
 		if j%2 == 0 {
 			pgn += strconv.Itoa((j/2)+1) + ". "
 		}
-		pgn += G.MoveList[j].Algebraic + " "
+		pgn += string(G.MoveList[j]) + " "
 	}
 	pgn += tags[6][1]
 	pgn += fmt.Sprintln("")
@@ -153,7 +153,7 @@ func DecodePGN(pgn string) []Game {
 					//if ok, _ := regexp.MatchString(SAN, m); ok || m == "O-O" || m == "O-O-O" {
 
 					if isMove(StripAnnotations(m)) {
-						G.MoveList = append(G.MoveList, Move{Algebraic: m})
+						G.MoveList = append(G.MoveList, Move(m))
 					}
 				}
 			}
@@ -248,7 +248,7 @@ func appendMoves(game *PGNGame, line []byte) {
 		}
 		//if isMove(StripAnnotations(m)) {
 		if m != "1/2-1/2" && m != "1-0" && m != "0-1" && m != "*" && m != "" {
-			game.MoveList = append(game.MoveList, Move{Algebraic: m})
+			game.MoveList = append(game.MoveList, Move(m))
 		}
 		//}
 

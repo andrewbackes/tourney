@@ -36,7 +36,7 @@ import (
 
 *******************************************************************************/
 
-func ConvertToPCN(G *Game, moveToParse string) (string, error) {
+func ConvertToPCN(G *Game, moveToParse string) (Move, error) {
 	// Converts Standard Algebraic Notation (SAN) to Pure Coordinate Notation (PCN)
 	// Examples of PCN are: e2e4 (and) e7e8Q
 
@@ -47,15 +47,15 @@ func ConvertToPCN(G *Game, moveToParse string) (string, error) {
 
 	// Check for null move:
 	if moveToParse == "0000" {
-		return moveToParse, nil
+		return Move(moveToParse), nil
 	}
 
 	// Check for castling:
 	if moveToParse == "O-O" {
-		return []string{"e1g1", "e8g8"}[G.toMove()], nil
+		return Move([]string{"e1g1", "e8g8"}[G.toMove()]), nil
 	}
 	if moveToParse == "O-O-O" {
-		return []string{"e1c1", "e8c8"}[G.toMove()], nil
+		return Move([]string{"e1c1", "e8c8"}[G.toMove()]), nil
 	}
 
 	// Strip uneeded characters:
@@ -78,7 +78,7 @@ func ConvertToPCN(G *Game, moveToParse string) (string, error) {
 				}
 			}
 		}
-		return parsed, nil
+		return Move(parsed), nil
 	}
 
 	//	    (piece)    (from)  (from)  (cap) (dest)      (promotion)        (chk  )
@@ -87,7 +87,7 @@ func ConvertToPCN(G *Game, moveToParse string) (string, error) {
 
 	matched := r.FindStringSubmatch(moveToParse)
 	if len(matched) == 0 {
-		return moveToParse, errors.New("Error parsing move from engine: '" + moveToParse + "'")
+		return Move(moveToParse), errors.New("Error parsing move from engine: '" + moveToParse + "'")
 	}
 
 	piece := matched[1]
@@ -108,7 +108,7 @@ func ConvertToPCN(G *Game, moveToParse string) (string, error) {
 		//fmt.Println(G.FEN())
 		//fmt.Println(moveToParse)
 		//G.PrintHUD()
-		return moveToParse, errors.New("Error finding source square of move: '" + moveToParse + "'.")
+		return Move(moveToParse), errors.New("Error finding source square of move: '" + moveToParse + "'.")
 	}
 
 	// Some engines dont tell you to promote to queen, so assume so in that case:
@@ -118,7 +118,7 @@ func ConvertToPCN(G *Game, moveToParse string) (string, error) {
 		}
 	}
 	*/
-	return origin + destination + strings.ToLower(promote), nil
+	return Move(origin + destination + strings.ToLower(promote)), nil
 }
 
 func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (string, error) {
@@ -140,8 +140,8 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 
 	// Grab the legal moves that land on our square:
 	for _, mv := range legalMoves {
-		dest := mv.Algebraic[2:4]
-		if dest == destination {
+		dest := mv[2:4]
+		if string(dest) == destination {
 			eligableMoves = append(eligableMoves, mv)
 		}
 	}
@@ -155,7 +155,7 @@ func originOfPiece(piece, destination, fromFile, fromRank string, G *Game) (stri
 		sq := getAlg(bit)
 		//verify that its a legal move:
 		for _, mv := range eligableMoves {
-			if mv.Algebraic[:2] == sq {
+			if string(mv[:2]) == sq {
 				eligableSquares = append(eligableSquares, sq)
 				break
 			}

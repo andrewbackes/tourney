@@ -165,7 +165,7 @@ func RunTourney(T *Tourney) error {
 				}
 				// Print the book  moves:
 				for m, _ := range T.GameList[i].MoveList {
-					fmt.Print(T.GameList[i].MoveList[m].Algebraic, " ")
+					fmt.Print(T.GameList[i].MoveList[m], " ")
 				}
 				fmt.Println()
 				//fmt.Println("Success.")

@@ -52,10 +52,10 @@ type Protocoler interface {
 	Ping(int) (string, func(string) bool)
 
 	NewGame(Time, Moves int64) string
-	SetBoard(moveSoFar []Move) string
+	SetBoard(moveSoFar []Move, analysisSoFar []MoveAnalysis) string
 	Quit() string
 
-	ExtractMove(string) Move
+	ExtractMove(string) (Move, MoveAnalysis)
 	RegisterEngineOptions(string, map[string]Setting)
 }
 
@@ -89,17 +89,6 @@ type Setting struct {
 	Type  string
 	Min   string
 	Max   string
-}
-
-type EvaluationData struct {
-	Depth      int
-	Seldepth   int `json:",omitempty"`
-	Score      int
-	Lowerbound bool `json:",omitempty"`
-	Upperbound bool `json:",omitempty"`
-	Time       int
-	Nodes      int    `json:",omitempty"`
-	Pv         string `json:",omitempty"`
 }
 
 func (E *Engine) Equals(E2 *Engine) bool {
@@ -273,7 +262,7 @@ func (E *Engine) Recieve(EndOfRecieve func(string) bool, timeout int64) (string,
 		select {
 		case line := <-recieved:
 			// keep track of the total output from the engine:
-			output += line.data
+			output += line.data // TODO: this cant possibly be fast enough
 
 			// Take off line return bytes:
 			line.data = strings.Trim(line.data, "\n") // for *nix/bsd
@@ -283,21 +272,10 @@ func (E *Engine) Recieve(EndOfRecieve func(string) bool, timeout int64) (string,
 			E.Log("->", line)
 
 			// Check if the recieved command is the one we are waiting for:
-			/*
-				for _, v := range strings.Split(line.data, " ") {
-					if v == untilCmd {
-						return output, line.timestamp.Sub(startTime), nil
-					}
-				}
-			*/
 			if EndOfRecieve(line.data) {
 				return output, line.timestamp.Sub(startTime), nil
 			}
-			/*
-				if (len(line.data) >= len(untilCmd)) && (line.data[:len(untilCmd)] == untilCmd || line.data[len(line.data)-len(untilCmd):] == untilCmd) {
-					return output, line.timestamp.Sub(startTime), nil
-				}
-			*/
+
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
 			description := "Timed out waiting for engine to respond."
 			return output, time.Now().Sub(startTime), errors.New(description)
@@ -324,7 +302,7 @@ func (E *Engine) Shutdown() error {
 }
 
 // The engine should decide what move it wants to make:
-func (E *Engine) Move(timers [2]int64, MovesToGo int64, EngineColor Color) (Move, time.Duration, error) {
+func (E *Engine) Move(timers [2]int64, MovesToGo int64, EngineColor Color) (Move, MoveAnalysis, time.Duration, error) {
 	s, r := E.protocol.Move(timers, MovesToGo, EngineColor)
 	E.Send(s)
 	max := timers[WHITE]
@@ -335,16 +313,16 @@ func (E *Engine) Move(timers [2]int64, MovesToGo int64, EngineColor Color) (Move
 
 	if err != nil {
 		E.LogError("Requesting move: " + err.Error())
-		return Move{}, t, err
+		return "", MoveAnalysis{}, t, err
 	}
-
 	// figure out what move was picked:
-	return E.protocol.ExtractMove(response), t, nil
+	mv, ma := E.protocol.ExtractMove(response)
+	return mv, ma, t, nil
 }
 
 // The engine should set its internal Board to adjust for the Moves far in the game
-func (E *Engine) Set(movesSoFar []Move) error {
-	s := E.protocol.SetBoard(movesSoFar)
+func (E *Engine) Set(movesSoFar []Move, analysisSoFar []MoveAnalysis) error {
+	s := E.protocol.SetBoard(movesSoFar, analysisSoFar)
 	err := E.Send(s)
 	return err
 }
