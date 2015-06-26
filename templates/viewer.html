@@ -250,10 +250,10 @@
 		
 			//var move_count = Math.floor(Math.random()*60)+20;
 			var move_count = Math.ceil({{ len .MoveList }}/2);
-			var allmoves = [ {{ range .MoveList }}"{{ .Algebraic }}",{{ end }} ];
-			var alldepths = [ {{ range .MoveList }}"{{ .Depth }}",{{ end }} ];
-			var allscores = [ {{ range .MoveList }}"{{ .Score }}",{{ end }} ];
-			var alltimes = [ {{ range .MoveList }}"{{ .Time }}",{{ end }} ];
+			var allmoves = [ {{ range $i, $v := .MoveList }}"{{ $v }}",{{ end }} ];
+			var alldepths = [ {{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}"{{ $analysis.Depth }}",{{ end }} ];
+			var allscores = [ {{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}"{{ $analysis.Score }}",{{ end }} ];
+			var alltimes = [ {{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}"{{ $analysis.Time }}",{{ end }} ];
 			
 			var move = new Array(2);
 			move[0] = new Array();
