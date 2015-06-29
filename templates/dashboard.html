@@ -1,0 +1,368 @@
+<html>
+	<head>
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		<script>
+			google.load('visualization', '1.0', {packages: ['line', 'corechart', 'bar', 'table']});
+		</script>
+		<style>
+			#board_container {
+				width: 352px; height: 350px; position: relative; background-color: black; border: black solid 2px; }
+			#board {
+				width: 336px;height:336px;position:absolute;left: 15px;top:0px;}
+			.dark_square {
+				width:40px;height:40px;border:black solid 1px; background-color:gray;  }
+			.light_square {
+				width:40px;height:40px;border:black solid 1px; background-color: white;   }
+
+			.thClass {
+				background: black;
+	        	color: white;
+	        	font-size: 8pt;
+			}
+	        .trClass {
+	        	background: black;
+	        	color: white;
+	        	font-size: 8pt;
+	        	padding: 0;
+	        	margin: 0;
+	        }
+	        .trOddClass {
+				background: #003242;
+				color: white;
+	        	font-size: 8pt;
+	        }
+	        .trSelectedClass {
+	        	background: #cedef3;
+	        }
+	        .trHoverClass {
+	        	background: #cedef3;
+	        }
+	        .cellClass {
+	        	border: 0;
+	        }
+	        .tdHeaderClass {
+	        	background: none;
+	        	background-color: #009bd0;
+	        }
+
+		</style>
+		<script>
+			var game_data = [    
+				 ['Ply', 'Move', 'Score', 'Time', 'Depth'],
+				 [ 0 , "e2e4", 0 , 0 , 0 ],
+				 [ 1 , "c7c5", 0 , 0 , 0 ],
+				 [ 2 , "g1f3", 0 , 0 , 0 ],
+				 [ 3 , "e7e6", 0 , 0 , 0 ],
+				 [ 4 , "d2d4", 0 , 0 , 0 ],
+				 [ 5 , "c5d4", 0 , 0 , 0 ],
+				 [ 6 , "f3d4", 0 , 0 , 0 ],
+				 [ 7 , "g8f6", 0 , 0 , 0 ],
+				 [ 8 , "b1c3", 0 , 0 , 0 ],
+				 [ 9 , "d7d6", 0 , 0 , 0 ],
+				 [ 10 , "f1e2", 0 , 0 , 0 ],
+				 [ 11 , "b8c6", 0 , 0 , 0 ],
+				 [ 12 , "c1e3", 0 , 0 , 0 ],
+				 [ 13 , "c8d7", 0 , 0 , 0 ],
+				 [ 14 , "f2f4", 0 , 0 , 0 ],
+				 [ 15 , "f8e7", 0 , 0 , 0 ],
+				 [ 16 , "d4b5", 97 , 878 , 12 ],
+				 [ 17 , "d8b8", -91 , 1525 , 12 ],
+				 [ 18 , "g2g4", 92 , 663 , 12 ],
+				 [ 19 , "a7a6", -50 , 667 , 13 ],
+				 [ 20 , "b5a3", 54 , 359 , 12 ],
+				 [ 21 , "b7b5", -58 , 385 , 12 ],
+				 [ 22 , "g4g5", 35 , 74 , 12 ],
+				 [ 23 , "b5b4", -10 , 301 , 12 ],
+				 [ 24 , "g5f6", -5 , 541 , 12 ],
+				 [ 25 , "e7f6", -3 , 409 , 12 ],
+				 [ 26 , "a3c4", 9 , 372 , 11 ],
+				 [ 27 , "b4c3", -14 , 366 , 11 ],
+				 [ 28 , "b2b3", 17 , 741 , 11 ],
+				 [ 29 , "f6h4", -11 , 529 , 11 ],
+				 [ 30 , "e1f1", 6 , 715 , 12 ],
+				 [ 31 , "e8g8", 4 , 543 , 11 ],
+				 [ 32 , "c4d6", 7 , 1453 , 11 ],
+				 [ 33 , "e6e5", 3 , 408 , 11 ],
+				 [ 34 , "f4e5", -6 , 695 , 11 ],
+				 [ 35 , "d7e6", 24 , 1098 , 11 ],
+				 [ 36 , "d1d3", -15 , 395 , 10 ],
+				 [ 37 , "c6e5", 54 , 774 , 13 ],
+				 [ 38 , "d3d4", -38 , 542 , 12 ],
+				 [ 39 , "f8d8", 38 , 642 , 12 ],
+				 [ 40 , "a1d1", -32 , 473 , 11 ],
+				 [ 41 , "e5g4", 38 , 422 , 11 ],
+				 [ 42 , "e4e5", -43 , 319 , 11 ],
+				 [ 43 , "g4e3", 35 , 393 , 12 ],
+				 [ 44 , "d4e3", -29 , 545 , 13 ],
+				 [ 45 , "b8a7", 35 , 395 , 12 ],
+				 [ 46 , "e3d4", -44 , 729 , 12 ],
+				 [ 47 , "a7d4", 65 , 398 , 13 ],
+				 [ 48 , "d1d4", -93 , 818 , 14 ],
+				 [ 49 , "h4e7", 91 , 394 , 13 ],
+				 [ 50 , "e2c4", -60 , 278 , 13 ],
+				 [ 51 , "e6c4", 67 , 410 , 14 ],
+				 [ 52 , "d4c4", -62 , 528 , 15 ],
+				 [ 53 , "e7d6", 72 , 515 , 15 ],
+				 [ 54 , "e5d6", -56 , 1528 , 15 ],
+				 [ 55 , "d8d6", 72 , 718 , 14 ],
+				 [ 56 , "c4c3", -52 , 3199 , 14 ],
+				 [ 57 , "a8e8", 71 , 750 , 13 ],
+				 [ 58 , "h1g1", -56 , 549 , 13 ],
+				 [ 59 , "f7f5", 51 , 2973 , 13 ],
+				 [ 60 , "g1g2", -43 , 398 , 11 ],
+				 [ 61 , "d6d1", 57 , 696 , 13 ],
+				 [ 62 , "f1f2", -27 , 731 , 13 ],
+				 [ 63 , "e8d8", 57 , 37 , 12 ],
+				 [ 64 , "f2e3", -21 , 1793 , 12 ],
+				 [ 65 , "d1e1", 40 , 466 , 11 ],
+				 [ 66 , "e3f3", -28 , 420 , 13 ],
+				 [ 67 , "d8e8", 30 , 787 , 13 ],
+				 [ 68 , "c3d3", 0 , 763 , 12 ],
+				 [ 69 , "g7g6", 27 , 610 , 11 ],
+				 [ 70 , "c2c4", 8 , 512 , 12 ],
+				 [ 71 , "e1f1", 16 , 1082 , 11 ],
+				 [ 72 , "g2f2", 19 , 521 , 13 ],
+				 [ 73 , "f1e1", 3 , 785 , 12 ],
+				 [ 74 , "f2d2", 25 , 517 , 13 ],
+				 [ 75 , "e8e5", -1 , 905 , 11 ],
+				 [ 76 , "d3d8", 29 , 1082 , 12 ],
+				 [ 77 , "g8g7", -20 , 326 , 12 ],
+				 [ 78 , "d8d7", 26 , 2200 , 12 ],
+				 [ 79 , "g7h6", -8 , 698 , 13 ],
+				 [ 80 , "d2c2", 31 , 799 , 12 ],
+				 [ 81 , "e5c5", -22 , 625 , 13 ],
+				 [ 82 , "d7d6", 62 , 878 , 15 ],
+				 [ 83 , "a6a5", -61 , 471 , 15 ],
+				 [ 84 , "d6d5", 51 , 1005 , 16 ],
+				 [ 85 , "c5d5", -38 , 767 , 17 ],
+				 [ 86 , "c4d5", 50 , 2852 , 18 ],
+			];
+			
+			var times =  [ ['Move#', 'White Time',  'Black Time'] ];
+			var depths = [ ['Move#', 'White Depth', 'Black Depth'] ];
+			var scores = [ ['Move#', "White Score", 'Black Score'] ];
+			
+			var j = 1;
+			for( var i = 1; i < game_data.length-1; i+=2 ) {
+				times.push( [ j, game_data[i][3]/1000, game_data[i+1][3]/1000 ]);
+				depths.push( [ j, game_data[i][4], game_data[i+1][4] ]);
+				scores.push( [ j, game_data[i][2], game_data[i+1][2] ]);
+				j++;
+			}
+			var color_blue = '#009bd0';
+			var color_lblue = '#cedef3';
+			var color_dblue = '#003242';
+			var color_purple = '#993CF3';
+			var color_orange = '#e89800';
+			var color_green = '#7CBC2D';
+			var color_gray = '#808080';
+			var color_dgray = '#333';
+			
+			var time_white = 'white';
+			var time_black = color_green;
+			var time_grid1 = color_dgray;
+			var depth_white = 'white';
+			var depth_black = color_orange;
+			var depth_grid1 = color_dgray;
+			var score_white = 'white';
+			var score_black = color_purple;
+			var score_grid1 = color_dgray;
+
+			var graph_width = 800;
+			var graph_height = 100;
+			/*
+			var time_white = color_lblue;
+			var time_black = color_blue;
+			var time_grid1 = color_dblue;
+			var depth_white = color_lblue;
+			var depth_black = color_blue;
+			var depth_grid1 = color_dblue;
+			var score_white = color_lblue;
+			var score_black = color_blue;
+			var score_grid1 = color_dblue;
+			*/
+
+			var pawn = new Array(2);
+			pawn[0] = "<img src='pieces/piece11.png' class='piece' style='width:24px;height:32px; position:relative;left:8px;top:4px;' />";
+			pawn[1] = "<img src='pieces/piece01.png' class='piece' style='width:24px;height:32px; position:relative;left:8px;top:4px;' />";
+			var knight = new Array(2);
+			knight[0] = "<img src='pieces/piece12.png' class='piece' style='width:32px;height:32px; position:relative;left:3px;top:4px;'/>";
+			knight[1] = "<img src='pieces/piece02.png' class='piece' style='width:32px;height:32px; position:relative;left:3px;top:4px;'/>";
+			var bishop = new Array(2);
+			bishop[0] = "<img src='pieces/piece13.png' class='piece' style='width:30px;height:32px; position:relative;left:3px;top:4px;' />";
+			bishop[1] = "<img src='pieces/piece03.png' class='piece' style='width:30px;height:32px; position:relative;left:3px;top:4px;' />";
+			var rook = new Array(2);
+			rook[0] = "<img src='pieces/piece14.png' class='piece' style='width:27px;height:32px; position:relative;left:5px;top:4px;'/>";
+			rook[1] = "<img src='pieces/piece04.png' class='piece' style='width:27px;height:32px; position:relative;left:5px;top:4px;'/>";
+			var queen = new Array(2);
+			queen[0] = "<img src='pieces/piece15.png' class='piece' style='width:32px;height:30px; position:relative;left:3px;top:4px;'/>";
+			queen[1] = "<img src='pieces/piece05.png' class='piece' style='width:32px;height:30px; position:relative;left:3px;top:4px;'/>";
+			var king = new Array(2);
+			king[0] = "<img src='pieces/piece16.png' class='piece' style='width:32px;height:32px; position:relative;left:2px;top:4px;'/>";
+			king[1] = "<img src='pieces/piece06.png' class='piece' style='width:32px;height:32px; position:relative;left:2px;top:4px;'/>";
+
+			function clearBoard() {
+				for(i=0;i<64;i++) {
+					var rank = Math.floor(i/8)+1;
+					var file = Math.floor(i%8)+1;
+					var idName = String.fromCharCode(96+rank) + file;
+					document.getElementById(idName).innerHTML = "";
+				}
+			}
+			
+			function setBoard() {
+				clearBoard();
+				document.getElementById("e1").innerHTML = king[0];
+				document.getElementById("e8").innerHTML = king[1];
+				document.getElementById("a1").innerHTML = rook[0];
+				document.getElementById("h1").innerHTML = rook[0];
+				document.getElementById("a8").innerHTML = rook[1];
+				document.getElementById("h8").innerHTML = rook[1];
+				document.getElementById("b1").innerHTML = knight[0];
+				document.getElementById("g1").innerHTML = knight[0];
+				document.getElementById("b8").innerHTML = knight[1];
+				document.getElementById("g8").innerHTML = knight[1];
+				document.getElementById("c1").innerHTML = bishop[0];
+				document.getElementById("f1").innerHTML = bishop[0];
+				document.getElementById("c8").innerHTML = bishop[1];
+				document.getElementById("f8").innerHTML = bishop[1];
+				document.getElementById("d1").innerHTML = queen[0];
+				document.getElementById("d8").innerHTML = queen[1];
+				for(i = 1; i <=8;i++) {
+					document.getElementById(String.fromCharCode(96+i) + 2).innerHTML = pawn[0];
+					document.getElementById(String.fromCharCode(96+i) + 7).innerHTML = pawn[1];
+				}
+			}
+		</script>
+	<script>
+	    google.setOnLoadCallback(drawCharts);
+
+	    function drawCharts() {
+	    	drawScoreChart();
+	    	drawTimeChart();
+	    	drawDepthChart();
+	    	drawTable();
+	    }
+
+	    function drawTimeChart() {
+			var timeChart;
+			var timechartDiv = document.getElementById('time_chart');
+			var data = google.visualization.arrayToDataTable(times);
+			var options = {
+				curveType: 'function',
+				width: graph_width,
+				height: graph_height,
+				chartArea: {width: '100%', height: '100%'},
+				backgroundColor: 'black',
+				legend: {position: 'none'},
+				colors: [time_white,time_black],
+				vAxes: {
+				  0: {title: 'Time', textStyle: {color: '999'}},
+				},
+				hAxis: {textPosition: 'in', textStyle: {color: '999'}, gridlines: {count: 0}}, 
+				vAxis: {textPosition: 'in', gridlines: {color: time_grid1}},
+			};
+			timeChart = new google.visualization.LineChart(timechartDiv);
+			timeChart.draw(data, options);
+		}
+
+		function drawDepthChart() {
+			var depthChart;
+			var depthchartDiv = document.getElementById('depth_chart');
+			var data = google.visualization.arrayToDataTable(depths);
+			var options = {
+				curveType: 'function',
+				width: graph_width,
+				height: graph_height,
+				chartArea: {width: '100%', height: '100%'},
+				backgroundColor: 'black',
+				legend: {position: 'none'},
+				colors: [depth_white,depth_black],
+				hAxis: {textPosition: 'in', textStyle: {color: '#999'}, gridlines: {count: 0}},
+				vAxes: {
+			      0: {textPosition: 'none'},
+			      1: {},
+			    },
+			    series: { 
+	              	0: {targetAxisIndex: 1},
+	              	1: {targetAxisIndex: 1}
+	            },
+				vAxis: {textPosition: 'in', textStyle: {color: '#999'}, gridlines: {color: depth_grid1}},
+			};
+			depthChart = new google.visualization.LineChart(depthchartDiv);
+			depthChart.draw(data, options);
+		}
+
+		function drawScoreChart() {
+			var data = google.visualization.arrayToDataTable(scores);
+			var options = {
+				width: graph_width,
+				height: graph_height,
+				chartArea: {width: '100%', height: '100%'},
+				backgroundColor: 'black',
+				legend: {position: 'none'},
+				colors: [score_white,score_black],
+				hAxis: { textPosition: 'none', gridlines: {count: 0} },
+				vAxis: {textPosition: 'in', textStyle: {color: '#999'}, gridlines: {color: score_grid1}},
+			};
+			
+			var scoreChart = new google.visualization.ColumnChart(document.getElementById('score_chart'));
+			scoreChart.draw(data, options);
+		}
+
+		function drawTable() {
+	        
+	        var data = google.visualization.arrayToDataTable(game_data);
+	        var cssClassNamesObj = {
+	        	headerRow: 'thClass',
+	        	tableRow: 'trClass',
+	        	oddTableRow: 'trOddClass',
+	        	selectedTableRow: 'trSelectedClass',
+	        	hoverTableRow: 'trHoverClass',
+	        	tableCell: 'cellClass',
+	        	headerCell: 'tdHeaderClass'
+			};
+			var options = {
+				width: 444,
+				height: 350,
+				showRowNumber: false,
+				allowHTML: true,
+				sort: false,
+				cssClassNames: cssClassNamesObj
+			};
+	        var table = new google.visualization.Table(document.getElementById('move_table'));
+	        table.draw(data, options);
+		}
+	</script>
+		<title>Game Dashboard</title>
+	</head>
+	<body>
+		<div id="time_chart"></div>
+		<div id="depth_chart"></div>
+		<div width="800px" height="350px" style="width:800px;height:350px;position:relative;">
+			<div id="board_container" style="float:left;">
+				<div id="board">
+					<script>
+						for(i=0;i<64;i++) {
+							var rank = Math.floor(i/8)+1;
+							var file = Math.floor(i%8)+1;
+							var className = "dark_square";
+							if((i%2 == 1 && rank%2==1)||(i%2 == 0 && rank%2==0)) {className = "light_square";}
+							var b = Math.floor(i/8)*40;
+							var l = Math.floor(i%8)*40;
+							var idName = String.fromCharCode(96+file) + rank.toString();
+							document.write("<div class='"+className+"' id='"+idName+"' style='position:absolute;left:" + l + "px;bottom:" + b+ "px;'></div>");
+						}
+						
+					</script>
+				</div>
+	        </div>
+	        <div id="move_table" style="float:right;"></div>
+    	</div>
+		<div id="score_chart"></div>
+		<script>
+			clearBoard();
+			setBoard();
+		</script>
+	</body>
+</html>

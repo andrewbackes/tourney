@@ -254,7 +254,12 @@
 			var alldepths = [ {{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}"{{ $analysis.Depth }}",{{ end }} ];
 			var allscores = [ {{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}"{{ $analysis.Score }}",{{ end }} ];
 			var alltimes = [ {{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}"{{ $analysis.Time }}",{{ end }} ];
-			
+			var temp = [    
+				['Ply', 'Move', 'Score', 'Time', 'Depth'],
+				{{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }} [{{$i}}, "{{$v}}",{{ $analysis.Score }},{{ $analysis.Time }},{{ $analysis.Depth }}],
+				{{ end }}
+			];
+
 			var move = new Array(2);
 			move[0] = new Array();
 			move[1] = new Array();
