@@ -1,0 +1,27 @@
+{
+	"Event": "Dirty-Bit Self 1 minute",
+	"Site": "localhost",
+	"Date": "??",
+	"Engines": [
+		{ 	
+			"Name": "Dirty-Bit A", 
+			"Path": "/Users/Andrew/Projects/dirty-bit/bin/dirty-bit", 
+			"Protocol": "UCI" 
+		},
+		{ 
+			"Name": "Dirty-Bit B", 
+			"Path": "/Users/Andrew/Projects/dirty-bit/bin/dirty-bit", 
+			"Protocol": "UCI"  
+		}
+	],
+	"TestSeats": 1,
+	"Carousel": true,
+	"Moves": 40,
+	"Time": 60000,
+	"Repeating": true,
+	"Rounds": 30,
+	"QuitAfter": false,
+	"BookLocation": "default.book",
+	"BookMoves": 8,
+	"RandomBook": true
+}
