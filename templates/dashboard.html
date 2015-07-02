@@ -1,5 +1,6 @@
 <html>
 	<head>
+		<title>Game Dashboard</title>
 		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 		<script>
 			google.load('visualization', '1.0', {packages: ['line', 'corechart', 'bar', 'table']});
@@ -47,6 +48,116 @@
 
 		</style>
 		<script>
+			var color_blue = '#009bd0';
+			var color_lblue = '#cedef3';
+			var color_dblue = '#003242';
+			var color_purple = '#993CF3';
+			var color_orange = '#e89800';
+			var color_green = '#7CBC2D';
+			var color_gray = '#808080';
+			var color_dgray = '#333';
+			
+			var time_color = ['white', color_green];
+			var time_grid = color_dgray;
+
+			var depth_color = ['white', color_orange];
+			var depth_grid = color_dgray;
+			
+			var score_color = ['white', color_purple];
+			var score_grid = color_dgray;
+
+			var startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+			var fens = [
+				 "rnbqkbnr\/pppppppp\/8\/8\/8\/8\/PPPPPPPP\/RNBQKBNR w KQkq - 0 1",
+				 "rnbqkbnr\/pppppppp\/8\/8\/4P3\/8\/PPPP1PPP\/RNBQKBNR b KQkq e3 0 1",
+				 "rnbqkbnr\/pp1ppppp\/8\/2p5\/4P3\/8\/PPPP1PPP\/RNBQKBNR w KQkq c6 0 2",
+				 "rnbqkbnr\/pp1ppppp\/8\/2p5\/4P3\/5N2\/PPPP1PPP\/RNBQKB1R b KQkq - 0 2",
+				 "rnbqkbnr\/pp1p1ppp\/4p3\/2p5\/4P3\/5N2\/PPPP1PPP\/RNBQKB1R w KQkq - 0 3",
+				 "rnbqkbnr\/pp1p1ppp\/4p3\/2p5\/3PP3\/5N2\/PPP2PPP\/RNBQKB1R b KQkq d3 0 3",
+				 "rnbqkbnr\/pp1p1ppp\/4p3\/8\/3pP3\/5N2\/PPP2PPP\/RNBQKB1R w KQkq - 0 4",
+				 "rnbqkbnr\/pp1p1ppp\/4p3\/8\/3NP3\/8\/PPP2PPP\/RNBQKB1R b KQkq - 0 4",
+				 "rnbqkb1r\/pp1p1ppp\/4pn2\/8\/3NP3\/8\/PPP2PPP\/RNBQKB1R w KQkq - 0 5",
+				 "rnbqkb1r\/pp1p1ppp\/4pn2\/8\/3NP3\/2N5\/PPP2PPP\/R1BQKB1R b KQkq - 1 5",
+				 "rnbqkb1r\/pp3ppp\/3ppn2\/8\/3NP3\/2N5\/PPP2PPP\/R1BQKB1R w KQkq - 0 6",
+				 "rnbqkb1r\/pp3ppp\/3ppn2\/8\/3NP3\/2N5\/PPP1BPPP\/R1BQK2R b KQkq - 0 6",
+				 "r1bqkb1r\/pp3ppp\/2nppn2\/8\/3NP3\/2N5\/PPP1BPPP\/R1BQK2R w KQkq - 1 7",
+				 "r1bqkb1r\/pp3ppp\/2nppn2\/8\/3NP3\/2N1B3\/PPP1BPPP\/R2QK2R b KQkq - 1 7",
+				 "r2qkb1r\/pp1b1ppp\/2nppn2\/8\/3NP3\/2N1B3\/PPP1BPPP\/R2QK2R w KQkq - 2 8",
+				 "r2qkb1r\/pp1b1ppp\/2nppn2\/8\/3NPP2\/2N1B3\/PPP1B1PP\/R2QK2R b KQkq f3 0 8",
+				 "r2qk2r\/pp1bbppp\/2nppn2\/8\/3NPP2\/2N1B3\/PPP1B1PP\/R2QK2R w KQkq - 0 9",
+				 "r2qk2r\/pp1bbppp\/2nppn2\/1N6\/4PP2\/2N1B3\/PPP1B1PP\/R2QK2R b KQkq - 1 9",
+				 "rq2k2r\/pp1bbppp\/2nppn2\/1N6\/4PP2\/2N1B3\/PPP1B1PP\/R2QK2R w KQkq - 1 10",
+				 "rq2k2r\/pp1bbppp\/2nppn2\/1N6\/4PPP1\/2N1B3\/PPP1B2P\/R2QK2R b KQkq g3 0 10",
+				 "rq2k2r\/1p1bbppp\/p1nppn2\/1N6\/4PPP1\/2N1B3\/PPP1B2P\/R2QK2R w KQkq - 0 11",
+				 "rq2k2r\/1p1bbppp\/p1nppn2\/8\/4PPP1\/N1N1B3\/PPP1B2P\/R2QK2R b KQkq - 0 11",
+				 "rq2k2r\/3bbppp\/p1nppn2\/1p6\/4PPP1\/N1N1B3\/PPP1B2P\/R2QK2R w KQkq b6 0 12",
+				 "rq2k2r\/3bbppp\/p1nppn2\/1p4P1\/4PP2\/N1N1B3\/PPP1B2P\/R2QK2R b KQkq - 0 12",
+				 "rq2k2r\/3bbppp\/p1nppn2\/6P1\/1p2PP2\/N1N1B3\/PPP1B2P\/R2QK2R w KQkq - 0 13",
+				 "rq2k2r\/3bbppp\/p1nppP2\/8\/1p2PP2\/N1N1B3\/PPP1B2P\/R2QK2R b KQkq - 0 13",
+				 "rq2k2r\/3b1ppp\/p1nppb2\/8\/1p2PP2\/N1N1B3\/PPP1B2P\/R2QK2R w KQkq - 0 14",
+				 "rq2k2r\/3b1ppp\/p1nppb2\/8\/1pN1PP2\/2N1B3\/PPP1B2P\/R2QK2R b KQkq - 0 14",
+				 "rq2k2r\/3b1ppp\/p1nppb2\/8\/2N1PP2\/2p1B3\/PPP1B2P\/R2QK2R w KQkq - 0 15",
+				 "rq2k2r\/3b1ppp\/p1nppb2\/8\/2N1PP2\/1Pp1B3\/P1P1B2P\/R2QK2R b KQkq - 0 15",
+				 "rq2k2r\/3b1ppp\/p1npp3\/8\/2N1PP1b\/1Pp1B3\/P1P1B2P\/R2QK2R w KQkq - 0 16",
+				 "rq2k2r\/3b1ppp\/p1npp3\/8\/2N1PP1b\/1Pp1B3\/P1P1B2P\/R2Q1K1R b kq - 1 16",
+				 "rq3rk1\/3b1ppp\/p1npp3\/8\/2N1PP1b\/1Pp1B3\/P1P1B2P\/R2Q1K1R w - - 1 17",
+				 "rq3rk1\/3b1ppp\/p1nNp3\/8\/4PP1b\/1Pp1B3\/P1P1B2P\/R2Q1K1R b - - 0 17",
+				 "rq3rk1\/3b1ppp\/p1nN4\/4p3\/4PP1b\/1Pp1B3\/P1P1B2P\/R2Q1K1R w - - 0 18",
+				 "rq3rk1\/3b1ppp\/p1nN4\/4P3\/4P2b\/1Pp1B3\/P1P1B2P\/R2Q1K1R b - - 0 18",
+				 "rq3rk1\/5ppp\/p1nNb3\/4P3\/4P2b\/1Pp1B3\/P1P1B2P\/R2Q1K1R w - - 0 19",
+				 "rq3rk1\/5ppp\/p1nNb3\/4P3\/4P2b\/1PpQB3\/P1P1B2P\/R4K1R b - - 1 19",
+				 "rq3rk1\/5ppp\/p2Nb3\/4n3\/4P2b\/1PpQB3\/P1P1B2P\/R4K1R w - - 0 20",
+				 "rq3rk1\/5ppp\/p2Nb3\/4n3\/3QP2b\/1Pp1B3\/P1P1B2P\/R4K1R b - - 0 20",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4n3\/3QP2b\/1Pp1B3\/P1P1B2P\/R4K1R w - - 1 21",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4n3\/3QP2b\/1Pp1B3\/P1P1B2P\/3R1K1R b - - 1 21",
+				 "rq1r2k1\/5ppp\/p2Nb3\/8\/3QP1nb\/1Pp1B3\/P1P1B2P\/3R1K1R w - - 2 22",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4P3\/3Q2nb\/1Pp1B3\/P1P1B2P\/3R1K1R b - - 0 22",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4P3\/3Q3b\/1Pp1n3\/P1P1B2P\/3R1K1R w - - 0 23",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4P3\/7b\/1Pp1Q3\/P1P1B2P\/3R1K1R b - - 0 23",
+				 "r2r2k1\/q4ppp\/p2Nb3\/4P3\/7b\/1Pp1Q3\/P1P1B2P\/3R1K1R w - - 0 24",
+				 "r2r2k1\/q4ppp\/p2Nb3\/4P3\/3Q3b\/1Pp5\/P1P1B2P\/3R1K1R b - - 1 24",
+				 "r2r2k1\/5ppp\/p2Nb3\/4P3\/3q3b\/1Pp5\/P1P1B2P\/3R1K1R w - - 0 25",
+				 "r2r2k1\/5ppp\/p2Nb3\/4P3\/3R3b\/1Pp5\/P1P1B2P\/5K1R b - - 0 25",
+				 "r2r2k1\/4bppp\/p2Nb3\/4P3\/3R4\/1Pp5\/P1P1B2P\/5K1R w - - 0 26",
+				 "r2r2k1\/4bppp\/p2Nb3\/4P3\/2BR4\/1Pp5\/P1P4P\/5K1R b - - 1 26",
+				 "r2r2k1\/4bppp\/p2N4\/4P3\/2bR4\/1Pp5\/P1P4P\/5K1R w - - 0 27",
+				 "r2r2k1\/4bppp\/p2N4\/4P3\/2R5\/1Pp5\/P1P4P\/5K1R b - - 0 27",
+				 "r2r2k1\/5ppp\/p2b4\/4P3\/2R5\/1Pp5\/P1P4P\/5K1R w - - 0 28",
+				 "r2r2k1\/5ppp\/p2P4\/8\/2R5\/1Pp5\/P1P4P\/5K1R b - - 0 28",
+				 "r5k1\/5ppp\/p2r4\/8\/2R5\/1Pp5\/P1P4P\/5K1R w - - 0 29",
+				 "r5k1\/5ppp\/p2r4\/8\/8\/1PR5\/P1P4P\/5K1R b - - 0 29",
+				 "4r1k1\/5ppp\/p2r4\/8\/8\/1PR5\/P1P4P\/5K1R w - - 0 30",
+				 "4r1k1\/5ppp\/p2r4\/8\/8\/1PR5\/P1P4P\/5KR1 b - - 1 30",
+				 "4r1k1\/6pp\/p2r4\/5p2\/8\/1PR5\/P1P4P\/5KR1 w - f6 0 31",
+				 "4r1k1\/6pp\/p2r4\/5p2\/8\/1PR5\/P1P3RP\/5K2 b - - 0 31",
+				 "4r1k1\/6pp\/p7\/5p2\/8\/1PR5\/P1P3RP\/3r1K2 w - - 1 32",
+				 "4r1k1\/6pp\/p7\/5p2\/8\/1PR5\/P1P2KRP\/3r4 b - - 1 32",
+				 "3r2k1\/6pp\/p7\/5p2\/8\/1PR5\/P1P2KRP\/3r4 w - - 2 33",
+				 "3r2k1\/6pp\/p7\/5p2\/8\/1PR1K3\/P1P3RP\/3r4 b - - 2 33",
+				 "3r2k1\/6pp\/p7\/5p2\/8\/1PR1K3\/P1P3RP\/4r3 w - - 3 34",
+				 "3r2k1\/6pp\/p7\/5p2\/8\/1PR2K2\/P1P3RP\/4r3 b - - 3 34",
+				 "4r1k1\/6pp\/p7\/5p2\/8\/1PR2K2\/P1P3RP\/4r3 w - - 4 35",
+				 "4r1k1\/6pp\/p7\/5p2\/8\/1P1R1K2\/P1P3RP\/4r3 b - - 4 35",
+				 "4r1k1\/7p\/p5p1\/5p2\/8\/1P1R1K2\/P1P3RP\/4r3 w - - 0 36",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P5RP\/4r3 b - c3 0 36",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P5RP\/5r2 w - - 0 37",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P4R1P\/5r2 b - - 1 37",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P4R1P\/4r3 w - - 1 38",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P2R3P\/4r3 b - - 2 38",
+				 "6k1\/7p\/p5p1\/4rp2\/2P5\/1P1R1K2\/P2R3P\/4r3 w - - 2 39",
+				 "3R2k1\/7p\/p5p1\/4rp2\/2P5\/1P3K2\/P2R3P\/4r3 b - - 3 39",
+				 "3R4\/6kp\/p5p1\/4rp2\/2P5\/1P3K2\/P2R3P\/4r3 w - - 3 40",
+				 "8\/3R2kp\/p5p1\/4rp2\/2P5\/1P3K2\/P2R3P\/4r3 b - - 4 40",
+				 "8\/3R3p\/p5pk\/4rp2\/2P5\/1P3K2\/P2R3P\/4r3 w - - 4 41",
+				 "8\/3R3p\/p5pk\/4rp2\/2P5\/1P3K2\/P1R4P\/4r3 b - - 5 41",
+				 "8\/3R3p\/p5pk\/2r2p2\/2P5\/1P3K2\/P1R4P\/4r3 w - - 5 42",
+				 "8\/7p\/p2R2pk\/2r2p2\/2P5\/1P3K2\/P1R4P\/4r3 b - - 6 42",
+				 "8\/7p\/3R2pk\/p1r2p2\/2P5\/1P3K2\/P1R4P\/4r3 w - - 0 43",
+				 "8\/7p\/6pk\/p1rR1p2\/2P5\/1P3K2\/P1R4P\/4r3 b - - 0 43",
+				 "8\/7p\/6pk\/p2r1p2\/2P5\/1P3K2\/P1R4P\/4r3 w - - 0 44",				
+			];
+
 			var game_data = [    
 				 ['Ply', 'Move', 'Score', 'Time', 'Depth'],
 				 [ 0 , "e2e4", 0 , 0 , 0 ],
@@ -137,50 +248,61 @@
 				 [ 85 , "c5d5", -38 , 767 , 17 ],
 				 [ 86 , "c4d5", 50 , 2852 , 18 ],
 			];
-			
+
+		/* ********************************************************************************
+
+			POPULATE DATA VARIABLES:
+		
+		******************************************************************************** */
+
+			var max_score=game_data[1][2];
+			var max_time=game_data[1][3];
+			var max_depth=game_data[1][4];
+
 			var times =  [ ['Move#', 'White Time',  'Black Time'] ];
 			var depths = [ ['Move#', 'White Depth', 'Black Depth'] ];
 			var scores = [ ['Move#', "White Score", 'Black Score'] ];
 			
 			var j = 1;
 			for( var i = 1; i < game_data.length-1; i+=2 ) {
+				if(game_data[i][2] > max_score) { max_score = game_data[i][2]; }
+				if(-game_data[i][2] > max_score) { max_score = game_data[i][2]; }
+				if(game_data[i][3] > max_time) { max_time = game_data[i][3]; }
+				if(game_data[i][4] > max_depth) { max_depth = game_data[i][4]; }
+
 				times.push( [ j, game_data[i][3]/1000, game_data[i+1][3]/1000 ]);
 				depths.push( [ j, game_data[i][4], game_data[i+1][4] ]);
 				scores.push( [ j, game_data[i][2], game_data[i+1][2] ]);
 				j++;
 			}
-			var color_blue = '#009bd0';
-			var color_lblue = '#cedef3';
-			var color_dblue = '#003242';
-			var color_purple = '#993CF3';
-			var color_orange = '#e89800';
-			var color_green = '#7CBC2D';
-			var color_gray = '#808080';
-			var color_dgray = '#333';
-			
-			var time_white = 'white';
-			var time_black = color_green;
-			var time_grid1 = color_dgray;
-			var depth_white = 'white';
-			var depth_black = color_orange;
-			var depth_grid1 = color_dgray;
-			var score_white = 'white';
-			var score_black = color_purple;
-			var score_grid1 = color_dgray;
+			var move_table_data = [    
+				 ['Number', 'Move', 'Score', 'Time', 'Depth']
+			];
+			for( var i = 1; i < game_data.length; i++ ) {
+				var number = game_data[i][0]/2 +1;
+				var move = game_data[i][1];
+				var player = 0;
+				if(number%1 == 0.5) {
+					player = 1;
+					number="";
+					move = "..." + move;
+				}
+				var style = "text-shadow: 1px 1px 4px #000000;";
+				var score_pos = 'position:relative;left:45%;width:'+ ((game_data[i][2]/max_score)*45) +'%;';
+				if (game_data[i][2] < 0) {
+					score_pos = 'position:relative;left:'+(45-((-game_data[i][2]/max_score)*45))+'%;width:'+ ((-game_data[i][2]/max_score)*45) +'%;';
+				}
+				var score_div = '<div style="'+style+score_pos+'background:'+score_color[player] +';">'+game_data[i][2]+'</div>';
+				var time_div = '<div style="'+style+'width:'+ ( (game_data[i][3]/(max_time*1.25))*100 ) +'%;background:'+time_color[player] +';">'+game_data[i][3]+'</div>';
+				var depth_div = '<div style="'+style+'width:'+ ( (game_data[i][4]/(max_depth*1.25))*100 ) +'%;background:'+depth_color[player] +';">'+game_data[i][4]+'</div>';
+				move_table_data.push([number,move,score_div,time_div,depth_div]);
+			}
 
-			var graph_width = 800;
-			var graph_height = 100;
-			/*
-			var time_white = color_lblue;
-			var time_black = color_blue;
-			var time_grid1 = color_dblue;
-			var depth_white = color_lblue;
-			var depth_black = color_blue;
-			var depth_grid1 = color_dblue;
-			var score_white = color_lblue;
-			var score_black = color_blue;
-			var score_grid1 = color_dblue;
-			*/
+		/* ********************************************************************************
+
+			BOARD DRAWING AND FEN COMPUTING:
+		
+		******************************************************************************** */			
 
 			var pawn = new Array(2);
 			pawn[0] = "<img src='pieces/piece11.png' class='piece' style='width:24px;height:32px; position:relative;left:8px;top:4px;' />";
@@ -201,140 +323,207 @@
 			king[0] = "<img src='pieces/piece16.png' class='piece' style='width:32px;height:32px; position:relative;left:2px;top:4px;'/>";
 			king[1] = "<img src='pieces/piece06.png' class='piece' style='width:32px;height:32px; position:relative;left:2px;top:4px;'/>";
 
+			function idFromIndex(i) {
+				var rank = Math.floor(i/8)+1;
+				var file = (Math.floor(i%8)+1);
+				var idName = String.fromCharCode(96+file) + rank;
+				return idName;
+			}
+
 			function clearBoard() {
 				for(i=0;i<64;i++) {
-					var rank = Math.floor(i/8)+1;
-					var file = Math.floor(i%8)+1;
-					var idName = String.fromCharCode(96+rank) + file;
-					document.getElementById(idName).innerHTML = "";
+					document.getElementById(idFromIndex(i)).innerHTML = "";
 				}
 			}
+
+			function setNewBoard() {
+				setBoard(startingFEN);
+			}
+
+			var pieces = {
+				'P': pawn[0], 'p': pawn[1],
+				'K': king[0], 'k': king[1],
+				'R': rook[0], 'r': rook[1],
+				'N': knight[0], 'n': knight[1],
+				'B': bishop[0], 'b': bishop[1],
+				'Q': queen[0], 'q': queen[1]
+			};
 			
-			function setBoard() {
-				clearBoard();
-				document.getElementById("e1").innerHTML = king[0];
-				document.getElementById("e8").innerHTML = king[1];
-				document.getElementById("a1").innerHTML = rook[0];
-				document.getElementById("h1").innerHTML = rook[0];
-				document.getElementById("a8").innerHTML = rook[1];
-				document.getElementById("h8").innerHTML = rook[1];
-				document.getElementById("b1").innerHTML = knight[0];
-				document.getElementById("g1").innerHTML = knight[0];
-				document.getElementById("b8").innerHTML = knight[1];
-				document.getElementById("g8").innerHTML = knight[1];
-				document.getElementById("c1").innerHTML = bishop[0];
-				document.getElementById("f1").innerHTML = bishop[0];
-				document.getElementById("c8").innerHTML = bishop[1];
-				document.getElementById("f8").innerHTML = bishop[1];
-				document.getElementById("d1").innerHTML = queen[0];
-				document.getElementById("d8").innerHTML = queen[1];
-				for(i = 1; i <=8;i++) {
-					document.getElementById(String.fromCharCode(96+i) + 2).innerHTML = pawn[0];
-					document.getElementById(String.fromCharCode(96+i) + 7).innerHTML = pawn[1];
+			function setBoard(FEN) {
+				var row = 7;
+				var col = 0;
+				for (var pos=0; FEN.charAt(pos) != " "; pos++) {
+					var char = FEN.charAt(pos);
+					if( char >= '0' && char <= '9') {
+						for(var i=0; i < parseInt(char); i++) {
+							var square = (8*row) + col+i;
+							document.getElementById(idFromIndex(square)).innerHTML = "";
+						}
+						col+=parseInt(char);
+
+					} else if (char == "/") {
+						row--;
+						col = 0;
+					} else {
+						var square = (8*row) + col;
+						document.getElementById(idFromIndex(square)).innerHTML = pieces[char];
+						col++;
+					}
 				}
 			}
+
 		</script>
-	<script>
-	    google.setOnLoadCallback(drawCharts);
+		<script>
 
-	    function drawCharts() {
-	    	drawScoreChart();
-	    	drawTimeChart();
-	    	drawDepthChart();
-	    	drawTable();
-	    }
+		/* ********************************************************************************
 
-	    function drawTimeChart() {
-			var timeChart;
-			var timechartDiv = document.getElementById('time_chart');
-			var data = google.visualization.arrayToDataTable(times);
-			var options = {
-				curveType: 'function',
-				width: graph_width,
-				height: graph_height,
-				chartArea: {width: '100%', height: '100%'},
-				backgroundColor: 'black',
-				legend: {position: 'none'},
-				colors: [time_white,time_black],
-				vAxes: {
-				  0: {title: 'Time', textStyle: {color: '999'}},
-				},
-				hAxis: {textPosition: 'in', textStyle: {color: '999'}, gridlines: {count: 0}}, 
-				vAxis: {textPosition: 'in', gridlines: {color: time_grid1}},
-			};
-			timeChart = new google.visualization.LineChart(timechartDiv);
-			timeChart.draw(data, options);
-		}
+			GRAPHS:
+		
+		******************************************************************************** */
 
-		function drawDepthChart() {
+		    google.setOnLoadCallback(drawCharts);
+
+		    var graph_width = 800;
+			var graph_height = 100;
+
+		    function drawCharts() {
+		    	drawScoreChart();
+		    	drawTimeChart();
+		    	drawDepthChart();
+		    	drawTable();
+		    }
+
+		    var timeChart;
+		    function drawTimeChart() {
+				var timechartDiv = document.getElementById('time_chart');
+				var data = google.visualization.arrayToDataTable(times);
+				var options = {
+					curveType: 'function',
+					width: graph_width,
+					height: graph_height,
+					chartArea: {width: '100%', height: '100%'},
+					backgroundColor: 'black',
+					legend: {position: 'none'},
+					colors: [time_color[0],time_color[1]],
+					vAxes: {
+					  0: {title: 'Time', textStyle: {color: '999'}},
+					},
+					hAxis: {textPosition: 'in', textStyle: {color: '999'}, gridlines: {count: 0}}, 
+					vAxis: {textPosition: 'in', gridlines: {color: time_grid}},
+				};
+				timeChart = new google.visualization.LineChart(timechartDiv);
+				google.visualization.events.addListener(timeChart, 'select', function () {
+			        var s = timeChart.getSelection();
+			        if (s[0] != null) {
+			        	var ply = ((s[0].row-1) * 2) + (s[0].column-1);
+			        	selectPly(ply);
+			    	}
+	    		});
+				timeChart.draw(data, options);
+			}
+
 			var depthChart;
-			var depthchartDiv = document.getElementById('depth_chart');
-			var data = google.visualization.arrayToDataTable(depths);
-			var options = {
-				curveType: 'function',
-				width: graph_width,
-				height: graph_height,
-				chartArea: {width: '100%', height: '100%'},
-				backgroundColor: 'black',
-				legend: {position: 'none'},
-				colors: [depth_white,depth_black],
-				hAxis: {textPosition: 'in', textStyle: {color: '#999'}, gridlines: {count: 0}},
-				vAxes: {
-			      0: {textPosition: 'none'},
-			      1: {},
-			    },
-			    series: { 
-	              	0: {targetAxisIndex: 1},
-	              	1: {targetAxisIndex: 1}
-	            },
-				vAxis: {textPosition: 'in', textStyle: {color: '#999'}, gridlines: {color: depth_grid1}},
-			};
-			depthChart = new google.visualization.LineChart(depthchartDiv);
-			depthChart.draw(data, options);
-		}
+			function drawDepthChart() {
+				var depthchartDiv = document.getElementById('depth_chart');
+				var data = google.visualization.arrayToDataTable(depths);
+				var options = {
+					curveType: 'function',
+					width: graph_width,
+					height: graph_height,
+					chartArea: {width: '100%', height: '100%'},
+					backgroundColor: 'black',
+					legend: {position: 'none'},
+					colors: [depth_color[0],depth_color[1]],
+					hAxis: {textPosition: 'in', textStyle: {color: '#999'}, gridlines: {count: 0}},
+					vAxes: {
+				      0: {textPosition: 'none'},
+				      1: {},
+				    },
+				    series: { 
+		              	0: {targetAxisIndex: 1},
+		              	1: {targetAxisIndex: 1}
+		            },
+					vAxis: {textPosition: 'in', textStyle: {color: '#999'}, gridlines: {color: depth_grid}},
+				};
+				depthChart = new google.visualization.LineChart(depthchartDiv);
+				google.visualization.events.addListener(depthChart, 'select', function () {
+			        var s = depthChart.getSelection();
+			        if (s[0] != null) {
+			        	var ply = ((s[0].row-1) * 2) + (s[0].column-1);
+			        	selectPly(ply);
+			    	}
+	    		});
+				depthChart.draw(data, options);
+			}
 
-		function drawScoreChart() {
-			var data = google.visualization.arrayToDataTable(scores);
-			var options = {
-				width: graph_width,
-				height: graph_height,
-				chartArea: {width: '100%', height: '100%'},
-				backgroundColor: 'black',
-				legend: {position: 'none'},
-				colors: [score_white,score_black],
-				hAxis: { textPosition: 'none', gridlines: {count: 0} },
-				vAxis: {textPosition: 'in', textStyle: {color: '#999'}, gridlines: {color: score_grid1}},
-			};
-			
-			var scoreChart = new google.visualization.ColumnChart(document.getElementById('score_chart'));
-			scoreChart.draw(data, options);
-		}
+			var scoreChart;
+			function drawScoreChart() {
+				var data = google.visualization.arrayToDataTable(scores);
+				var options = {
+					width: graph_width,
+					height: graph_height,
+					chartArea: {width: '100%', height: '100%'},
+					backgroundColor: 'black',
+					legend: {position: 'none'},
+					colors: [score_color[0],score_color[1]],
+					hAxis: {textPosition: 'none', gridlines: {count: 0} },
+					vAxis: {textPosition: 'in', textStyle: {color: '#999'}, gridlines: {color: score_grid}},
+				};
+				scoreChart = new google.visualization.ColumnChart(document.getElementById('score_chart'));
+				google.visualization.events.addListener(scoreChart, 'select', function () {
+			        var s = scoreChart.getSelection();
+			        if (s[0] != null) {
+			        	var ply = ((s[0].row-1) * 2) + (s[0].column-1);
+			        	selectPly(ply);
+			    	}
+	    		});
+				scoreChart.draw(data, options);
+			}
 
-		function drawTable() {
-	        
-	        var data = google.visualization.arrayToDataTable(game_data);
-	        var cssClassNamesObj = {
-	        	headerRow: 'thClass',
-	        	tableRow: 'trClass',
-	        	oddTableRow: 'trOddClass',
-	        	selectedTableRow: 'trSelectedClass',
-	        	hoverTableRow: 'trHoverClass',
-	        	tableCell: 'cellClass',
-	        	headerCell: 'tdHeaderClass'
-			};
-			var options = {
-				width: 444,
-				height: 350,
-				showRowNumber: false,
-				allowHTML: true,
-				sort: false,
-				cssClassNames: cssClassNamesObj
-			};
-	        var table = new google.visualization.Table(document.getElementById('move_table'));
-	        table.draw(data, options);
-		}
-	</script>
-		<title>Game Dashboard</title>
+			var table;
+			function drawTable() {
+		        var data = google.visualization.arrayToDataTable(move_table_data);
+		        var cssClassNamesObj = {
+		        	headerRow: 'thClass',
+		        	tableRow: 'trClass',
+		        	oddTableRow: 'trOddClass',
+		        	selectedTableRow: 'trSelectedClass',
+		        	hoverTableRow: 'trHoverClass',
+		        	tableCell: 'cellClass',
+		        	headerCell: 'tdHeaderClass'
+				};
+				var options = {
+					width: 444,
+					height: 350,
+					showRowNumber: false,
+					allowHtml: true,
+					sort: 'disable',
+					cssClassNames: cssClassNamesObj
+				};
+		        table = new google.visualization.Table(document.getElementById('move_table'));
+		        google.visualization.events.addListener(table, 'select', function () {
+			        var s = table.getSelection();
+			        if (s[0] != null) {
+			        	selectPly(s[0].row);
+			    	}
+	    		});
+		        table.draw(data, options);
+			}
+
+			function selectPly(number) {
+				setBoard(fens[number +1]);
+				var data_row = parseInt(number / 2) + 1;
+				var data_col = 2;
+				if( number % 2 == 0 ) {
+					data_col = 1;
+				}
+				depthChart.setSelection( [{row: data_row, column: data_col} ] );
+				timeChart.setSelection( [{row: data_row, column: data_col} ] );
+				table.setSelection( [ {row: number } ] );
+			}
+
+		</script>
+		
 	</head>
 	<body>
 		<div id="time_chart"></div>
@@ -351,18 +540,18 @@
 							var b = Math.floor(i/8)*40;
 							var l = Math.floor(i%8)*40;
 							var idName = String.fromCharCode(96+file) + rank.toString();
-							document.write("<div class='"+className+"' id='"+idName+"' style='position:absolute;left:" + l + "px;bottom:" + b+ "px;'></div>");
+							document.write("<div class='"+className+"' id='"+idName+"' style='position:absolute;left:" + l + "px;bottom:" + b+ "px;'>"+idName+"</div>");
 						}
-						
 					</script>
 				</div>
 	        </div>
 	        <div id="move_table" style="float:right;"></div>
     	</div>
 		<div id="score_chart"></div>
+		<div id="timeline"></div>
+		<div id="debug"></div>
 		<script>
-			clearBoard();
-			setBoard();
+			setNewBoard();
 		</script>
 	</body>
 </html>

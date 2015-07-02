@@ -247,7 +247,11 @@
 				}
 			}
 		// Other stuff:
-		
+			var fens = [
+				{{ range $i, $v := .History }} "{{$v}}",
+				{{ end }}
+			];
+
 			//var move_count = Math.floor(Math.random()*60)+20;
 			var move_count = Math.ceil({{ len .MoveList }}/2);
 			var allmoves = [ {{ range $i, $v := .MoveList }}"{{ $v }}",{{ end }} ];
