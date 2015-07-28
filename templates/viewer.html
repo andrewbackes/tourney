@@ -17,35 +17,34 @@
 
 			.thClass {
 				background: black;
-	        	color: white;
-	        	font-size: 8pt;
+				color: white;
+				font-size: 8pt;
 			}
-	        .trClass {
-	        	background: black;
-	        	color: white;
-	        	font-size: 8pt;
-	        	padding: 0;
-	        	margin: 0;
-	        }
-	        .trOddClass {
+			.trClass {
+				background: black;
+				color: white;
+				font-size: 8pt;
+				padding: 0;
+				margin: 0;
+			}
+			.trOddClass {
 				background: #003242;
 				color: white;
-	        	font-size: 8pt;
-	        }
-	        .trSelectedClass {
-	        	background: #cedef3;
-	        }
-	        .trHoverClass {
-	        	background: #cedef3;
-	        }
-	        .cellClass {
-	        	border: 0;
-	        }
-	        .tdHeaderClass {
-	        	background: none;
-	        	background-color: #009bd0;
-	        }
-
+				font-size: 8pt;
+			}
+			.trSelectedClass {
+				background: #cedef3;
+			}
+			.trHoverClass {
+				background: #cedef3;
+			}
+			.cellClass {
+				border: 0;
+			}
+			.tdHeaderClass {
+				background: none;
+				background-color: #009bd0;
+			}
 		</style>
 		<script>
 			var color_blue = '#009bd0';
@@ -88,6 +87,9 @@
 			var SCORE_BOUND = 1800;
 			// Bound the scores so we don't have charts that overflow
 			for( var i = 1; i < game_data.length; i++ ) {
+				if (i % 2 == 0) {
+					game_data[i][2] = -game_data[i][2];
+				}
 				if(game_data[i][2] > SCORE_BOUND) {
 					game_data[i][2] = SCORE_BOUND;
 				} else if (game_data[i][2] < -SCORE_BOUND) {
