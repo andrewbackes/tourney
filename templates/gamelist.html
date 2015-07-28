@@ -3,6 +3,41 @@
 	<head>
 		{{ $event := .Event }}
 		<title>Game History</title>
+		<style>
+			.thClass {
+				background: black;
+	        	color: white;
+	        	font-size: 8pt;
+			}
+	        .trClass {
+	        	background: black;
+	        	color: white;
+	        	font-size: 8pt;
+	        	padding: 0;
+	        	margin: 0;
+	        }
+	        .trOddClass {
+				background: #003242;
+				color: white;
+	        	font-size: 8pt;
+	        }
+	        .trSelectedClass {
+	        	background: #cedef3;
+	        }
+	        .trHoverClass {
+	        	background: #cedef3;
+	        }
+	        .cellClass {
+	        	border: 0;
+	        }
+	        .tdHeaderClass {
+	        	background: none;
+	        	background-color: #009bd0;
+	        }
+	        a {
+	        	color: #999;
+	        }
+		</style>
 		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 	    <script type="text/javascript">
 	      google.load("visualization", "1", {packages:["table"]});
@@ -19,6 +54,16 @@
 	        data.addColumn('string', 'Details');
 	        data.addColumn('string', 'Log');
 	        data.addColumn('string', 'Worker');
+			var cssClassNamesObj = {
+		        	headerRow: 'thClass',
+		        	tableRow: 'trClass',
+		        	oddTableRow: 'trOddClass',
+		        	selectedTableRow: 'trSelectedClass',
+		        	hoverTableRow: 'trHoverClass',
+		        	tableCell: 'cellClass',
+		        	headerCell: 'tdHeaderClass'
+				};
+
 			{{ range .GameList }}
 
 	        {
@@ -34,11 +79,15 @@
 				data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', result, ending, view, details, log, worker ] ]);
 			}
 			{{ end }}
-
+			var options = {
+				showRowNumber: false,
+				allowHtml: true,
+				cssClassNames: cssClassNamesObj
+			};
 	        
 	        var table = new google.visualization.Table(document.getElementById('table_div'));
 
-	        table.draw(data, {allowHtml: true, showRowNumber: false});
+	        table.draw(data, options);
 	      }
 	    </script>
 	</head>
