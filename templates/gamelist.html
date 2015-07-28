@@ -1,44 +1,103 @@
 <!-- Template for tourney game history -->
 <html>
 	<head>
+		{{ $event := .Event }}
 		<title>Game History</title>
+		<style>
+			.thClass {
+				background: black;
+	        	color: white;
+	        	font-size: 8pt;
+			}
+	        .trClass {
+	        	background: black;
+	        	color: white;
+	        	font-size: 8pt;
+	        	padding: 0;
+	        	margin: 0;
+	        }
+	        .trOddClass {
+				background: #003242;
+				color: white;
+	        	font-size: 8pt;
+	        }
+	        .trSelectedClass {
+	        	background: #cedef3;
+	        }
+	        .trHoverClass {
+	        	background: #cedef3;
+	        }
+	        .cellClass {
+	        	border: 0;
+	        }
+	        .tdHeaderClass {
+	        	background: none;
+	        	background-color: #009bd0;
+	        }
+	        a {
+	        	color: #999;
+	        }
+		</style>
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	    <script type="text/javascript">
+	      google.load("visualization", "1", {packages:["table"]});
+	      google.setOnLoadCallback(drawTable);
+
+	      function drawTable() {
+	        var data = new google.visualization.DataTable();
+	        data.addColumn('number', 'Round');
+	        data.addColumn('string', 'White');
+	        data.addColumn('string', 'Black');
+	        data.addColumn('string', 'Result');
+	        data.addColumn('string', 'Ending Condition');
+	        data.addColumn('string', 'View');
+	        data.addColumn('string', 'Details');
+	        data.addColumn('string', 'Log');
+	        data.addColumn('string', 'Worker');
+			var cssClassNamesObj = {
+		        	headerRow: 'thClass',
+		        	tableRow: 'trClass',
+		        	oddTableRow: 'trOddClass',
+		        	selectedTableRow: 'trSelectedClass',
+		        	hoverTableRow: 'trHoverClass',
+		        	tableCell: 'cellClass',
+		        	headerCell: 'tdHeaderClass'
+				};
+
+			{{ range .GameList }}
+
+	        {
+		        var result = "", ending = "", view = "", details = "", log = "";
+		        var worker = "{{ .Site }}";
+		        if({{.Completed}} || ({{ .ResultDetail }}!="") ) {
+		        	result = ["1-0","0-1","1/2-1/2"][{{ .Result }}];
+		        	ending = '{{ .ResultDetail }}';
+		        	view = '<a href="../viewer/{{ .Round }}">View</a>';
+		        	details = '<a href="../round/{{ .Round }}">Details</a>';
+		        	log = '<a href="../logs/{{ $event }} round {{ .Round }}.log">Log</a>';
+				}
+				data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', result, ending, view, details, log, worker ] ]);
+			}
+			{{ end }}
+			var options = {
+				showRowNumber: false,
+				allowHtml: true,
+				cssClassNames: cssClassNamesObj
+			};
+	        
+	        var table = new google.visualization.Table(document.getElementById('table_div'));
+
+	        table.draw(data, options);
+	      }
+	    </script>
 	</head>
 	<body>
 		
-		<h1>{{ $event := .Event }}{{ $event }}</h1>
+		<h1>{{ $event }}</h1>
 
 		<h2>Game History</h2>
-		<table>
-			<tr>
-				<th>Round</th>
-				<th>White</th>
-				<th>Black</th>
-				<th>Result</th>
-				<th>Ending Condition</th>
-				<th>View</th>
-				<th>Details</th>
-				<th>Log</th>
-				<th>Worker</th>
-				<!-- <th>OpeningFEN</th> -->
-			</tr>
-			{{ range .GameList }}
-			<tr>
-				<td>{{ .Round }}</a></td>
-				<td>{{ (index .Player 0).Name }}</td>
-				<td>{{ (index .Player 1).Name }}</td>
-				<script>if({{.Completed}} || ({{ .ResultDetail }}!="") ) {
-						document.write('<td>');
-						document.write(["1-0","0-1","1/2-1/2"][{{ .Result }}]);
-						document.write('</td><td>{{ .ResultDetail }}</td><td><a href="../viewer/{{ .Round }}">View</a></td><td><a href="../round/{{ .Round }}">Details</a></td><td><a href="../logs/{{ $event }} round {{ .Round }}.log">Log</a></td>');
-					} else {
-						document.write('<td></td><td></td><td></td><td></td><td></td>');
-					}
-				</script>
-				<td>{{ .Site }}</td>
-				<!-- <td>{{ .StartingFEN }}</td> -->
-			</tr>
-			{{ end }}
-		</table>
+
+		<div id="table_div"></div>
 
 	</body>
 </html>

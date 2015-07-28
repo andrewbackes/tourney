@@ -17,34 +17,35 @@
 
 			.thClass {
 				background: black;
-				color: white;
-				font-size: 8pt;
+	        	color: white;
+	        	font-size: 8pt;
 			}
-			.trClass {
-				background: black;
-				color: white;
-				font-size: 8pt;
-				padding: 0;
-				margin: 0;
-			}
-			.trOddClass {
+	        .trClass {
+	        	background: black;
+	        	color: white;
+	        	font-size: 8pt;
+	        	padding: 0;
+	        	margin: 0;
+	        }
+	        .trOddClass {
 				background: #003242;
 				color: white;
-				font-size: 8pt;
-			}
-			.trSelectedClass {
-				background: #cedef3;
-			}
-			.trHoverClass {
-				background: #cedef3;
-			}
-			.cellClass {
-				border: 0;
-			}
-			.tdHeaderClass {
-				background: none;
-				background-color: #009bd0;
-			}
+	        	font-size: 8pt;
+	        }
+	        .trSelectedClass {
+	        	background: #cedef3;
+	        }
+	        .trHoverClass {
+	        	background: #cedef3;
+	        }
+	        .cellClass {
+	        	border: 0;
+	        }
+	        .tdHeaderClass {
+	        	background: none;
+	        	background-color: #009bd0;
+	        }
+
 		</style>
 		<script>
 			var color_blue = '#009bd0';
@@ -68,14 +69,184 @@
 			var startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 			var fens = [
-				{{ range $i, $v := .History }} "{{$v}}",
-				{{ end }}				
+				 "rnbqkbnr\/pppppppp\/8\/8\/8\/8\/PPPPPPPP\/RNBQKBNR w KQkq - 0 1",
+				 "rnbqkbnr\/pppppppp\/8\/8\/4P3\/8\/PPPP1PPP\/RNBQKBNR b KQkq e3 0 1",
+				 "rnbqkbnr\/pp1ppppp\/8\/2p5\/4P3\/8\/PPPP1PPP\/RNBQKBNR w KQkq c6 0 2",
+				 "rnbqkbnr\/pp1ppppp\/8\/2p5\/4P3\/5N2\/PPPP1PPP\/RNBQKB1R b KQkq - 0 2",
+				 "rnbqkbnr\/pp1p1ppp\/4p3\/2p5\/4P3\/5N2\/PPPP1PPP\/RNBQKB1R w KQkq - 0 3",
+				 "rnbqkbnr\/pp1p1ppp\/4p3\/2p5\/3PP3\/5N2\/PPP2PPP\/RNBQKB1R b KQkq d3 0 3",
+				 "rnbqkbnr\/pp1p1ppp\/4p3\/8\/3pP3\/5N2\/PPP2PPP\/RNBQKB1R w KQkq - 0 4",
+				 "rnbqkbnr\/pp1p1ppp\/4p3\/8\/3NP3\/8\/PPP2PPP\/RNBQKB1R b KQkq - 0 4",
+				 "rnbqkb1r\/pp1p1ppp\/4pn2\/8\/3NP3\/8\/PPP2PPP\/RNBQKB1R w KQkq - 0 5",
+				 "rnbqkb1r\/pp1p1ppp\/4pn2\/8\/3NP3\/2N5\/PPP2PPP\/R1BQKB1R b KQkq - 1 5",
+				 "rnbqkb1r\/pp3ppp\/3ppn2\/8\/3NP3\/2N5\/PPP2PPP\/R1BQKB1R w KQkq - 0 6",
+				 "rnbqkb1r\/pp3ppp\/3ppn2\/8\/3NP3\/2N5\/PPP1BPPP\/R1BQK2R b KQkq - 0 6",
+				 "r1bqkb1r\/pp3ppp\/2nppn2\/8\/3NP3\/2N5\/PPP1BPPP\/R1BQK2R w KQkq - 1 7",
+				 "r1bqkb1r\/pp3ppp\/2nppn2\/8\/3NP3\/2N1B3\/PPP1BPPP\/R2QK2R b KQkq - 1 7",
+				 "r2qkb1r\/pp1b1ppp\/2nppn2\/8\/3NP3\/2N1B3\/PPP1BPPP\/R2QK2R w KQkq - 2 8",
+				 "r2qkb1r\/pp1b1ppp\/2nppn2\/8\/3NPP2\/2N1B3\/PPP1B1PP\/R2QK2R b KQkq f3 0 8",
+				 "r2qk2r\/pp1bbppp\/2nppn2\/8\/3NPP2\/2N1B3\/PPP1B1PP\/R2QK2R w KQkq - 0 9",
+				 "r2qk2r\/pp1bbppp\/2nppn2\/1N6\/4PP2\/2N1B3\/PPP1B1PP\/R2QK2R b KQkq - 1 9",
+				 "rq2k2r\/pp1bbppp\/2nppn2\/1N6\/4PP2\/2N1B3\/PPP1B1PP\/R2QK2R w KQkq - 1 10",
+				 "rq2k2r\/pp1bbppp\/2nppn2\/1N6\/4PPP1\/2N1B3\/PPP1B2P\/R2QK2R b KQkq g3 0 10",
+				 "rq2k2r\/1p1bbppp\/p1nppn2\/1N6\/4PPP1\/2N1B3\/PPP1B2P\/R2QK2R w KQkq - 0 11",
+				 "rq2k2r\/1p1bbppp\/p1nppn2\/8\/4PPP1\/N1N1B3\/PPP1B2P\/R2QK2R b KQkq - 0 11",
+				 "rq2k2r\/3bbppp\/p1nppn2\/1p6\/4PPP1\/N1N1B3\/PPP1B2P\/R2QK2R w KQkq b6 0 12",
+				 "rq2k2r\/3bbppp\/p1nppn2\/1p4P1\/4PP2\/N1N1B3\/PPP1B2P\/R2QK2R b KQkq - 0 12",
+				 "rq2k2r\/3bbppp\/p1nppn2\/6P1\/1p2PP2\/N1N1B3\/PPP1B2P\/R2QK2R w KQkq - 0 13",
+				 "rq2k2r\/3bbppp\/p1nppP2\/8\/1p2PP2\/N1N1B3\/PPP1B2P\/R2QK2R b KQkq - 0 13",
+				 "rq2k2r\/3b1ppp\/p1nppb2\/8\/1p2PP2\/N1N1B3\/PPP1B2P\/R2QK2R w KQkq - 0 14",
+				 "rq2k2r\/3b1ppp\/p1nppb2\/8\/1pN1PP2\/2N1B3\/PPP1B2P\/R2QK2R b KQkq - 0 14",
+				 "rq2k2r\/3b1ppp\/p1nppb2\/8\/2N1PP2\/2p1B3\/PPP1B2P\/R2QK2R w KQkq - 0 15",
+				 "rq2k2r\/3b1ppp\/p1nppb2\/8\/2N1PP2\/1Pp1B3\/P1P1B2P\/R2QK2R b KQkq - 0 15",
+				 "rq2k2r\/3b1ppp\/p1npp3\/8\/2N1PP1b\/1Pp1B3\/P1P1B2P\/R2QK2R w KQkq - 0 16",
+				 "rq2k2r\/3b1ppp\/p1npp3\/8\/2N1PP1b\/1Pp1B3\/P1P1B2P\/R2Q1K1R b kq - 1 16",
+				 "rq3rk1\/3b1ppp\/p1npp3\/8\/2N1PP1b\/1Pp1B3\/P1P1B2P\/R2Q1K1R w - - 1 17",
+				 "rq3rk1\/3b1ppp\/p1nNp3\/8\/4PP1b\/1Pp1B3\/P1P1B2P\/R2Q1K1R b - - 0 17",
+				 "rq3rk1\/3b1ppp\/p1nN4\/4p3\/4PP1b\/1Pp1B3\/P1P1B2P\/R2Q1K1R w - - 0 18",
+				 "rq3rk1\/3b1ppp\/p1nN4\/4P3\/4P2b\/1Pp1B3\/P1P1B2P\/R2Q1K1R b - - 0 18",
+				 "rq3rk1\/5ppp\/p1nNb3\/4P3\/4P2b\/1Pp1B3\/P1P1B2P\/R2Q1K1R w - - 0 19",
+				 "rq3rk1\/5ppp\/p1nNb3\/4P3\/4P2b\/1PpQB3\/P1P1B2P\/R4K1R b - - 1 19",
+				 "rq3rk1\/5ppp\/p2Nb3\/4n3\/4P2b\/1PpQB3\/P1P1B2P\/R4K1R w - - 0 20",
+				 "rq3rk1\/5ppp\/p2Nb3\/4n3\/3QP2b\/1Pp1B3\/P1P1B2P\/R4K1R b - - 0 20",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4n3\/3QP2b\/1Pp1B3\/P1P1B2P\/R4K1R w - - 1 21",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4n3\/3QP2b\/1Pp1B3\/P1P1B2P\/3R1K1R b - - 1 21",
+				 "rq1r2k1\/5ppp\/p2Nb3\/8\/3QP1nb\/1Pp1B3\/P1P1B2P\/3R1K1R w - - 2 22",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4P3\/3Q2nb\/1Pp1B3\/P1P1B2P\/3R1K1R b - - 0 22",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4P3\/3Q3b\/1Pp1n3\/P1P1B2P\/3R1K1R w - - 0 23",
+				 "rq1r2k1\/5ppp\/p2Nb3\/4P3\/7b\/1Pp1Q3\/P1P1B2P\/3R1K1R b - - 0 23",
+				 "r2r2k1\/q4ppp\/p2Nb3\/4P3\/7b\/1Pp1Q3\/P1P1B2P\/3R1K1R w - - 0 24",
+				 "r2r2k1\/q4ppp\/p2Nb3\/4P3\/3Q3b\/1Pp5\/P1P1B2P\/3R1K1R b - - 1 24",
+				 "r2r2k1\/5ppp\/p2Nb3\/4P3\/3q3b\/1Pp5\/P1P1B2P\/3R1K1R w - - 0 25",
+				 "r2r2k1\/5ppp\/p2Nb3\/4P3\/3R3b\/1Pp5\/P1P1B2P\/5K1R b - - 0 25",
+				 "r2r2k1\/4bppp\/p2Nb3\/4P3\/3R4\/1Pp5\/P1P1B2P\/5K1R w - - 0 26",
+				 "r2r2k1\/4bppp\/p2Nb3\/4P3\/2BR4\/1Pp5\/P1P4P\/5K1R b - - 1 26",
+				 "r2r2k1\/4bppp\/p2N4\/4P3\/2bR4\/1Pp5\/P1P4P\/5K1R w - - 0 27",
+				 "r2r2k1\/4bppp\/p2N4\/4P3\/2R5\/1Pp5\/P1P4P\/5K1R b - - 0 27",
+				 "r2r2k1\/5ppp\/p2b4\/4P3\/2R5\/1Pp5\/P1P4P\/5K1R w - - 0 28",
+				 "r2r2k1\/5ppp\/p2P4\/8\/2R5\/1Pp5\/P1P4P\/5K1R b - - 0 28",
+				 "r5k1\/5ppp\/p2r4\/8\/2R5\/1Pp5\/P1P4P\/5K1R w - - 0 29",
+				 "r5k1\/5ppp\/p2r4\/8\/8\/1PR5\/P1P4P\/5K1R b - - 0 29",
+				 "4r1k1\/5ppp\/p2r4\/8\/8\/1PR5\/P1P4P\/5K1R w - - 0 30",
+				 "4r1k1\/5ppp\/p2r4\/8\/8\/1PR5\/P1P4P\/5KR1 b - - 1 30",
+				 "4r1k1\/6pp\/p2r4\/5p2\/8\/1PR5\/P1P4P\/5KR1 w - f6 0 31",
+				 "4r1k1\/6pp\/p2r4\/5p2\/8\/1PR5\/P1P3RP\/5K2 b - - 0 31",
+				 "4r1k1\/6pp\/p7\/5p2\/8\/1PR5\/P1P3RP\/3r1K2 w - - 1 32",
+				 "4r1k1\/6pp\/p7\/5p2\/8\/1PR5\/P1P2KRP\/3r4 b - - 1 32",
+				 "3r2k1\/6pp\/p7\/5p2\/8\/1PR5\/P1P2KRP\/3r4 w - - 2 33",
+				 "3r2k1\/6pp\/p7\/5p2\/8\/1PR1K3\/P1P3RP\/3r4 b - - 2 33",
+				 "3r2k1\/6pp\/p7\/5p2\/8\/1PR1K3\/P1P3RP\/4r3 w - - 3 34",
+				 "3r2k1\/6pp\/p7\/5p2\/8\/1PR2K2\/P1P3RP\/4r3 b - - 3 34",
+				 "4r1k1\/6pp\/p7\/5p2\/8\/1PR2K2\/P1P3RP\/4r3 w - - 4 35",
+				 "4r1k1\/6pp\/p7\/5p2\/8\/1P1R1K2\/P1P3RP\/4r3 b - - 4 35",
+				 "4r1k1\/7p\/p5p1\/5p2\/8\/1P1R1K2\/P1P3RP\/4r3 w - - 0 36",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P5RP\/4r3 b - c3 0 36",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P5RP\/5r2 w - - 0 37",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P4R1P\/5r2 b - - 1 37",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P4R1P\/4r3 w - - 1 38",
+				 "4r1k1\/7p\/p5p1\/5p2\/2P5\/1P1R1K2\/P2R3P\/4r3 b - - 2 38",
+				 "6k1\/7p\/p5p1\/4rp2\/2P5\/1P1R1K2\/P2R3P\/4r3 w - - 2 39",
+				 "3R2k1\/7p\/p5p1\/4rp2\/2P5\/1P3K2\/P2R3P\/4r3 b - - 3 39",
+				 "3R4\/6kp\/p5p1\/4rp2\/2P5\/1P3K2\/P2R3P\/4r3 w - - 3 40",
+				 "8\/3R2kp\/p5p1\/4rp2\/2P5\/1P3K2\/P2R3P\/4r3 b - - 4 40",
+				 "8\/3R3p\/p5pk\/4rp2\/2P5\/1P3K2\/P2R3P\/4r3 w - - 4 41",
+				 "8\/3R3p\/p5pk\/4rp2\/2P5\/1P3K2\/P1R4P\/4r3 b - - 5 41",
+				 "8\/3R3p\/p5pk\/2r2p2\/2P5\/1P3K2\/P1R4P\/4r3 w - - 5 42",
+				 "8\/7p\/p2R2pk\/2r2p2\/2P5\/1P3K2\/P1R4P\/4r3 b - - 6 42",
+				 "8\/7p\/3R2pk\/p1r2p2\/2P5\/1P3K2\/P1R4P\/4r3 w - - 0 43",
+				 "8\/7p\/6pk\/p1rR1p2\/2P5\/1P3K2\/P1R4P\/4r3 b - - 0 43",
+				 "8\/7p\/6pk\/p2r1p2\/2P5\/1P3K2\/P1R4P\/4r3 w - - 0 44",				
 			];
 
 			var game_data = [    
-				['Ply', 'Move', 'Score', 'Time', 'Depth'],
-				{{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }} [{{$i}}, "{{$v}}",{{ $analysis.Score }},{{ $analysis.Time }},{{ $analysis.Depth }}],
-				{{ end }}
+				 ['Ply', 'Move', 'Score', 'Time', 'Depth'],
+				 [ 0 , "e2e4", 0 , 0 , 0 ],
+				 [ 1 , "c7c5", 0 , 0 , 0 ],
+				 [ 2 , "g1f3", 0 , 0 , 0 ],
+				 [ 3 , "e7e6", 0 , 0 , 0 ],
+				 [ 4 , "d2d4", 0 , 0 , 0 ],
+				 [ 5 , "c5d4", 0 , 0 , 0 ],
+				 [ 6 , "f3d4", 0 , 0 , 0 ],
+				 [ 7 , "g8f6", 0 , 0 , 0 ],
+				 [ 8 , "b1c3", 0 , 0 , 0 ],
+				 [ 9 , "d7d6", 0 , 0 , 0 ],
+				 [ 10 , "f1e2", 0 , 0 , 0 ],
+				 [ 11 , "b8c6", 0 , 0 , 0 ],
+				 [ 12 , "c1e3", 0 , 0 , 0 ],
+				 [ 13 , "c8d7", 0 , 0 , 0 ],
+				 [ 14 , "f2f4", 0 , 0 , 0 ],
+				 [ 15 , "f8e7", 0 , 0 , 0 ],
+				 [ 16 , "d4b5", 97 , 878 , 12 ],
+				 [ 17 , "d8b8", -91 , 1525 , 12 ],
+				 [ 18 , "g2g4", 92 , 663 , 12 ],
+				 [ 19 , "a7a6", -50 , 667 , 13 ],
+				 [ 20 , "b5a3", 54 , 359 , 12 ],
+				 [ 21 , "b7b5", -58 , 385 , 12 ],
+				 [ 22 , "g4g5", 35 , 74 , 12 ],
+				 [ 23 , "b5b4", -10 , 301 , 12 ],
+				 [ 24 , "g5f6", -5 , 541 , 12 ],
+				 [ 25 , "e7f6", -3 , 409 , 12 ],
+				 [ 26 , "a3c4", 9 , 372 , 11 ],
+				 [ 27 , "b4c3", -14 , 366 , 11 ],
+				 [ 28 , "b2b3", 17 , 741 , 11 ],
+				 [ 29 , "f6h4", -11 , 529 , 11 ],
+				 [ 30 , "e1f1", 6 , 715 , 12 ],
+				 [ 31 , "e8g8", 4 , 543 , 11 ],
+				 [ 32 , "c4d6", 7 , 1453 , 11 ],
+				 [ 33 , "e6e5", 3 , 408 , 11 ],
+				 [ 34 , "f4e5", -6 , 695 , 11 ],
+				 [ 35 , "d7e6", 24 , 1098 , 11 ],
+				 [ 36 , "d1d3", -15 , 395 , 10 ],
+				 [ 37 , "c6e5", 54 , 774 , 13 ],
+				 [ 38 , "d3d4", -38 , 542 , 12 ],
+				 [ 39 , "f8d8", 38 , 642 , 12 ],
+				 [ 40 , "a1d1", -32 , 473 , 11 ],
+				 [ 41 , "e5g4", 38 , 422 , 11 ],
+				 [ 42 , "e4e5", -43 , 319 , 11 ],
+				 [ 43 , "g4e3", 35 , 393 , 12 ],
+				 [ 44 , "d4e3", -29 , 545 , 13 ],
+				 [ 45 , "b8a7", 35 , 395 , 12 ],
+				 [ 46 , "e3d4", -44 , 729 , 12 ],
+				 [ 47 , "a7d4", 65 , 398 , 13 ],
+				 [ 48 , "d1d4", -93 , 818 , 14 ],
+				 [ 49 , "h4e7", 91 , 394 , 13 ],
+				 [ 50 , "e2c4", -60 , 278 , 13 ],
+				 [ 51 , "e6c4", 67 , 410 , 14 ],
+				 [ 52 , "d4c4", -62 , 528 , 15 ],
+				 [ 53 , "e7d6", 72 , 515 , 15 ],
+				 [ 54 , "e5d6", -56 , 1528 , 15 ],
+				 [ 55 , "d8d6", 72 , 718 , 14 ],
+				 [ 56 , "c4c3", -52 , 3199 , 14 ],
+				 [ 57 , "a8e8", 71 , 750 , 13 ],
+				 [ 58 , "h1g1", -56 , 549 , 13 ],
+				 [ 59 , "f7f5", 51 , 2973 , 13 ],
+				 [ 60 , "g1g2", -43 , 398 , 11 ],
+				 [ 61 , "d6d1", 57 , 696 , 13 ],
+				 [ 62 , "f1f2", -27 , 731 , 13 ],
+				 [ 63 , "e8d8", 57 , 37 , 12 ],
+				 [ 64 , "f2e3", -21 , 1793 , 12 ],
+				 [ 65 , "d1e1", 40 , 466 , 11 ],
+				 [ 66 , "e3f3", -28 , 420 , 13 ],
+				 [ 67 , "d8e8", 30 , 787 , 13 ],
+				 [ 68 , "c3d3", 0 , 763 , 12 ],
+				 [ 69 , "g7g6", 27 , 610 , 11 ],
+				 [ 70 , "c2c4", 8 , 512 , 12 ],
+				 [ 71 , "e1f1", 16 , 1082 , 11 ],
+				 [ 72 , "g2f2", 19 , 521 , 13 ],
+				 [ 73 , "f1e1", 3 , 785 , 12 ],
+				 [ 74 , "f2d2", 25 , 517 , 13 ],
+				 [ 75 , "e8e5", -1 , 905 , 11 ],
+				 [ 76 , "d3d8", 29 , 1082 , 12 ],
+				 [ 77 , "g8g7", -20 , 326 , 12 ],
+				 [ 78 , "d8d7", 26 , 2200 , 12 ],
+				 [ 79 , "g7h6", -8 , 698 , 13 ],
+				 [ 80 , "d2c2", 31 , 799 , 12 ],
+				 [ 81 , "e5c5", -22 , 625 , 13 ],
+				 [ 82 , "d7d6", 62 , 878 , 15 ],
+				 [ 83 , "a6a5", -61 , 471 , 15 ],
+				 [ 84 , "d6d5", 51 , 1005 , 16 ],
+				 [ 85 , "c5d5", -38 , 767 , 17 ],
+				 [ 86 , "c4d5", 50 , 2852 , 18 ],
 			];
 
 		/* ********************************************************************************
@@ -83,19 +254,6 @@
 			POPULATE DATA VARIABLES:
 		
 		******************************************************************************** */
-
-			var SCORE_BOUND = 1800;
-			// Bound the scores so we don't have charts that overflow
-			for( var i = 1; i < game_data.length; i++ ) {
-				if (i % 2 == 0) {
-					game_data[i][2] = -game_data[i][2];
-				}
-				if(game_data[i][2] > SCORE_BOUND) {
-					game_data[i][2] = SCORE_BOUND;
-				} else if (game_data[i][2] < -SCORE_BOUND) {
-					game_data[i][2] = -SCORE_BOUND;
-				}
-			}
 
 			var max_score=game_data[1][2];
 			var max_time=game_data[1][3];
@@ -107,12 +265,10 @@
 			
 			var j = 1;
 			for( var i = 1; i < game_data.length-1; i+=2 ) {
-				if(-game_data[i][2] > max_score) { max_score = -game_data[i][2]; }
-				if(game_data[i+1][2] > max_score) { max_score = game_data[i+1][2]; }
+				if(game_data[i][2] > max_score) { max_score = game_data[i][2]; }
+				if(-game_data[i][2] > max_score) { max_score = game_data[i][2]; }
 				if(game_data[i][3] > max_time) { max_time = game_data[i][3]; }
-				if(game_data[i+1][3] > max_time) { max_time = game_data[i+1][3]; }
 				if(game_data[i][4] > max_depth) { max_depth = game_data[i][4]; }
-				if(game_data[i+1][4] > max_depth) { max_depth = game_data[i+1][4]; }
 
 				times.push( [ j, game_data[i][3]/1000, game_data[i+1][3]/1000 ]);
 				depths.push( [ j, game_data[i][4], game_data[i+1][4] ]);
@@ -259,7 +415,7 @@
 				google.visualization.events.addListener(timeChart, 'select', function () {
 			        var s = timeChart.getSelection();
 			        if (s[0] != null) {
-			        	var ply = ((s[0].row) * 2) + (s[0].column-1);
+			        	var ply = ((s[0].row-1) * 2) + (s[0].column-1);
 			        	selectPly(ply);
 			    	}
 	    		});
@@ -293,7 +449,7 @@
 				google.visualization.events.addListener(depthChart, 'select', function () {
 			        var s = depthChart.getSelection();
 			        if (s[0] != null) {
-			        	var ply = ((s[0].row) * 2) + (s[0].column-1);
+			        	var ply = ((s[0].row-1) * 2) + (s[0].column-1);
 			        	selectPly(ply);
 			    	}
 	    		});
@@ -317,7 +473,7 @@
 				google.visualization.events.addListener(scoreChart, 'select', function () {
 			        var s = scoreChart.getSelection();
 			        if (s[0] != null) {
-			        	var ply = ((s[0].row) * 2) + (s[0].column-1);
+			        	var ply = ((s[0].row-1) * 2) + (s[0].column-1);
 			        	selectPly(ply);
 			    	}
 	    		});
@@ -355,8 +511,8 @@
 			}
 
 			function selectPly(number) {
-				setBoard(fens[number+1]);
-				var data_row = parseInt(number / 2);
+				setBoard(fens[number +1]);
+				var data_row = parseInt(number / 2) + 1;
 				var data_col = 2;
 				if( number % 2 == 0 ) {
 					data_col = 1;

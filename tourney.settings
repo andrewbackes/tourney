@@ -1,0 +1,11 @@
+{
+  "WorkerDirectory": "worker/",
+  "LogDirectory": "logs/",
+  "TemplateDirectory": "templates/",
+  "SaveDirectory": "",
+  "BookDirectory": "books/",
+  "ServerPort": 9000,
+  "WebPort": 8080,
+  "EngineFilePort": 9001,
+  "MaxConnectionAttempts": 3
+}
