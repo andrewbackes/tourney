@@ -20,7 +20,7 @@
 			{{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}
 			<tr>
 				<td><script> if( ({{$i}}/2)%1==0 ) { document.write({{$i}}/2 +1); } </script></td>
-				<td><script> if( ({{$i}}/2)%1!=0 ) { document.write(" ... "); } </script> <a href="/round/{{ $r}}/ply/{{$i}}">{{ $v }}</a></td>
+				<td><script> if( ({{$i}}/2)%1!=0 ) { document.write(" ... "); } </script> <a href="view?display=ply&round={{$r}}&ply={{$i}}">{{ $v }}</a></td>
 				<td>{{ $analysis.Score }}</td>
 				<td>{{ $analysis.Depth }}</td>
 				<td>{{ $analysis.Time }}</td>
