@@ -72,9 +72,9 @@
 		        if({{.Completed}} || ({{ .ResultDetail }}!="") ) {
 		        	result = ["1-0","0-1","1/2-1/2"][{{ .Result }}];
 		        	ending = '{{ .ResultDetail }}';
-		        	view = '<a href="../viewer/{{ .Round }}">View</a>';
-		        	details = '<a href="../round/{{ .Round }}">Details</a>';
-		        	log = '<a href="../logs/{{ $event }} round {{ .Round }}.log">Log</a>';
+		        	view = '<a href="view?display=game&round={{ .Round }}">View</a>';
+		        	details = '<a href="view?display=round&round={{ .Round }}">Details</a>';
+		        	log = '<a href="logs/{{ $event }} round {{ .Round }}.log">Log</a>';
 				}
 				data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', result, ending, view, details, log, worker ] ]);
 			}
