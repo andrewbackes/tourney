@@ -25,9 +25,9 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 func renderNothingLoaded(w http.ResponseWriter) {
@@ -107,46 +107,60 @@ func renderGameViewer(w http.ResponseWriter, T *Tourney, round int) {
 	}
 }
 
-//func Broadcast(T *Tourney) error {
-//func Broadcast(TList *[]*Tourney, Tindex *int) error {
+func requestHandler(w http.ResponseWriter, req *http.Request, t *Tourney) {
+	q, err := url.ParseQuery(req.URL.RawQuery)
+	if err != nil {
+		//log.Println("Request Error: ", req.RemoteAddr, err, req.URL.RawQuery)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var query = make(map[string]string)
+	for k, v := range q {
+		query[k] = v[0]
+	}
+	round, _ := strconv.Atoi(query["round"])
+	ply, _ := strconv.Atoi(query["ply"])
+	if round == 0 {
+		round = 1
+	}
+	if ply == 0 {
+		ply = 1
+	}
+	if query["display"] == "standings" || query["display"] == "" {
+		renderTourneyPage(w, t)
+	} else if query["display"] == "game" {
+		renderGameViewer(w, t, round)
+	} else if query["display"] == "round" {
+		renderRoundPage(w, t, round)
+	} else if query["display"] == "ply" {
+		renderPlyPage(w, t, round, ply)
+	} else if query["display"] == "gamelist" {
+		renderGameListPage(w, t)
+	}
+
+}
+
+// Broadcast turns starts serving http for the tourney data.
+// examples:
+// 		http://localhost/view?display=standings
+// 		http://localhost/view?display=round&round=1
+// 		http://localhost/view?display=ply&ply=1
+// 		http://localhost/view?display=game&round=1
+// 		http://localhost/view?display=log&round=1
 func Broadcast(Tourneys *TourneyList) error {
 	//TODO: check that the tourney is valid
 
-	// Summary Requests:
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		renderTourneyPage(w, Tourneys.Selected())
+		http.Redirect(w, req, "/view", http.StatusFound)
 	})
 
-	// Game History Requests:
-	http.HandleFunc("/gamelist/", func(w http.ResponseWriter, req *http.Request) {
-		renderGameListPage(w, Tourneys.Selected())
+	http.HandleFunc("/view", func(w http.ResponseWriter, req *http.Request) {
+		requestHandler(w, req, Tourneys.Selected())
 	})
 
-	// Round Requests:
-	http.HandleFunc("/round/", func(w http.ResponseWriter, req *http.Request) {
-		request := strings.Trim(req.URL.Path[len("/round"):], "/")
-		words := strings.Split(request, "/")
-		if len(words) == 1 {
-			// just the round is being requested:
-			round, _ := strconv.Atoi(words[0])
-			renderRoundPage(w, Tourneys.Selected(), round)
-		} else if len(words) >= 3 && words[1] == "ply" {
-			round, _ := strconv.Atoi(words[0])
-			ply, _ := strconv.Atoi(words[2])
-			renderPlyPage(w, Tourneys.Selected(), round, ply)
-		}
-	})
-
-	// Game Viewer:
-	http.HandleFunc("/viewer/", func(w http.ResponseWriter, req *http.Request) {
-		request, _ := strconv.Atoi(strings.Trim(req.URL.Path[len("/viewer"):], "/"))
-		renderGameViewer(w, Tourneys.Selected(), request)
-	})
-	// Image files for Game Viewer:
-	http.Handle("/viewer/pieces/", http.StripPrefix("/viewer/pieces/", http.FileServer(http.Dir(filepath.Join(Settings.TemplateDirectory, "pieces")))))
-
+	// Set up a file server for resources such as scripts, images, etc.
+	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir(filepath.Join(Settings.TemplateDirectory, "resources")))))
 	// Log Requests:
-	//http.Handle("/logs/", http.FileServer(http.Dir("./")))
 	http.Handle("/logs/", http.StripPrefix("/logs/", http.FileServer(http.Dir(Settings.LogDirectory))))
 
 	// Start the server:
