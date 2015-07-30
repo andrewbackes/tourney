@@ -1,0 +1,39 @@
+#board_container {
+	width: 352px; height: 350px; position: relative; background-color: black; border: black solid 2px; }
+#board {
+	width: 336px;height:336px;position:absolute;left: 15px;top:0px;}
+.dark_square {
+	width:40px;height:40px;border:black solid 1px; background-color:gray;  }
+.light_square {
+	width:40px;height:40px;border:black solid 1px; background-color: white;   }
+
+.thClass {
+	background: black;
+	color: white;
+	font-size: 8pt;
+}
+.trClass {
+	background: black;
+	color: white;
+	font-size: 8pt;
+	padding: 0;
+	margin: 0;
+}
+.trOddClass {
+	background: #003242;
+	color: white;
+	font-size: 8pt;
+}
+.trSelectedClass {
+	background: #cedef3;
+}
+.trHoverClass {
+	background: #cedef3;
+}
+.cellClass {
+	border: 0;
+}
+.tdHeaderClass {
+	background: none;
+	background-color: #009bd0;
+}
