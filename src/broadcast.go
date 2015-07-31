@@ -40,7 +40,7 @@ func renderNothingLoaded(w http.ResponseWriter) {
 }
 
 func renderTemplate(w http.ResponseWriter, page string, obj interface{}) {
-	tmpl, err := template.ParseFiles(page)
+	tmpl, err := template.ParseFiles(page, filepath.Join(Settings.TemplateDirectory, "_header.html"))
 	if err != nil {
 		fmt.Println(err)
 		io.WriteString(w, fmt.Sprint("Error opening '", page, "' - ", err))
@@ -60,7 +60,6 @@ func renderTourneyPage(w http.ResponseWriter, T *Tourney) {
 		return
 	}
 	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "tourney.html"), T)
-
 }
 
 func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {

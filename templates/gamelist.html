@@ -3,108 +3,21 @@
 	<head>
 		{{ $event := .Event }}
 		<title>Game History</title>
-		<link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+		<script>
+			var title = "Game History";
+		</script>
+		<link href="resources/style.css" rel="stylesheet" type="text/css">
 		<style>
-			@import url(http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900);
-
-			html, body {
-				font-family: Roboto, Helvetica;
-				margin:0px;
-				padding:0px;
-				background-color: #282E3E;
+			#table_div {
+				width: 800px;
+				height: calc(100% - 175px);
+				clear: both;
 			}
-			h1 {
-				font-weight: 100;
-				font-size: 28px;
-				//text-decoration: underline;
-				padding-top: 10px;
-				margin-bottom: 0px;
-				padding-bottom: 0px;
-				color: white;
+			table {
+				width: 100%;
+				height: 100%;
 			}
-			.line {
-				width: 40%;
-				height: 1px;
-				background-color: white;
-			}
-			h2 {
-				margin-top:0px;
-				padding-top:0px;
-				font-weight: 100;
-				font-size: 125%;
-				color: #FADBA7;
-			}
-			a {
-	        	color: #CCC;
-	        	text-shadow: 1px 1px 5px #2D3440;
-	        }
-	        #main {
-	        	margin-left:auto;
-	        	margin-right:auto;
-	        	width: 800px;
-	        	height: 80%;
-	        	background: #232937;
-	        	height: 100%;
-	        	padding-left:10px;
-	        	padding-right:10px;
-	        	margin-top:0px;
-	        	margin-bottom:0px;
-	        }
-			/*
-					Google Table Style:
-			*/
-			.thClass {
-	        	color: white;
-	        	font-size: 8pt;
-	        	height: 30px;
-	        	text-align: center;
-	        	
-			}
-	        .trClass {
-	        	//background: #3C4457;
-	        	background-color: #2D3440;
-	        	color: white;
-	        	font-size: 8pt;
-
-	        }
-	        .trOddClass {
-				//background: #3C4457;
-				background-color: #2D3440;
-				color: white;
-	        	font-size: 8pt;
-	        }
-	        .trSelectedClass {
-	        	background: #999DA7;
-	        }
-	        .trHoverClass {
-	        	background: #999DA7;
-	        }
-	        .cellClass {
-	        	border: 0;
-	        	height: 30px;
-	        	//border-bottom: 1px solid #999DA7;
-	        	border-bottom: 1px solid #535863;
-	        }
-	        .tdHeaderClass {
-	        	background: none;
-	        	//background-color: #282E3E;
-	        	background-color: #333946;
-	        	//border-top: 1px solid #333845;
-	        	//border-bottom: 1px solid #999DA7;
-	        	border-bottom: 1px solid #535863;
-	        	color: #999DA7;
-	        	font-weight: 500;
-				font-size: 8pt;
-	        }
-	        #table_div {
-	        	width: 800px;
-	        	height: 85%;
-	        }
-	        table {
-	        	width: 100%;
-	        }
-	        
-	    </style>
+		</style>
 		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 	    <script type="text/javascript">
 	      google.load("visualization", "1", {packages:["table"]});
@@ -122,13 +35,12 @@
 	        data.addColumn('string', 'LOG');
 	        data.addColumn('string', 'LOCATION');
 			var cssClassNamesObj = {
-		        	headerRow: 'thClass',
 		        	tableRow: 'trClass',
 		        	oddTableRow: 'trOddClass',
 		        	selectedTableRow: 'trSelectedClass',
 		        	hoverTableRow: 'trHoverClass',
-		        	tableCell: 'cellClass',
-		        	headerCell: 'tdHeaderClass'
+		        	tableCell: 'tdClass',
+		        	headerCell: 'thClass'
 				};
 
 			{{ range .GameList }}
@@ -160,11 +72,13 @@
 	</head>
 	<body>
 		<div id="main">
-			<h1>{{ $event }}</h1>
-			<div class="line"></div>
-			<h2>Game History</h2>
+
+			{{ template "_header.html" . }}
 
 			<div id="table_div"></div>
+
+			{{ template "_footer.html" . }}
+			
 		</div>
 	</body>
 </html>

@@ -2,100 +2,148 @@
 <html>
 	<head>
 		<title>Standings</title>
+		<script> var title="Standings" </script>
+		<link href="resources/style.css" rel="stylesheet" type="text/css">
+		<style>
+			#info {
+				display: flex;
+			}
+			#infolocal {
+				flex-grow: 0;
+			}
+			#infocontrol {
+				flex-grow: 0;
+			}
+			#infobook {
+				flex-grow: 0;
+			}
+		</style>
 	</head>
+
 	<body>
-		
-		<h1>{{ $event := .Event }}{{ $event }} Standings</h1>
-		<h2>Info</h2>
+		<div id="main">
+			{{ template "_header.html" . }}
+			{{ $event := .Event }}
+			<div id="content">
+				<div id="info">
+					<div id="infolocal">
+						<table>
+							<tr>
+								<th>Event</th>
+								<td>{{ $event }}</td>
+							</tr>
+							<tr>
+								<th>Site</th>
+								<td>{{ .Site }}</td>
+							</tr>
+							<tr>
+								<th>Date</th>
+								<td>{{.Date}}</td>
+							</tr>
+						</table>
+					</div>
+					<div id="infocontrol">
+						<table>
+							<tr>
+								<th>Moves</th>
+								<td>{{.Moves}}</td>
+							</tr>
+							<tr>
+								<th>Time</th>
+								<td>{{.Time}}</td>
+							</tr>
+							<tr>
+								<th>Bonus Time</th>
+								<td>{{.BonusTime}}</td>
+							</tr>
+						</table>
+					</div>
+					<div id="infobook">
+						<table>
+							<tr>
+								<th>Book Moves</th>
+								<td>-</td>
+							</tr>
+							<tr>
+								<th>Randomized</th>
+								<td>-</td>
+							</tr>
+							<tr>
+								<th>Repeating</th>
+								<td>{{.Repeating}}</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div id="overall_standings">
+					<!-- Standings -->
+					<h3>Overall</h3>
+					<table>
+						<tr>
+							<th>#</th>
+							<th>Engine</th>
+							<th>W-L-D</th>
+							<th>Incomplete</th>
+							<th>Score</th>
+							<th>Played</th>
+							<th>Win %</th>
+						</tr>
+						{{ range $i, $v := .PlayerStandings.OverallStandings }}
+						<tr>
+							<td><script> document.write({{$i}}+1);</script></td>
+							<td>{{ .Name }}</td>
+							<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
+							<td>{{ .Incomplete }}</td>
+							<td>{{ .Score }}</td>
+							<td>{{.TotalGames}}</td>
+							<td>{{ .Rate }}%</td>
+						</tr>
+						{{ end }}
+					</table>
+				</div>
+				<div id="matchups">
+					<!-- Matchups -->
+					<h3>Matchups</h3>
+					{{ range $i, $player := .PlayerStandings.Players }}
+					<h4><script> document.write({{$i}}+1);</script>. {{$player}} (vs)</h4>
+					<table>
+						<tr>
+							<th>#</th>
+							<th>Engine</th>
+							<th>W-L-D</th>
+							<th>Incomplete</th>
+							<th>Score</th>
+							<th>Played</th>
+							<th>Win %</th>
+						</tr>
+						 {{ range $j, $record := $.PlayerStandings.MatchupStandings $player }}
+						<tr>
+							<td><script> document.write({{$j}}+1);</script></td>
+							<td>{{ .Name }}</td>
+							<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
+							<td>{{ .Incomplete }}</td>
+							<td>{{ .Score }}</td>
+							<td>{{.TotalGames}}</td>
+							<td>{{ .Rate }}%</td>
+						</tr>
+						{{ end }}
+					</table>
+					{{ end }}
+				</div>
+			</div>
 
-		<!-- Parameters -->
-		<table>
-			<tr>
-				<th>Event</th>
-				<td>{{ $event }}</td>
-			</tr>
-			<tr>
-				<th>Site</th>
-				<td>{{ .Site }}</td>
-			</tr>
-			<tr>
-				<th>Date</th>
-				<td>{{.Date}}</td>
-			</tr>
-		<table>
+			{{ template "_footer.html" . }}
 
-		<!-- Time Control -->
-		<table>
-			<tr>
-				<th>Moves</th>
-				<td>{{.Moves}}</td>
-			</tr>
-			<tr>
-				<th>Time</th>
-				<td>{{.Time}}</td>
-			</tr>
-			<tr>
-				<th>Bonus Time</th>
-				<td>{{.BonusTime}}</td>
-			</tr>
-			<tr>
-				<th>Repeating</th>
-				<td>{{.Repeating}}</td>
-			</tr>
-		</table>
+		</div>
 
-		<!-- Standings -->
-		<h2>Standings</h2>
-		<table>
-			<tr>
-				<th>#</th>
-				<th>Engine</th>
-				<th>W-L-D</th>
-				<th>Incomplete</th>
-				<th>Score</th>
-				<th>Played</th>
-				<th>Win %</th>
-			</tr>
-			{{ range $i, $v := .PlayerStandings.OverallStandings }}
-			<tr>
-				<td><script> document.write({{$i}}+1);</script></td>
-				<td>{{ .Name }}</td>
-				<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
-				<td>{{ .Incomplete }}</td>
-				<td>{{ .Score }}</td>
-				<td>{{.TotalGames}}</td>
-				<td>{{ .Rate }}%</td>
-			</tr>
-			{{ end }}
-		</table>
-
-		<!-- Matchups -->
-		<h2>Matchup Standings</h2>
-		{{ range $i, $player := .PlayerStandings.Players }}
-		<h3><script> document.write({{$i}}+1);</script>. {{$player}} (vs)</h3>
-		<table>
-			<tr>
-				<th>#</th>
-				<th>Engine</th>
-				<th>W-L-D</th>
-				<th>Incomplete</th>
-				<th>Score</th>
-				<th>Played</th>
-				<th>Win %</th>
-			</tr>
-			 {{ range $j, $record := $.PlayerStandings.MatchupStandings $player }}
-			<tr>
-				<td><script> document.write({{$j}}+1);</script></td>
-				<td>{{ .Name }}</td>
-				<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
-				<td>{{ .Incomplete }}</td>
-				<td>{{ .Score }}</td>
-				<td>{{.TotalGames}}</td>
-				<td>{{ .Rate }}%</td>
-			</tr>
-			{{ end }}
-		</table>
-		{{ end }}
-		<h3><a href="view?display=gamelist">Game History</a></h3>
+		<script>
+			tags = ["tr", "th", "td"];
+			for (var j=0; j < tags.length; j++ ) {
+				var elems = document.getElementsByTagName(tags[j]);
+				for (var i=0; i < elems.length; i++) {
+				     elems[i].className = tags[j] + "Class";
+				}
+			}
+		</script>
 	</body>
 </html>
