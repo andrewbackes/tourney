@@ -86,17 +86,14 @@ a {
 }
 #main {
 	width: 800px;
-	height: 100%;
+	//height: 100%;
 	background: #232937;
-	height: 100%;
 	padding-left:20px;
 	padding-right:20px;
 	margin: auto;
 	margin-top:0px;
 	margin-bottom:0px;
-
-	
-	
+	min-height: 100%;
 }
 /*
 	Table Style:

@@ -40,7 +40,7 @@ func renderNothingLoaded(w http.ResponseWriter) {
 }
 
 func renderTemplate(w http.ResponseWriter, page string, obj interface{}) {
-	tmpl, err := template.ParseFiles(page, filepath.Join(Settings.TemplateDirectory, "_header.html"))
+	tmpl, err := template.ParseFiles(page, filepath.Join(Settings.TemplateDirectory, "_header.html"), filepath.Join(Settings.TemplateDirectory, "_footer.html"))
 	if err != nil {
 		fmt.Println(err)
 		io.WriteString(w, fmt.Sprint("Error opening '", page, "' - ", err))
