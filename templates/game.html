@@ -3,46 +3,55 @@
 <html>
 	<head>
 		<title>Round {{$r}}</title>
+		<script> var title = "Round {{$r}}"; var eventTitle = "{{ .Event }}"; </script>
+		<link href="resources/style.css" rel="stylesheet" type="text/css">
 	</head>
 	<body>
-		<h1>Round {{ $r }}</h1>
-		<h2>Move List</h2>
-		<table id="movelist">
-			<tr>
-				<th>#</th>
-				<th>Move</th>
-				<th>Score</th>
-				<th>Depth</th>
-				<th>Time</th>
-				<th>Nodes</th>
-				<th>Pv</th>
-			</tr>
-			{{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}
-			<tr>
-				<td><script> if( ({{$i}}/2)%1==0 ) { document.write({{$i}}/2 +1); } </script></td>
-				<td><script> if( ({{$i}}/2)%1!=0 ) { document.write(" ... "); } </script> <a href="view?display=ply&round={{$r}}&ply={{$i}}">{{ $v }}</a></td>
-				<td>{{ $analysis.Score }}</td>
-				<td>{{ $analysis.Depth }}</td>
-				<td>{{ $analysis.Time }}</td>
-				<td>{{ $analysis.Nodes }}</td>
-				<td>{{ $analysis.Pv }}</td>
-			</tr>
-			{{ end }}
-		</table>
-		<h2>FEN History</h2>
-		<table id="fenhistory">
-			<tr>
-				<th>#</th>
-				<th>Ply</th>
-				<th>FEN</th>
-			</tr>
-			{{ range $i, $v := .History }}
-			<tr>
-				<td><script> if( ({{$i}}/2)%1==0 ) { document.write({{$i}}/2 +1); } </script></td>
-				<td>{{ $i }}</td>
-				<td>{{ $v }}</td>
-			</tr>
-			{{ end }}
-		</table>
+		<div id="main">
+			{{ template "_header.html" . }}
+			{{ $event := .Event }}
+			<div id="content">
+				<h3>Move List</h3>
+				<table id="movelist">
+					<tr>
+						<th>#</th>
+						<th>Move</th>
+						<th>Score</th>
+						<th>Depth</th>
+						<th>Time</th>
+						<th>Nodes</th>
+						<th>Pv</th>
+					</tr>
+					{{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }}
+					<tr>
+						<td><script> if( ({{$i}}/2)%1==0 ) { document.write({{$i}}/2 +1); } </script></td>
+						<td><script> if( ({{$i}}/2)%1!=0 ) { document.write(" ..."); } </script><a href="view?display=ply&round={{$r}}&ply={{$i}}">{{ $v }}</a></td>
+						<td>{{ $analysis.Score }}</td>
+						<td>{{ $analysis.Depth }}</td>
+						<td>{{ $analysis.Time }}</td>
+						<td>{{ $analysis.Nodes }}</td>
+						<td>{{ $analysis.Pv }}</td>
+					</tr>
+					{{ end }}
+				</table>
+				<h3>FEN History</h3>
+				<table id="fenhistory">
+					<tr>
+						<th>#</th>
+						<th>Ply</th>
+						<th>FEN</th>
+					</tr>
+					{{ range $i, $v := .History }}
+					<tr>
+						<td><script> if( ({{$i}}/2)%1==0 ) { document.write({{$i}}/2 +1); } </script></td>
+						<td>{{ $i }}</td>
+						<td>{{ $v }}</td>
+					</tr>
+					{{ end }}
+				</table>
+			</div>
+		</div>
+		{{ template "_footer.html" . }}
+		<script type="text/javascript" src="resources/styletables.js"></script>
 	</body>
 </html>

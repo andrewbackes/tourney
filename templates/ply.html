@@ -2,51 +2,71 @@
 <html>
 	<head>
 		<title>Ply Details</title>
+		<script> var title = "Round {{ .Round }} - Ply {{ .Ply }} "; var eventTitle = "{{ .Event }}"; </script>
+		<link href="resources/style.css" rel="stylesheet" type="text/css">
 	</head>
 	<body>
-		<h1>Ply Details</h1>
-		<h2></h2>
-		<table>
-			<tr>
-				<th>Move</th>
-				<td></td>
-			</tr>
-			<tr>
-				<th>Ponder Move</th>
-				<td>{{ .Ponder }}</td>
-			</tr>
-			<tr>
-				<th>Comment</th>
-				<td>{{ .Comment }}</td>
-			</tr>
-		</table>
-		<h2>Evaluation Output</h2>
-		<table>
-			<tr>
-				<th>Depth</th>
-				<th>SelDepth</th>
-				<th>Score</th>
-				<th>Bound</th>
-				<th>Time</th>
-				<th>Nodes</th>
-				<th>Pv</th>
-			</tr>
-			{{ range .Evaluation }}
-			<tr>
-				<td>{{ .Depth }}</td>
-				<td>{{ .Seldepth }}</td>
-				<td>{{ .Score }}</td>
-				<td><script> 
-					if({{.Lowerbound}}==true)
-						{document.write("Lower");}
-					else if({{.Upperbound}}==true)
-						{document.write("Upper");} 
-				</script></td>
-				<td>{{ .Time }}</td>
-				<td>{{ .Nodes }}</td>
-				<td>{{ .Pv }}</td>
-			</tr>
-			{{ end }}
-		</table>
+		<div id="main">
+			{{ template "_header.html" . }}
+			<div id="content">
+				<table>
+					<tr>
+						<th>Move</th>
+						<td>{{ .Move }}</td>
+					</tr>
+					<tr>
+						<th>Ponder Move</th>
+						<td>{{ .Ponder }}</td>
+					</tr>
+					<tr>
+						<th>Comment</th>
+						<td>{{ .Comment }}</td>
+					</tr>
+					<tr>
+						<th>FEN</th>
+						<td>{{ .FEN }}</td>
+					</tr>
+					<tr>
+						<th>Player</th>
+						<td>{{ .Player }}</td>
+					</tr>
+					<tr>
+						<th>Color</th>
+						<td><script> if( {{ .Ply }} % 2 == 0) { document.write("White"); } else { document.write("Black"); } </script></td>
+					</tr>
+
+				</table>
+				<h3>Evaluation Output</h3>
+				<table>
+					<tr>
+						<th>Depth</th>
+						<th>SelDepth</th>
+						<th>Score</th>
+						<th>Bound</th>
+						<th>Time</th>
+						<th>Nodes</th>
+						<th>Pv</th>
+					</tr>
+					{{ range .Evaluation }}
+					<tr>
+						<td>{{ .Depth }}</td>
+						<td>{{ .Seldepth }}</td>
+						<td>{{ .Score }}</td>
+						<td><script> 
+							if({{.Lowerbound}}==true)
+								{document.write("Lower");}
+							else if({{.Upperbound}}==true)
+								{document.write("Upper");} 
+						</script></td>
+						<td>{{ .Time }}</td>
+						<td>{{ .Nodes }}</td>
+						<td>{{ .Pv }}</td>
+					</tr>
+					{{ end }}
+				</table>
+			</div>
+		</div>
+		{{ template "_footer.html" . }}
+		<script type="text/javascript" src="resources/styletables.js"></script>
 	</body>
 </html>

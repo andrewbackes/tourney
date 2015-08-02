@@ -31,16 +31,19 @@ import (
 )
 
 func renderNothingLoaded(w http.ResponseWriter) {
-	io.WriteString(w, "No Tournament is loaded.\n")
-	io.WriteString(w, "From within Tourney, you can type: 'load [filename]' to load a .tourney file.\n")
-	io.WriteString(w, "To create a new .tourney file type 'new'.\n")
-	io.WriteString(w, "\n")
-	io.WriteString(w, "For a complete list of commands type 'commands'.\n")
-	io.WriteString(w, "Get help with a command by typing 'help [command]'.\n")
+	response := `
+		No Tournament is loaded.\n
+		From within Tourney, you can type: 'load [filename]' to load a .tourney file.\n
+		To create a new .tourney file type 'new'.\n
+		\n
+		For a complete list of commands type 'commands'.\n
+		Get help with a command by typing 'help [command]'.\n
+	`
+	io.WriteString(w, response)
 }
 
 func renderTemplate(w http.ResponseWriter, page string, obj interface{}) {
-	tmpl, err := template.ParseFiles(page)
+	tmpl, err := template.ParseFiles(page, filepath.Join(Settings.TemplateDirectory, "_header.html"), filepath.Join(Settings.TemplateDirectory, "_footer.html"))
 	if err != nil {
 		fmt.Println(err)
 		io.WriteString(w, fmt.Sprint("Error opening '", page, "' - ", err))
@@ -54,13 +57,12 @@ func renderTemplate(w http.ResponseWriter, page string, obj interface{}) {
 	}
 }
 
-func renderTourneyPage(w http.ResponseWriter, T *Tourney) {
+func renderStandingsPage(w http.ResponseWriter, T *Tourney) {
 	if T == nil {
 		renderNothingLoaded(w)
 		return
 	}
-	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "tourney.html"), T)
-
+	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "standings.html"), T)
 }
 
 func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
@@ -89,7 +91,29 @@ func renderPlyPage(w http.ResponseWriter, T *Tourney, round, ply int) {
 		return
 	}
 	if round < len(T.GameList) && round >= 0 {
-		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "ply.html"), T.GameList[round-1].AnalysisList[ply])
+		payload := struct {
+			Event      string
+			Round      int
+			Player     string
+			Ply        int
+			Move       Move
+			FEN        string
+			Ponder     string
+			Comment    string
+			Evaluation []EvaluationData
+		}{
+			Event:      T.Event,
+			Round:      round,
+			Player:     T.GameList[round-1].Player[ply%2].Name,
+			Ply:        ply,
+			Move:       T.GameList[round-1].MoveList[ply],
+			FEN:        T.GameList[round-1].History[ply],
+			Ponder:     T.GameList[round-1].AnalysisList[ply].Ponder,
+			Comment:    T.GameList[round-1].AnalysisList[ply].Comment,
+			Evaluation: T.GameList[round-1].AnalysisList[ply].Evaluation,
+		}
+
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "ply.html"), payload)
 	} else {
 		io.WriteString(w, "That is not a valid ply of a round in this Tourney.")
 	}
@@ -127,7 +151,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request, t *Tourney) {
 		ply = 1
 	}
 	if query["display"] == "standings" || query["display"] == "" {
-		renderTourneyPage(w, t)
+		renderStandingsPage(w, t)
 	} else if query["display"] == "game" {
 		renderGameViewer(w, t, round)
 	} else if query["display"] == "round" {
