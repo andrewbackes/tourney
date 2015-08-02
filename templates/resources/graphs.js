@@ -3,6 +3,7 @@
 	GRAPHS:
 
 ******************************************************************************** */
+
 	var color_blue = '#009bd0';
 	var color_lblue = '#cedef3';
 	var color_dblue = '#003242';
@@ -15,7 +16,6 @@
 	var time_color = ['white', color_green];
 	var depth_color = ['white', color_orange];
 	var score_color = ['white', color_purple];
-
 
 	var graph_width = 800;
 	var graph_height = 100;
@@ -33,6 +33,7 @@
     	drawDepthChart();
     	drawTable();
     }
+    
     function makeOptions(title, line_colors, axis_side) {
 	    return {
 			curveType: 'function',

@@ -94,7 +94,39 @@ a {
 	margin-top:0px;
 	margin-bottom:0px;
 	min-height: 100%;
+	padding-bottom: 20px;
 }
+
+#footer {
+	text-align: center;
+	//border-top: 2px solid #535863;
+	//border-top: 1px solid white;
+	//padding-top: 20px;
+	font-size: 10px;
+	color: #777;
+	//background: #282E3E;
+	background-color: #2D3440;
+	width:800px;
+	margin-left:auto;
+	margin-right:auto;
+	//margin-bottom: 10px;
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-bottom: 20px;
+	border-top: 1px solid #535863;
+}
+#footer a  {
+	color: #777;
+}
+.tourneylogo {
+	position: relative;
+	top:12px;
+	width: 30px;
+	height: 30px;
+	filter: invert(50%);
+	-webkit-filter: invert(50%);
+}
+
 /*
 	Table Style:
 */
