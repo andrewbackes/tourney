@@ -1,29 +1,38 @@
 <html>
 	<head>
 		<title>Game Dashboard</title>
+		<script> var title = "Game Analysis"; </script>
 		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 		<script>
 			google.load('visualization', '1.0', {packages: ['line', 'corechart', 'bar', 'table']});
 		</script>
-		<link href="resources/graph_style.css" rel="stylesheet" type="text/css">
+		<link href="resources/style.css" rel="stylesheet" type="text/css">
+		<style>
+			#board_movelist_container {
+				width:800px;height:350px;position:relative;
+			}
+			#board_container {
+				width: 352px; height: 350px; position: relative; background-color: #333946; border: #535863 solid 1px; margin-right: 8px;}
+			#board {
+				width: 336px;height:336px;position:absolute;left: 15px;top:0px;}
+			.dark_square {
+				width:40px;height:40px;border:black solid 1px; background-color:gray;  }
+			.light_square {
+				width:40px;height:40px;border:black solid 1px; background-color: white;   }
+			#time_chart {
+				margin-bottom:8px;
+			}
+			#depth_chart {
+				margin-bottom:8px;
+			}
+			#score_chart {
+				margin-top:8px;
+				
+			}
+		</style>
+		<script src="resources/graphs.js"></script>
 		<script>
-			var color_blue = '#009bd0';
-			var color_lblue = '#cedef3';
-			var color_dblue = '#003242';
-			var color_purple = '#993CF3';
-			var color_orange = '#e89800';
-			var color_green = '#7CBC2D';
-			var color_gray = '#808080';
-			var color_dgray = '#333';
 			
-			var time_color = ['white', color_green];
-			var time_grid = color_dgray;
-
-			var depth_color = ['white', color_orange];
-			var depth_grid = color_dgray;
-			
-			var score_color = ['white', color_purple];
-			var score_grid = color_dgray;
 
 			var startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -104,36 +113,43 @@
 
 		</script>
 		<script src="resources/board.js"></script>
-		<script src="resources/graphs.js"></script>
+		
 		
 	</head>
 	<body>
-		<div id="time_chart"></div>
-		<div id="depth_chart"></div>
-		<div width="800px" height="350px" style="width:800px;height:350px;position:relative;">
-			<div id="board_container" style="float:left;">
-				<div id="board">
-					<script>
-						for(i=0;i<64;i++) {
-							var rank = Math.floor(i/8)+1;
-							var file = Math.floor(i%8)+1;
-							var className = "dark_square";
-							if((i%2 == 1 && rank%2==1)||(i%2 == 0 && rank%2==0)) {className = "light_square";}
-							var b = Math.floor(i/8)*40;
-							var l = Math.floor(i%8)*40;
-							var idName = String.fromCharCode(96+file) + rank.toString();
-							document.write("<div class='"+className+"' id='"+idName+"' style='position:absolute;left:" + l + "px;bottom:" + b+ "px;'>"+idName+"</div>");
-						}
-					</script>
-				</div>
-	        </div>
-	        <div id="move_table" style="float:right;"></div>
-    	</div>
-		<div id="score_chart"></div>
-		<div id="timeline"></div>
-		<div id="debug"></div>
-		<script>
-			setNewBoard();
-		</script>
+		<div id="main">
+			{{ template "_header.html" . }}
+			{{ $event := .Event }}
+			<div id="content">
+				<h3>Round {{ .Round }}</h3>
+				<div id="time_chart"></div>
+				<div id="depth_chart"></div>
+				<div id="board_movelist_container">
+					<div id="board_container" style="float:left;">
+						<div id="board">
+							<script>
+								for(i=0;i<64;i++) {
+									var rank = Math.floor(i/8)+1;
+									var file = Math.floor(i%8)+1;
+									var className = "dark_square";
+									if((i%2 == 1 && rank%2==1)||(i%2 == 0 && rank%2==0)) {className = "light_square";}
+									var b = Math.floor(i/8)*40;
+									var l = Math.floor(i%8)*40;
+									var idName = String.fromCharCode(96+file) + rank.toString();
+									document.write("<div class='"+className+"' id='"+idName+"' style='position:absolute;left:" + l + "px;bottom:" + b+ "px;'>"+idName+"</div>");
+								}
+							</script>
+						</div>
+			        </div>
+			        <div id="move_table" style="float:right;"></div>
+		    	</div>
+				<div id="score_chart"></div>
+				<div id="timeline"></div>
+				<div id="debug"></div>
+				<script>
+					setNewBoard();
+				</script>
+			</div>
+		</div>
 	</body>
 </html>

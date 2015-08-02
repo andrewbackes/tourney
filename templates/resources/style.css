@@ -43,14 +43,13 @@ h4 {
 	color: white;
 }
 
-
 a {
 	color: #CCC;
 	text-shadow: 1px 1px 5px #2D3440;
 }
 #title {
 	float: left;
-	width: 40%;
+	min-width: 40%;
 }
 #content {
 	clear: both;
@@ -65,6 +64,7 @@ a {
 	float: right;
 	top: 0px;
 	right: 0px;
+	margin-bottom: 15px;
 }
 #menu a {
 	font-size: 16px;
