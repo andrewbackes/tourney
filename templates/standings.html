@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title>Standings</title>
-		<script> var title="Standings" </script>
+		<script> var title="Standings"; var eventTitle = "{{ .Event }}"; </script>
 		<link href="resources/style.css" rel="stylesheet" type="text/css">
 		<style>
 			#info {
@@ -133,15 +133,6 @@
 			</div>
 		</div>
 		{{ template "_footer.html" . }}
-
-		<script>
-			tags = ["tr", "th", "td"];
-			for (var j=0; j < tags.length; j++ ) {
-				var elems = document.getElementsByTagName(tags[j]);
-				for (var i=0; i < elems.length; i++) {
-				     elems[i].className = tags[j] + "Class";
-				}
-			}
-		</script>
+		<script type="text/javascript" src="resources/styletables.js"></script>
 	</body>
 </html>

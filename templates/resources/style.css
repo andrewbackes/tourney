@@ -77,11 +77,11 @@ a {
 .icon {
 	width:16px;
 	height:16px;
-	margin-left: 15px;
+	margin-left: 10px;
 	filter: invert(80%);
 	-webkit-filter: invert(80%);
 	position: relative;
-	bottom: -5px;
+	//bottom: -5px;
 	
 }
 #main {
