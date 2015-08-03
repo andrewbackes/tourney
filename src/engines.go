@@ -30,6 +30,7 @@ import (
 	"os"
 	"os/exec"
 	//"strconv"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -155,6 +156,7 @@ func (E *Engine) Start(logbuffer *string) error {
 	}
 
 	cmd := exec.Command(E.Path)
+	cmd.Dir = filepath.Dir(filepath.Abs(E.Path))
 
 	// Setup the pipes to communicate with the engine:
 	StdinPipe, errIn := cmd.StdinPipe()
