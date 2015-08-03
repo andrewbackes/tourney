@@ -2,7 +2,7 @@
   "WorkerDirectory": "worker/",
   "LogDirectory": "logs/",
   "TemplateDirectory": "templates/",
-  "SaveDirectory": "",
+  "SaveDirectory": "data/",
   "BookDirectory": "books/",
   "ServerPort": 9000,
   "WebPort": 8080,

@@ -488,7 +488,7 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 	// BUG:
 	// 		-Index out of range can occur when the .tourney file is loaded and generates games
 	//		 but then this .data file is loaded with potentially more games.
-	filename := T.filename + ".data"
+	filename := filepath.Join(Settings.SaveDirectory, T.filename+".data")
 	var err error
 	if _, err = os.Stat(filename); os.IsNotExist(err) {
 		// file doesnt exist

@@ -5,23 +5,23 @@
 	"Engines": [
 		{ 	
 			"Name": "Senpai", 
-			"Path": "/bin/engines/senpai", 
+			"Path": "/bin/engines/mac/senpai_10-osx-x64", 
 			"Protocol": "UCI"
 		},
 		{ 
 			"Name": "Crafty", 
-			"Path": "/bin/engines/crafty", 
+			"Path": "/bin/engines/mac/Crafty 23.4/crafty", 
 			"Protocol": "WINBOARD"  
 		}
 	],
-	"TestSeats": 1,
+	"TestSeats": 2,
 	"Carousel": true,
 	"Moves": 40,
 	"Time": 1000,
 	"Repeating": true,
 	"Rounds": 10,
 	"BookLocation": "default.book",
-	"BookMoves": 8,
+	"BookMoves": 4,
 	"RandomBook": false,
 	"BookMirroring": true
 }
