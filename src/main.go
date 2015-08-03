@@ -33,6 +33,7 @@ import (
 	//"strconv"
 	"strings"
 	//"runtime"
+	"path/filepath"
 	"sync"
 )
 
@@ -41,6 +42,12 @@ var Settings GlobalSettings
 const SettingsFile = "tourney.settings"
 
 func main() {
+	// Adjust working directory:
+	cd, er := filepath.Abs(filepath.Dir(os.Args[0]))
+	err := os.Chdir(cd)
+	if er != nil || err != nil {
+		fmt.Println("Could not change working directory to ", cd)
+	}
 
 	title := "Tourney"
 	fmt.Println("\n" + strings.Repeat(" ", (80-len(title))/2) + title + "\n")

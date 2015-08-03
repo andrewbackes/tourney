@@ -30,6 +30,7 @@ import (
 	"os"
 	"os/exec"
 	//"strconv"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -154,7 +155,9 @@ func (E *Engine) Start(logbuffer *string) error {
 		E.protocol = &WINBOARD{}
 	}
 
-	cmd := exec.Command(E.Path)
+	fullpath, _ := filepath.Abs(E.Path)
+	cmd := exec.Command(fullpath)
+	cmd.Dir, _ = filepath.Abs(filepath.Dir(E.Path))
 
 	// Setup the pipes to communicate with the engine:
 	StdinPipe, errIn := cmd.StdinPipe()
