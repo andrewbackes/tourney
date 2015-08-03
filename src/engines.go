@@ -158,7 +158,6 @@ func (E *Engine) Start(logbuffer *string) error {
 	fullpath, _ := filepath.Abs(E.Path)
 	cmd := exec.Command(fullpath)
 	cmd.Dir, _ = filepath.Abs(filepath.Dir(E.Path))
-	fmt.Println("Path changed to: ", cmd.Dir)
 
 	// Setup the pipes to communicate with the engine:
 	StdinPipe, errIn := cmd.StdinPipe()
