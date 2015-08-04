@@ -17,6 +17,9 @@
 			#infobook {
 				flex-grow: 0;
 			}
+			.matchup {
+				margin-left: 20px;
+			}
 		</style>
 	</head>
 
@@ -106,7 +109,7 @@
 					<h3>Matchups</h3>
 					{{ range $i, $player := .PlayerStandings.Players }}
 					<h4><script> document.write({{$i}}+1);</script>. {{$player}} (vs)</h4>
-					<table>
+					<table class="matchup">
 						<tr>
 							<th>#</th>
 							<th>Engine</th>
