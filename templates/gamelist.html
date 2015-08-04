@@ -9,6 +9,39 @@
 		</script>
 		<link href="resources/style.css" rel="stylesheet" type="text/css">
 		<style>
+			.filter_icon {
+				width:20px;
+				height:20px;
+				margin-right: 5px;
+				filter: invert(80%);
+				-webkit-filter: invert(80%);
+				position: relative;
+				top: 6px;
+			}
+			#dashboard {
+				clear: both;
+			}
+			#filter_div {
+				display: inline-block;
+			}
+			.filter_box > input {
+				background: #282E3E;
+				border: 1px solid #999DA7;
+				color: white;
+				width: 200px;
+				outline: none;
+				padding: 3px 0px 3px 3px;
+  				margin: 5px 1px 3px 0px;
+			}
+			.filter_box > input:focus {
+			  box-shadow: 0 0 5px white;
+			  padding: 3px 0px 3px 3px;
+			  margin: 5px 1px 3px 0px;
+			}
+			#filter_wrapper {
+				float:right;
+				margin-bottom: 10px;
+			}
 			#table_div {
 				width: 800px;
 				height: calc(100% - 175px);
@@ -16,13 +49,12 @@
 			}
 			table {
 				width: 100%;
-				height: 100%;
 			}
 		</style>
 		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 	    <script type="text/javascript">
-	      google.load("visualization", "1", {packages:["table"]});
-	      google.setOnLoadCallback(drawTable);
+	      google.load("visualization", "1", {packages:["table", "controls"]});
+	      
 
 	      function drawTable() {
 	        var data = new google.visualization.DataTable();
@@ -45,39 +77,73 @@
 				};
 
 			{{ range .GameList }}
-
-	        {
-		        var result = "", ending = "", view = "", details = "", log = "";
-		        var worker = "{{ .Site }}";
-		        if({{.Completed}} || ({{ .ResultDetail }}!="") ) {
-		        	result = ["1-0","0-1","1/2-1/2"][{{ .Result }}];
-		        	ending = '{{ .ResultDetail }}';
-		        	view = '<a href="view?display=game&round={{ .Round }}">Watch</a>';
-		        	details = '<a href="view?display=round&round={{ .Round }}">Details</a>';
-		        	log = '<a href="logs/{{ $event }} round {{ .Round }}.log">Log</a>';
-				}
-				data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', result, ending, view, details, log, worker ] ]);
-			}
-			{{ end }}
+			if({{.Completed}} || ({{ .ResultDetail }}!="") ) { data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', ["1-0","0-1","1/2-1/2"][{{ .Result }}], '{{ .ResultDetail }}', '<a href="view?display=game&round={{ .Round }}">Watch</a>', '<a href="view?display=round&round={{ .Round }}">Details</a>', '<a href="logs/{{ $event }} round {{ .Round }}.log">Log</a>', "{{ .Site }}" ] ]); } else { data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', "", "", "", "", "", "{{ .Site }}" ] ]); }{{ end }}
 			var options = {
 				showRowNumber: false,
 				allowHtml: true,
 				cssClassNames: cssClassNamesObj
 			};
-	        
-	        var table = new google.visualization.Table(document.getElementById('table_div'));
 
-	        table.draw(data, options);
+		    var columns = [{
+		        type: 'string',
+		        calc: function (dt, row) {
+		            for (var i = 0, vals = [], cols = dt.getNumberOfColumns(); i < cols; i++) {
+		                vals.push(dt.getFormattedValue(row, i));
+		            }
+		            return vals.join('\n');
+		        }
+		    }];
+		    for (var i = 0, cols = data.getNumberOfColumns(); i < cols; i++) {
+		        columns.push(i);
+		    }
+		    
+		    var filter = new google.visualization.ControlWrapper({
+		        controlType: 'StringFilter',
+		        containerId: 'filter_div',
+		        options: {
+		            filterColumnIndex: 0,
+		            matchType: 'any',
+		            caseSensitive: false,
+		            allowHtml: true,
+		            ui: {
+		                cssClass: 'filter_box',
+		            }
+		        },
+		        view: {
+		            columns: columns
+		        }
+		    });
+		    
+		    var table = new google.visualization.ChartWrapper({
+		        chartType: 'Table',
+		        containerId: 'table_div',
+		        options: {
+		        	showRowNumber: false,
+					allowHtml: true,
+					cssClassNames: cssClassNamesObj  
+		        },
+		        view: {
+		            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+		        }
+		    });
+		    
+		    var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard'));
+		    dashboard.bind([filter], [table]);
+		    dashboard.draw(data);
 	      }
+	      google.setOnLoadCallback(drawTable);
 	    </script>
 	</head>
 	<body>
 		<div id="main">
-
 			{{ template "_header.html" . }}
-
-			<div id="table_div"></div>
-
+			<div id="dashboard">
+				<div id="filter_wrapper">
+					<img src="resources/filter.png" alt="F" class="filter_icon">
+					<div id="filter_div"></div>
+				</div>
+				<div id="table_div"></div>
+			</div>
 		</div>
 		{{ template "_footer.html" . }}
 	</body>
