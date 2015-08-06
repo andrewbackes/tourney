@@ -133,3 +133,17 @@ func isNumber(s string) bool {
 	}
 	return true
 }
+
+/*******************************************************************************
+
+	Go specific helpers:
+
+*******************************************************************************/
+
+func IncrementMap(m map[string]int64, key string) map[string]int64 {
+	if m == nil {
+		m = make(map[string]int64)
+	}
+	m[key]++
+	return m
+}

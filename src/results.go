@@ -1,7 +1,7 @@
 /*******************************************************************************
 
  Project: Tourney
- Author(s): Andrew Backes, Daniel Sparks
+ Author(s): Andrew Backes
  Created: 8/11/2014
 
  Module: Results
@@ -13,6 +13,7 @@ TODO:
 	-Rework the result rollup in such a way that the html/template's are more
 	 user friendly.
 	-Use text/templates to display on screen results as well as save to files.
+	-rename this to standings.
 
 *******************************************************************************/
 
@@ -23,6 +24,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 	"text/template"
 )
 
@@ -33,12 +35,31 @@ type TourneyStandings struct {
 }
 
 type PlayerRecord struct {
-	Name       string
-	Wins       int64
-	Losses     int64
-	Draws      int64
-	Incomplete int64
-	Graph      []byte
+	Name                  string
+	Wins                  int64
+	Losses                int64
+	Draws                 int64
+	Incomplete            int64
+	Graph                 []byte
+	WinningConditionCount map[string]int64
+	DrawConditionCount    map[string]int64
+	LossingConditionCount map[string]int64
+}
+
+var DRAW_CONDITIONS = []string{
+	STALEMATE, FIFTY_MOVE, THREE_FOLD, INSUFFICIENT_MATERIAL,
+}
+var WIN_LOSS_CONDITIONS = []string{
+	CHECKMATE, TIMED_OUT, STOPPED_RESPONDING, ILLEGAL_MOVE,
+}
+
+func (P PlayerRecord) TrimmedName() string {
+	invalid := []string{"~", "!", "@", "$", "%", "^", "&", "*", "(", ")", "+", "=", ",", "."}
+	trimmed := P.Name
+	for _, v := range invalid {
+		strings.Replace(trimmed, v, "", -1)
+	}
+	return trimmed
 }
 
 func (P PlayerRecord) Score() float32 {
@@ -58,23 +79,28 @@ func (P PlayerRecord) TotalGames() int64 {
 	return P.Wins + P.Losses + P.Draws
 }
 
-//
-// Goes through the Tourney's game list and generates all of the records.
-// This function should not really be needed since after each game
-// the records should be updated.
-//
-func GenerateGameRecords(T *Tourney, drawGraph bool) *TourneyStandings {
+func NewTourneyStandings(T *Tourney) *TourneyStandings {
 	TourneyResults := TourneyStandings{}
 	TourneyResults.records = make(map[string]map[string]*PlayerRecord)
 	TourneyResults.records["All"] = make(map[string]*PlayerRecord)
 	for j, _ := range T.Engines {
 		TourneyResults.records[T.Engines[j].Name] = make(map[string]*PlayerRecord)
 	}
+	return &TourneyResults
+}
+
+//
+// Goes through the Tourney's game list and generates all of the records.
+// This function should not really be needed since after each game
+// the records should be updated.
+//
+func GenerateGameRecords(T *Tourney, drawGraph bool) *TourneyStandings {
+	TourneyResults := NewTourneyStandings(T)
 	for i, _ := range T.GameList {
 		TourneyResults.AddOrUpdateGame(&T.GameList[i], drawGraph, false)
 	}
 	//TourneyResults.SortKeys()
-	return &TourneyResults
+	return TourneyResults
 }
 
 //
@@ -110,32 +136,39 @@ func (R *TourneyStandings) AddOrUpdateGame(G *Game, updateGraph bool, update boo
 	if G.Completed == false && !update {
 		for i, _ := range rec {
 			rec[i].Incomplete++
-
 		}
-	} else if G.Result != DRAW {
-		rec[G.Result].Wins++
-		rec[G.Result+2].Wins++
-		rec[1-G.Result].Losses++
-		rec[(1-G.Result)+2].Losses++
+	} else {
 		if update {
 			for i, _ := range rec {
 				rec[i].Incomplete--
 			}
 		}
-		if updateGraph {
-			rec[G.Result].Graph = append(rec[G.Result].Graph, '1')
-			rec[G.Result+2].Graph = append(rec[G.Result+2].Graph, '1')
-			rec[1-G.Result].Graph = append(rec[1-G.Result].Graph, '0')
-			rec[(1-G.Result)+2].Graph = append(rec[(1-G.Result)+2].Graph, '0')
-		}
-	} else {
-		for i, _ := range rec {
-			rec[i].Draws++
+		if G.Result != DRAW {
+			rec[G.Result].Wins++
+			rec[G.Result].WinningConditionCount = IncrementMap(rec[G.Result].WinningConditionCount, G.EndingCondition())
+			rec[G.Result+2].Wins++
+			rec[G.Result+2].WinningConditionCount = IncrementMap(rec[G.Result+2].WinningConditionCount, G.EndingCondition())
+			rec[1-G.Result].Losses++
+			rec[1-G.Result].LossingConditionCount = IncrementMap(rec[1-G.Result].LossingConditionCount, G.EndingCondition())
+			rec[(1-G.Result)+2].Losses++
+			rec[(1-G.Result)+2].LossingConditionCount = IncrementMap(rec[(1-G.Result)+2].LossingConditionCount, G.EndingCondition())
 			if updateGraph {
-				rec[i].Graph = append(rec[i].Graph, '=')
+				rec[G.Result].Graph = append(rec[G.Result].Graph, '1')
+				rec[G.Result+2].Graph = append(rec[G.Result+2].Graph, '1')
+				rec[1-G.Result].Graph = append(rec[1-G.Result].Graph, '0')
+				rec[(1-G.Result)+2].Graph = append(rec[(1-G.Result)+2].Graph, '0')
+			}
+		} else {
+			for i, _ := range rec {
+				rec[i].Draws++
+				rec[i].DrawConditionCount = IncrementMap(rec[i].DrawConditionCount, G.EndingCondition())
+				if updateGraph {
+					rec[i].Graph = append(rec[i].Graph, '=')
+				}
 			}
 		}
 	}
+
 	R.records[w][b], R.records[b][w] = &rec[0], &rec[1]
 	R.records["All"][w], R.records["All"][b] = &rec[2], &rec[3]
 
@@ -151,6 +184,10 @@ func (R *TourneyStandings) AddOrUpdateGame(G *Game, updateGraph bool, update boo
 //
 func (S *TourneyStandings) OverallStandings() []*PlayerRecord {
 	return S.MatchupStandings("All")
+}
+
+func (S *TourneyStandings) OverallStandingsFor(player string) *PlayerRecord {
+	return S.records["All"][player]
 }
 
 //

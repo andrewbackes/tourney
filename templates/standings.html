@@ -3,6 +3,30 @@
 	<head>
 		<title>Standings</title>
 		<script> var title="Standings"; var eventTitle = "{{ .Event }}"; </script>
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		{{ $s := .PlayerStandings }}
+		<script>
+			google.load("visualization", "1", {packages:["corechart"]});
+			google.setOnLoadCallback(drawCharts);
+			function drawCharts() {
+				{{ range $i, $player := .PlayerStandings.Players }}
+				var data = google.visualization.arrayToDataTable([
+					['Condition', 'Count'],
+					{{ $p := $s.OverallStandingsFor $player }}
+					{{ range $cond, $count :=  $p.WinningConditionCount }}
+					["{{$cond}}","{{$count}}"],
+					{{end}}
+				]);
+				var options = {
+					title: 'Win',
+					pieHole: 0.4,
+				};
+				var chart = new google.visualization.PieChart(document.getElementById('{{$i}}_win_chart'));
+				chart.draw(data, options);
+				{{ end }}
+			}
+
+		</script>
 		<link href="resources/style.css" rel="stylesheet" type="text/css">
 		<style>
 			#info {
@@ -131,6 +155,8 @@
 						</tr>
 						{{ end }}
 					</table>
+					<div id="{{$i}}_win_chart" style="clear:both;">
+					<div id="{{$i}}_loss_chart" style="clear:both;">
 					{{ end }}
 				</div>
 			</div>

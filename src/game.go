@@ -46,6 +46,28 @@ const (
 	LONG  uint = 1
 )
 
+const (
+	CHECKMATE             string = "Checkmate"
+	STALEMATE             string = "Stalemate"
+	FIFTY_MOVE            string = "50 Move Rule"
+	THREE_FOLD            string = "Three fold repetition"
+	INSUFFICIENT_MATERIAL string = "Insufficient material"
+	ILLEGAL_MOVE          string = "Illegal move"
+	TIMED_OUT             string = "Out of time"
+	STOPPED_RESPONDING    string = "Timed out"
+)
+
+var ENDING_CONDITIONS = []string{
+	CHECKMATE,
+	STALEMATE,
+	FIFTY_MOVE,
+	THREE_FOLD,
+	INSUFFICIENT_MATERIAL,
+	ILLEGAL_MOVE,
+	TIMED_OUT,
+	STOPPED_RESPONDING,
+}
+
 type Game struct {
 
 	// Header info (General info, usually needed for pgn):
@@ -577,6 +599,15 @@ func NewGame() Game {
 	Getters:
 
 *******************************************************************************/
+
+func (G *Game) EndingCondition() string {
+	for _, v := range ENDING_CONDITIONS {
+		if strings.HasPrefix(G.ResultDetail, v) {
+			return v
+		}
+	}
+	return ""
+}
 
 func (G *Game) GetMoveAnalysis(index int) MoveAnalysis {
 	// TODO: load to and from file in this function

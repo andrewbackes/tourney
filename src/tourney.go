@@ -519,6 +519,7 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 				T.PlayerStandings.AddOrUpdateGame(&gamelist[i], false, true)
 			}
 		}
+
 		return true, nil
 	}
 	return false, nil
