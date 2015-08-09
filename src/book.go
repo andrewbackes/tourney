@@ -106,7 +106,7 @@ func (B *Book) String() string {
 	*/
 	var r string
 	for d, _ := range B.Positions {
-		r += "Depth " + strconv.Itoa(d+1) + ": " + strconv.Itoa(len(B.Positions[d])) + " positions.\n"
+		r += "Move #" + strconv.Itoa(d+1) + ": " + strconv.Itoa(len(B.Positions[d])) + " positions.\n"
 	}
 	return r
 }
