@@ -1,0 +1,552 @@
+<html>
+	<head>
+		<title>Standings</title>
+		<script> var title="Standings"; var eventTitle = "Dirty-Bit 0.39.5t5 Benchmark"; </script>
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		
+		<script>
+			google.load("visualization", "1", {packages:["corechart"]});
+			
+			function drawCharts() {
+					var win_data = new Array();
+					var loss_data = new Array();
+					var colors = {
+						/* [ '', '', '', '', ''], */
+						'pastels':   	[ '872187', '2966B8', '23819C', '59955C', '62A9FF', 'DFE32D' ],
+						'gray':  		[ '212121', '757575', '424242', '9E9E9E', '616161' ],
+						'blue_gray': 	[ '78909C', '546E7A', '607D8B', '455A64', '37474F' ],
+						'purple': 		[ '6A1B9A', '7B1FA2', '8E24AA', '9C27B0', 'AB47BC' ],
+						'deep_purple':  [ '4527A0', '673AB7', '512DA8', '7E57C2', '5E35B1' ],
+						'green': 		[ '9CCC65', '558B2F', '8BC34A', '689F38', '7CB342' ],
+						'indigo': 		[ '5C6BC0', '303F9F', '3949AB', '3F51B5', '283593' ],
+						'teal':   		[ '004D40', '00897B', '00695C', '009688', '00796B' ],
+						'themed':   	[ '282E3E', '2D3440', '535863', '333946'],
+					}
+					var options = {
+						title: 'Win',
+						pieHole: 0.4,
+						backgroundColor: '#232937',
+						colors: colors["themed"],
+						titleTextStyle: { 
+							color: 'white',
+							fontName: 'Roboto',
+							fontSize: 10,
+						},
+						legend: {
+							position: 'none',
+							textStyle: { color: 'white' }
+						},
+						chartArea:{left:"5%",top:"5%",width:'90%',height:'90%'},
+					};
+					win_data[0] = google.visualization.arrayToDataTable([
+						['Condition', 'Count'],
+						['Resigned',69],
+						['Checkmate',432],
+						['Illegal move',100],
+						['Out of time',117],
+						['Timed out',12],
+					]);
+					loss_data[0] = google.visualization.arrayToDataTable([
+						['Condition', 'Count'],
+						['Resigned',1],
+						['Checkmate',53],
+						['Illegal move',1],
+						['Out of time',2],
+						['Timed out',3],
+					]);
+					var win_chart_0 = new google.visualization.PieChart(document.getElementById('win_chart_0'));
+					win_chart_0.draw(win_data[0], options);
+					var loss_chart_0 = new google.visualization.PieChart(document.getElementById('loss_chart_0'));
+					loss_chart_0.draw(loss_data[0], options);
+				
+					win_data[1] = google.visualization.arrayToDataTable([
+						['Condition', 'Count'],
+						['Resigned',1],
+						['Checkmate',53],
+						['Illegal move',1],
+						['Out of time',2],
+						['Timed out',3],
+					]);
+					loss_data[1] = google.visualization.arrayToDataTable([
+						['Condition', 'Count'],
+						['Resigned',69],
+						['Checkmate',432],
+						['Illegal move',100],
+						['Out of time',117],
+						['Timed out',12],
+					]);
+					var win_chart_1 = new google.visualization.PieChart(document.getElementById('win_chart_1'));
+					win_chart_1.draw(win_data[1], options);
+					var loss_chart_1 = new google.visualization.PieChart(document.getElementById('loss_chart_1'));
+					loss_chart_1.draw(win_data[1], options);
+					/*
+					var win_data_2 = google.visualization.arrayToDataTable([
+						['Condition', 'Count'],
+						['Checkmate',45],
+						['Illegal move',1],
+						['Out of time',6],
+						['Timed out',1],
+					]);
+					var win_chart_2 = new google.visualization.PieChart(document.getElementById('win_chart_2'));
+					win_chart_2.draw(win_data_2, options);
+					*/
+			}
+			google.setOnLoadCallback(drawCharts);
+		</script>
+		<link href="resources/style.css" rel="stylesheet" type="text/css">
+		<style>
+			#info {
+				display: flex;
+			}
+			#infolocal {
+				flex-grow: 0;
+			}
+			#infocontrol {
+				flex-grow: 0;
+			}
+			#infobook {
+				flex-grow: 0;
+			}
+			.matchup {
+				margin-left: 20px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="main">
+			<div id="topbar">
+				<div id="title">
+					<h1><script> document.write(eventTitle); </script></h1>
+					<div class="line"></div>
+					<h2><script> document.write(title); </script></h2>
+				</div>
+				<div id="menu">
+					<div class="menu_link">
+						<a href="view?display=standings">Standings</a> <img src="resources/standings.png" alt="S" class="icon">
+					</div>
+					<div class="menu_link">
+						<a href="view?display=gamelist">Game History</a> <img src="resources/list.png" alt="G" class="icon">
+					</div>
+					<div class="menu_link">
+						<a href="view?display=game&round=1">Watch Games</a> <img src="resources/watch.png" alt="W" class="icon">
+					</div>
+					
+				</div>
+			</div>
+			
+			<div id="content">
+				<div id="info">
+					<div id="infolocal">
+						<table>
+							<tr>
+								<th>Event</th>
+								<td>Dirty-Bit 0.39.5t5 Benchmark</td>
+							</tr>
+							<tr>
+								<th>Site</th>
+								<td>localhost</td>
+							</tr>
+							<tr>
+								<th>Date</th>
+								<td>08.02.2015</td>
+							</tr>
+						</table>
+					</div>
+					<div id="infocontrol">
+						<table>
+							<tr>
+								<th>Moves per Control</th>
+								<td>40</td>
+							</tr>
+							<tr>
+								<th>Time</th>
+								<td>120000ms</td>
+							</tr>
+							<tr>
+								<th>Bonus Time</th>
+								<td>+0</td>
+							</tr>
+						</table>
+					</div>
+					<div id="infobook">
+						<table>
+							<tr>
+								<th>Book Moves</th>
+								<td>3</td>
+							</tr>
+							<tr>
+								<th>Randomized</th>
+								<td>false</td>
+							</tr>
+							<tr>
+								<th>Repeating</th>
+								<td>true</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div id="overall_standings">
+					
+					<h3>Overall</h3>
+					<table>
+						<tr>
+							<th>#</th>
+							<th>Engine</th>
+							<th>W-L-D</th>
+							<th>Incomplete</th>
+							<th>Score</th>
+							<th>Played</th>
+							<th>Win %</th>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 0 +1);</script></td>
+							<td>Dirty-Bit 0.39.5t5</td>
+							<td>730-328-143</td>
+							<td>-1</td>
+							<td>801.5</td>
+							<td>1201</td>
+							<td>66.73%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 1 +1);</script></td>
+							<td>AnMon</td>
+							<td>60-23-17</td>
+							<td>0</td>
+							<td>68.5</td>
+							<td>100</td>
+							<td>68.5%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 2 +1);</script></td>
+							<td>Sjakk 2.0 x64</td>
+							<td>53-21-26</td>
+							<td>0</td>
+							<td>66</td>
+							<td>100</td>
+							<td>66%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 3 +1);</script></td>
+							<td>Nejmet 3.07</td>
+							<td>48-35-17</td>
+							<td>0</td>
+							<td>56.5</td>
+							<td>100</td>
+							<td>56.5%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 4 +1);</script></td>
+							<td>Resp019</td>
+							<td>39-48-13</td>
+							<td>0</td>
+							<td>45.5</td>
+							<td>100</td>
+							<td>45.5%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 5 +1);</script></td>
+							<td>ECE12</td>
+							<td>31-50-19</td>
+							<td>0</td>
+							<td>40.5</td>
+							<td>100</td>
+							<td>40.5%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 6 +1);</script></td>
+							<td>Zeus 1.29</td>
+							<td>21-70-11</td>
+							<td>-2</td>
+							<td>26.5</td>
+							<td>102</td>
+							<td>25.98%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 7 +1);</script></td>
+							<td>Plisk</td>
+							<td>21-70-9</td>
+							<td>0</td>
+							<td>25.5</td>
+							<td>100</td>
+							<td>25.5%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 8 +1);</script></td>
+							<td>Adam 3.3</td>
+							<td>17-71-11</td>
+							<td>1</td>
+							<td>22.5</td>
+							<td>99</td>
+							<td>22.72%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 9 +1);</script></td>
+							<td>Clarabit_100_x32_win</td>
+							<td>16-73-11</td>
+							<td>0</td>
+							<td>21.5</td>
+							<td>100</td>
+							<td>21.5%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 10 +1);</script></td>
+							<td>ChessMind 0.82</td>
+							<td>15-76-9</td>
+							<td>0</td>
+							<td>19.5</td>
+							<td>100</td>
+							<td>19.5%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 11 +1);</script></td>
+							<td>Surprise</td>
+							<td>7-93-0</td>
+							<td>0</td>
+							<td>7</td>
+							<td>100</td>
+							<td>7%</td>
+						</tr>
+						
+						<tr>
+							<td><script> document.write( 12 +1);</script></td>
+							<td>Amateur282</td>
+							<td>0-100-0</td>
+							<td>0</td>
+							<td>0</td>
+							<td>100</td>
+							<td>0%</td>
+						</tr>
+						
+					</table>
+				</div>
+				<div id="matchups" style="position: relative;">
+					
+					<h3>Matchups</h3>
+					
+						<h4><script> document.write( 0 +1);</script>. Dirty-Bit 0.39.5t5 (vs)</h4>
+						<div style="display: inline-block;vertical-align: top;">
+
+						<table class="matchup" id="matchup_table_0">
+							<tr>
+								<th>#</th>
+								<th>Engine</th>
+								<th>W-L-D</th>
+								<th>Incomplete</th>
+								<th>Score</th>
+								<th>Played</th>
+								<th>Win %</th>
+							</tr>
+							 
+							<tr>
+								<td><script> document.write( 0 +1);</script></td>
+								<td>Amateur282</td>
+								<td>100-0-0</td>
+								<td>0</td>
+								<td>100</td>
+								<td>100</td>
+								<td>100%</td>
+							</tr>
+							
+							<tr>
+								<td><script> document.write( 1 +1);</script></td>
+								<td>Surprise</td>
+								<td>93-7-0</td>
+								<td>0</td>
+								<td>93</td>
+								<td>100</td>
+								<td>93%</td>
+							</tr>
+							
+							<tr>
+								<td><script> document.write( 2 +1);</script></td>
+								<td>ChessMind 0.82</td>
+								<td>76-15-9</td>
+								<td>0</td>
+								<td>80.5</td>
+								<td>100</td>
+								<td>80.5%</td>
+							</tr>
+							
+							<tr>
+								<td><script> document.write( 3 +1);</script></td>
+								<td>Clarabit_100_x32_win</td>
+								<td>73-16-11</td>
+								<td>0</td>
+								<td>78.5</td>
+								<td>100</td>
+								<td>78.5%</td>
+							</tr>
+							
+							<tr>
+								<td><script> document.write( 4 +1);</script></td>
+								<td>Adam 3.3</td>
+								<td>71-17-11</td>
+								<td>1</td>
+								<td>76.5</td>
+								<td>99</td>
+								<td>77.27%</td>
+							</tr>
+							
+							<tr>
+								<td><script> document.write( 5 +1);</script></td>
+								<td>Zeus 1.29</td>
+								<td>70-21-11</td>
+								<td>-2</td>
+								<td>75.5</td>
+								<td>102</td>
+								<td>74.01%</td>
+							</tr>
+							
+							<tr>
+								<td><script> document.write( 6 +1);</script></td>
+								<td>Plisk</td>
+								<td>70-21-9</td>
+								<td>0</td>
+								<td>74.5</td>
+								<td>100</td>
+								<td>74.5%</td>
+							</tr>
+							
+							<tr>
+								<td><script> document.write( 7 +1);</script></td>
+								<td>ECE12</td>
+								<td>50-31-19</td>
+								<td>0</td>
+								<td>59.5</td>
+								<td>100</td>
+								<td>59.5%</td>
+							</tr>
+							<tr>
+								<td><script> document.write( 8 +1);</script></td>
+								<td>Resp019</td>
+								<td>48-39-13</td>
+								<td>0</td>
+								<td>54.5</td>
+								<td>100</td>
+								<td>54.5%</td>
+							</tr>
+							<tr>
+								<td><script> document.write( 9 +1);</script></td>
+								<td>Nejmet 3.07</td>
+								<td>35-48-17</td>
+								<td>0</td>
+								<td>43.5</td>
+								<td>100</td>
+								<td>43.5%</td>
+							</tr>
+							
+							<tr>
+								<td><script> document.write( 10 +1);</script></td>
+								<td>Sjakk 2.0 x64</td>
+								<td>21-53-26</td>
+								<td>0</td>
+								<td>34</td>
+								<td>100</td>
+								<td>34%</td>
+							</tr>
+							
+							<tr>
+								<td><script> document.write( 11 +1);</script></td>
+								<td>AnMon</td>
+								<td>23-60-17</td>
+								<td>0</td>
+								<td>31.5</td>
+								<td>100</td>
+								<td>31.5%</td>
+							</tr>
+							
+						</table>
+					</div>
+					<div class="chart_container" style="margin-left: 20px;width: 210px; height: 450px;display: inline-block;vertical-align: top;">
+						<div style="position: relative; display: inline-block;background: yellow;">
+							<div id="win_chart_0" style="width: 200px; height: 200px;display: inline-block;"></div>
+							<div style="position: absolute; top: 90px; left: 80px; z-index: 100;color:white;">WINS</div>
+						</div>
+						<div style="position: relative; display: inline-block;background: yellow;">
+							<div id="loss_chart_0" style="width: 200px; height: 200px;background: black;display: inline-block;"></div>
+							<div style="position: absolute; top: 90px; left: 71px; z-index: 100;color:white;">LOSSES</div>
+						</div>
+					</div>
+				
+						<h4><script> document.write( 1 +1);</script>. AnMon (vs)</h4>
+						<table class="matchup" id="matchup_table_1">
+							<tr>
+								<th>#</th>
+								<th>Engine</th>
+								<th>W-L-D</th>
+								<th>Incomplete</th>
+								<th>Score</th>
+								<th>Played</th>
+								<th>Win %</th>
+							</tr>
+							<tr>
+								<td><script> document.write( 0 +1);</script></td>
+								<td>Dirty-Bit 0.39.5t5</td>
+								<td>60-23-17</td>
+								<td>0</td>
+								<td>68.5</td>
+								<td>100</td>
+								<td>68.5%</td>
+							</tr>
+						</table>
+					<div class="chart_container" style="width: 450px; height: 250px;">
+						<div id="win_chart_1" style="width: 200px; height: 200px; float: left;"></div>
+						<div id="loss_chart_1" style="width: 200px; height: 200px; background: black;float:right;"></div>
+					</div>
+					<!--
+					<h4><script> document.write( 2 +1);</script>. Sjakk 2.0 x64 (vs)</h4>
+					<table class="matchup"  id="matchup_table_3">
+						<tr>
+							<th>#</th>
+							<th>Engine</th>
+							<th>W-L-D</th>
+							<th>Incomplete</th>
+							<th>Score</th>
+							<th>Played</th>
+							<th>Win %</th>
+						</tr>
+						<tr>
+							<td><script> document.write( 0 +1);</script></td>
+							<td>Dirty-Bit 0.39.5t5</td>
+							<td>53-21-26</td>
+							<td>0</td>
+							<td>66</td>
+							<td>100</td>
+							<td>66%</td>
+						</tr>
+					</table>
+					
+					<div class="chart_container" style="position:relative;">
+						<div id="win_chart_2" style="width: 200px; height: 200px;">
+						<div id="loss_chart_2" style="width: 200px; height: 200px;">
+					</div>
+					-->
+				</div>
+			</div>
+		</div>
+		<div id="footer">
+	<div style="display: inline-block;width:125px;">
+		<a href="http://www.dirty-bit.com/tourney">tourney</a>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://github.com/andrewbackes/tourney">github</a>
+	</div>
+	<a href="http://www.dirty-bit.com/tourney"><img src="resources/tourney.png" class="tourneylogo"></a>
+	<div style="display: inline-block;width:125px;">
+		<a href="http://www.dirty-bit.com/tourney/features.html">about</a>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.dirty-bit.com/tourney/support.html">support</a>
+	</div>
+	
+</div>
+		<script type="text/javascript" src="resources/styletables.js"></script>
+	</body>
+</html>
