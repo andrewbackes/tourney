@@ -183,6 +183,30 @@ func (S *TourneyStandings) OverallStandingsFor(player string) *PlayerRecord {
 	return S.records["All"][player]
 }
 
+func (S *TourneyStandings) OverallStats() *PlayerRecord {
+	individual_records := S.OverallStandings()
+	overall := &PlayerRecord{
+		WinningConditionCount: make(map[string]int64),
+		DrawConditionCount:    make(map[string]int64),
+	}
+	for i, _ := range individual_records {
+		for k, v := range individual_records[i].WinningConditionCount {
+			t := overall.WinningConditionCount[k]
+			t += v
+			overall.WinningConditionCount[k] = t
+		}
+		for k, v := range individual_records[i].DrawConditionCount {
+			t := overall.DrawConditionCount[k]
+			t += v
+			overall.DrawConditionCount[k] = t
+		}
+	}
+	for k, v := range overall.DrawConditionCount {
+		overall.DrawConditionCount[k] = v / 2
+	}
+	return overall
+}
+
 //
 // Returns the records of all the opponents against the given player.
 // The records should be sorted before hand.

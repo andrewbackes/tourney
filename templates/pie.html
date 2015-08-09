@@ -189,7 +189,8 @@
 				<div id="overall_standings">
 					
 					<h3>Overall</h3>
-					<table>
+					<div>
+					<table style="display: inline-block;vertical-align: top;"">
 						<tr>
 							<th>#</th>
 							<th>Engine</th>
@@ -329,8 +330,18 @@
 							<td>100</td>
 							<td>0%</td>
 						</tr>
-						
 					</table>
+					<div class="chart_container" style="margin-left: 20px;width: 210px; height: 450px;display: inline-block;vertical-align: top;">
+						<div style="position: relative; display: inline-block;background: yellow;">
+							<div id="overall_wins" style="width: 200px; height: 200px;display: inline-block;"></div>
+							<div style="position: absolute; top: 90px; left: 80px; z-index: 100;color:white;">WINS</div>
+						</div>
+						<div style="position: relative; display: inline-block;background: yellow;">
+							<div id="overall_draws" style="width: 200px; height: 200px;background: black;display: inline-block;"></div>
+							<div style="position: absolute; top: 90px; left: 71px; z-index: 100;color:white;">DRAWS</div>
+						</div>
+					</div>
+					</div>
 				</div>
 				<div id="matchups" style="position: relative;">
 					
