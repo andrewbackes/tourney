@@ -3,6 +3,8 @@
 	<head>
 		<title>Standings</title>
 		<script> var title="Standings"; var eventTitle = "{{ .Event }}"; </script>
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		{{ $s := .PlayerStandings }}
 		<link href="resources/style.css" rel="stylesheet" type="text/css">
 		<style>
 			#info {
@@ -22,7 +24,6 @@
 			}
 		</style>
 	</head>
-
 	<body>
 		<div id="main">
 			{{ template "_header.html" . }}

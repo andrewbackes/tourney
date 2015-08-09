@@ -65,6 +65,14 @@ func renderStandingsPage(w http.ResponseWriter, T *Tourney) {
 	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "standings.html"), T)
 }
 
+func renderBookInfoPage(w http.ResponseWriter, T *Tourney) {
+	if T == nil {
+		renderNothingLoaded(w)
+		return
+	}
+	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "bookinfo.html"), T)
+}
+
 func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 	if T == nil {
 		renderNothingLoaded(w)
@@ -150,18 +158,20 @@ func requestHandler(w http.ResponseWriter, req *http.Request, t *Tourney) {
 	if ply == 0 {
 		ply = 1
 	}
-	if query["display"] == "standings" || query["display"] == "" {
+	switch query["display"] {
+	case "standings", "":
 		renderStandingsPage(w, t)
-	} else if query["display"] == "game" {
+	case "game":
 		renderGameViewer(w, t, round)
-	} else if query["display"] == "round" {
+	case "round":
 		renderRoundPage(w, t, round)
-	} else if query["display"] == "ply" {
+	case "ply":
 		renderPlyPage(w, t, round, ply)
-	} else if query["display"] == "gamelist" {
+	case "gamelist":
 		renderGameListPage(w, t)
+	case "bookinfo":
+		renderBookInfoPage(w, t)
 	}
-
 }
 
 // Broadcast turns starts serving http for the tourney data.

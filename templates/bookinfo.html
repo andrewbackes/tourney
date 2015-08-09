@@ -1,0 +1,69 @@
+<!-- Template for tourney results -->
+<html>
+	<head>
+		<title>Opening Book Information</title>
+		<script> var title="Opening Book Information"; var eventTitle = "{{ .Event }}"; </script>
+		<link href="resources/style.css" rel="stylesheet" type="text/css">
+		<style>
+			#infobook {
+				margin-bottom: 20px;
+				margin-right: 20px;
+				//display: inline-block;
+				float: left;
+			}
+			#depthinfo {
+				//display: inline-block;
+				float: left;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="main">
+			{{ template "_header.html" . }}
+			{{ $event := .Event }}
+			<div id="content">
+				<div id="infobook">
+					<h4>General Info</h4>
+					<table>
+						<tr>
+							<th>Book Moves</th>
+							<td>{{.BookMoves}}</td>
+						</tr>
+						<tr>
+							<th>Randomized</th>
+							<td>{{.RandomBook}}</td>
+						</tr>
+						<tr>
+							<th>Repeating</th>
+							<td>{{.Repeating}}</td>
+						</tr>
+						<tr>
+							<th>File</th>
+							<td>{{.BookLocation}}</td>
+						</tr>
+					</table>
+				</div>
+				<div id="depthinfo">
+					<h4>Available Positions</h4>
+					<table>
+						<tr>
+							<th>Depth (Moves)</th>
+							<th>Depth (Plies)</th>
+							<th># Positions</th>
+						</tr>
+						{{ range $i, $v := .OpeningBook.Positions }}
+						<tr>
+							<td><script> if(({{ $i }}+1)%2 ==0){ document.write(({{ $i }}+1)/2); }</script></td>
+							<td><script> document.write({{ $i }}+1);</script></td>
+							<td>{{ len $v }}</td>
+						</tr>
+						{{ end }}
+					</table>
+				</div>
+			</div>
+		</div>
+		{{ template "_footer.html" . }}
+		<script type="text/javascript" src="resources/styletables.js"></script>
+	</body>
+</html>

@@ -29,18 +29,18 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 		return nil
 	}
 
-	if T.openingBook == nil {
+	if T.OpeningBook == nil {
 		if book, err := LoadOrBuildBook(T.BookLocation, T.BookMoves, nil); err != nil {
 			return err
 		} else {
-			T.openingBook = book
+			T.OpeningBook = book
 		}
 	}
 
 	/*
 		if GameIndex == 0 {
 			// need to build the Tourney's book iterator:
-			if err := mapBookIterator(T, T.openingBook); err != nil {
+			if err := mapBookIterator(T, T.OpeningBook); err != nil {
 				return err
 			}
 		}
@@ -61,11 +61,11 @@ func PlayOpening(T *Tourney, GameIndex int) error {
 	var err error
 
 	// Find the next opening to play:
-	if fen, err = (T.openingBook).nextOpening(T, GameIndex); err != nil {
+	if fen, err = (T.OpeningBook).nextOpening(T, GameIndex); err != nil {
 		return err
 	}
 	// Play it:
-	opening := T.openingBook.Positions[T.BookMoves-1][fen]
+	opening := T.OpeningBook.Positions[T.BookMoves-1][fen]
 	if err = applyOpeningToGame(opening, fen, &(T.GameList[GameIndex])); err != nil {
 		return err
 	}
