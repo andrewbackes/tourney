@@ -54,8 +54,8 @@
 						</tr>
 						{{ range $i, $v := .OpeningBook.Positions }}
 						<tr>
-							<td><script> if(({{ $i }}+1)%2 ==0){ document.write(({{ $i }}+1)/2); }</script></td>
 							<td><script> document.write({{ $i }}+1);</script></td>
+							<td><script> document.write(({{ $i }}+1)*2);</script></td>
 							<td>{{ len $v }}</td>
 						</tr>
 						{{ end }}
