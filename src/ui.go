@@ -504,7 +504,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"bookinfo"},
 			desc:  "Shows information about the opening book for the current tourney.",
 			f: func() {
-				fmt.Println(T.openingBook.String())
+				fmt.Println(T.OpeningBook.String())
 				return
 			}},
 		/*******************************************************************************

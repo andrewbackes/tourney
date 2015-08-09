@@ -46,13 +46,6 @@ type PlayerRecord struct {
 	LossingConditionCount map[string]int64
 }
 
-var DRAW_CONDITIONS = []string{
-	STALEMATE, FIFTY_MOVE, THREE_FOLD, INSUFFICIENT_MATERIAL,
-}
-var WIN_LOSS_CONDITIONS = []string{
-	CHECKMATE, TIMED_OUT, STOPPED_RESPONDING, ILLEGAL_MOVE,
-}
-
 func (P PlayerRecord) TrimmedName() string {
 	invalid := []string{"~", "!", "@", "$", "%", "^", "&", "*", "(", ")", "+", "=", ",", "."}
 	trimmed := P.Name

@@ -100,7 +100,7 @@ type Tourney struct {
 	// Once all of the openings have been used, circle back around and use them again:
 	RepeatOpenings bool
 
-	openingBook *Book // points to internal book data.
+	OpeningBook *Book // points to internal book data.
 
 	QuitAfter bool // Quit after the tourney is complete.
 
@@ -562,8 +562,8 @@ func LoadFile(filename string) (*Tourney, error) {
 			fmt.Println("Failed to load opening book:", err)
 			return nil, err
 		} else {
-			T.openingBook = book
-			//fmt.Print("Success. (", len(T.openingBook.Positions[T.BookMoves-1]), " unique openings.)\n")
+			T.OpeningBook = book
+			//fmt.Print("Success. (", len(T.OpeningBook.Positions[T.BookMoves-1]), " unique openings.)\n")
 		}
 	}
 

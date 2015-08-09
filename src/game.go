@@ -48,6 +48,7 @@ const (
 
 const (
 	CHECKMATE             string = "Checkmate"
+	RESIGNED              string = "Resigned"
 	STALEMATE             string = "Stalemate"
 	FIFTY_MOVE            string = "50 Move Rule"
 	THREE_FOLD            string = "Three fold repetition"
@@ -59,6 +60,7 @@ const (
 
 var ENDING_CONDITIONS = []string{
 	CHECKMATE,
+	RESIGNED,
 	STALEMATE,
 	FIFTY_MOVE,
 	THREE_FOLD,
@@ -206,7 +208,7 @@ func ExecuteNextTurn(G *Game) bool {
 
 	// Check for nullmove/resign:
 	if parsedMove == "0000" {
-		G.GameOver(color, []string{"White", "Black"}[color]+" resigned.")
+		G.GameOver(color, RESIGNED)
 		return true
 	}
 
