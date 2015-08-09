@@ -67,8 +67,9 @@
 					elem.parentElement.remove();
 				}
 				var tbl = document.getElementById('overall_table');
-				if(tbl.style.height < (container.style.height/2)) {
-					container.style.width = "400px";
+				if(tbl.offsetHeight < (container.offsetHeight/2)) {
+					container.style.width = "450px";
+					container.style.height = "200px";
 				}
 			}
 			google.setOnLoadCallback(drawPieCharts);

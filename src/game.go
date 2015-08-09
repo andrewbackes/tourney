@@ -83,6 +83,8 @@ type Game struct {
 	Repeating   bool
 	Player      [2]Engine // white=0,black=1
 	StartingFEN string    // first position out of the book
+	StartTime   time.Time
+	EndTime     time.Time
 
 	// Control info:
 	Timer     [2]int64 //the game clock for each side. milliseconds.
@@ -124,6 +126,7 @@ func PlayGame(G *Game) error {
 	y, m, d := time.Now().Date()
 	hr, min, sec := time.Now().Clock()
 	G.Date = fmt.Sprint(y, ".", int(m), ".", d, " ", hr, ":", min, ":", sec) // TODO: this is not valid PGN format.
+	G.StartTime = time.Now()
 	// Start up the engines:
 	defer G.Player[WHITE].Shutdown()
 	if err := G.Player[WHITE].Start(&G.logBuffer); err != nil {
@@ -167,6 +170,7 @@ func PlayGame(G *Game) error {
 	//G.Player[BLACK].Shutdown()
 
 	//G.AppendLog()
+	G.EndTime = time.Now()
 	return nil
 }
 
@@ -601,6 +605,14 @@ func NewGame() Game {
 	Getters:
 
 *******************************************************************************/
+
+func (G *Game) Duration() string {
+	if G.Completed {
+		d := G.EndTime.Sub(G.StartTime)
+		return d.String()
+	}
+	return "In Progress"
+}
 
 func (G *Game) EndingCondition() string {
 	for _, v := range ENDING_CONDITIONS {
