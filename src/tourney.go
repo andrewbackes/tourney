@@ -809,6 +809,7 @@ func (T *Tourney) WorkerStats() map[string]WorkerData {
 	for i, _ := range T.GameList {
 		name := T.GameList[i].Site
 		stats := r[name]
+		stats.Name = name
 		if T.GameList[i].Completed {
 			stats.Completed++
 		} else {
@@ -823,7 +824,7 @@ func (T *Tourney) WorkerStats() map[string]WorkerData {
 		r[name] = stats
 	}
 	if stats, exists := r[""]; exists {
-		r["locahost"] = stats
+		r["localhost"] = stats
 		delete(r, "")
 	}
 	return r

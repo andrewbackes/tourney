@@ -1,0 +1,103 @@
+<!-- Template for tourney results -->
+<html>
+	<head>
+		<title>Network Information</title>
+		<script> var title="Network Information"; var eventTitle = "{{ .Event }}"; </script>
+		<link href="resources/style.css" rel="stylesheet" type="text/css">
+		<style>
+			div.greenlight {
+				width: 12px;
+				height: 12px;
+				border-radius: 6px;
+				background-color: #558B2F;
+			}
+			div.redlight {
+				width: 12px;
+				height: 12px;
+				border-radius: 6px;
+				background-color: #B71C1C;
+			}
+		</style>
+		<script>
+			var worker_data = [
+				["Worker", "Rounds Played", "Status", "Connected"],
+			];
+		</script>
+	</head>
+
+	<body>
+		<div id="main">
+			{{ template "_header.html" . }}
+			{{ $event := .Event }}
+			<div id="content">
+				<!-- CONENCTED WORKERS -->
+				<h3>Connected Workers</h3>
+				{{ if .NetworkManager }}
+				<table>
+					{{ $cw := .ConnectedWorkers }}
+					{{ range $i, $name := $cw }}
+					<tr>
+						<td>{{ $name }}</td>
+					</tr>
+					{{ end }}
+					{{ $cwlen := len $cw }}
+					{{ if eq $cwlen 0}}
+					<tr>
+						<td>None</td>
+					</tr>
+					{{ end}}
+				</table>
+				{{ else }}
+				<table>
+					<tr>
+						<td>None</td>
+					</tr>
+				</table>
+				{{ end }}
+				<!-- IN PROGRESS -->
+				<h3>In Progress</h3>
+				{{ $rip := .RoundsInProgress }}
+				{{ $riplen := len $rip }}
+				{{ if eq $riplen 0 }}
+				<table>
+					<tr>
+						<td>None</td>
+					</tr>
+				</table>
+				{{ else }}
+				<table>
+					<tr>
+						<th>Round</th>
+					</tr>
+					{{ range $i, $round := $rip }}
+						<tr>
+							<td>{{ $round }}</td>
+						</tr>
+					{{ end }}
+					</table>
+				{{ end }}
+				<!-- STATUS -->
+				<h3>Status</h3>
+				<table>	
+				<tr>
+					<th></th>
+					<th>Worker</th>
+					<th>Rounds Played</th>
+					<th>Status</th>
+				</tr>
+				{{ $ws := .WorkerStats }}
+				{{ range $name, $stats := $ws }}
+				<tr>
+					<td>{{ if eq $stats.Connected true }}<div class="greenlight"></div>{{ else }}<div class="redlight"></div>{{ end }}</td>
+					<td>{{$name}}</td>
+					<td>{{$stats.Completed}}</td>
+					<td>{{ if eq $stats.Connected true }}Assigned Round {{$stats.InProgress}} @ {{$stats.Timestamp}}{{else}}Disconnected{{end}}</td>
+				</tr>
+				{{ end }}
+				</table>
+			</div>
+		</div>
+		{{ template "_footer.html" . }}
+		<script type="text/javascript" src="resources/styletables.js"></script>
+	</body>
+</html>
