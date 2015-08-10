@@ -30,6 +30,14 @@ import (
 	"time"
 )
 
+type WorkerData struct {
+	Name       string
+	Completed  int
+	InProgress int
+	Timestamp  time.Time
+	Connected  bool
+}
+
 // Wrapper for functions to be played with net/rpc :
 type Worker struct {
 	// To be used by the Work Manager:

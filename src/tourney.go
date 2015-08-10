@@ -106,6 +106,7 @@ type Tourney struct {
 
 	GameList        []Game //list of all games in the tourney. populated when the tourney starts
 	PlayerStandings TourneyStandings
+	NetworkManager  *WorkManager
 
 	Done chan struct{}
 }
@@ -780,4 +781,51 @@ func (T *Tourney) SetTimeControl(moves, time, bonus int64, repeating bool) {
 func (T *Tourney) SetRounds(num int) {
 	T.Rounds = num
 	T.GenerateGames()
+}
+
+func (T *Tourney) ConnectedWorkers() []string {
+	r := []string{}
+	if T.NetworkManager == nil {
+		return nil
+	}
+	for k, _ := range T.NetworkManager.ConnectedWorkers {
+		r = append(r, k.Address.String())
+	}
+	return r
+}
+
+func (T *Tourney) RoundsInProgress() []int {
+	r := []int{}
+	for i, _ := range T.GameList {
+		if !T.GameList[i].Completed && T.GameList[i].Site != "" {
+			r = append(r, (i + 1))
+		}
+	}
+	return r
+}
+
+func (T *Tourney) WorkerStats() map[string]WorkerData {
+	r := make(map[string]WorkerData)
+	for i, _ := range T.GameList {
+		name := T.GameList[i].Site
+		stats := r[name]
+		stats.Name = name
+		if T.GameList[i].Completed {
+			stats.Completed++
+		} else {
+			stats.InProgress = i + 1
+			stats.Timestamp = T.GameList[i].StartTime
+		}
+		r[name] = stats
+	}
+	for _, name := range T.ConnectedWorkers() {
+		stats := r[name]
+		stats.Connected = true
+		r[name] = stats
+	}
+	if stats, exists := r[""]; exists {
+		r["localhost"] = stats
+		delete(r, "")
+	}
+	return r
 }

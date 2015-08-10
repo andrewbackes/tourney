@@ -30,6 +30,7 @@ import (
 	"net/rpc"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type WorkManager struct {
@@ -65,6 +66,7 @@ func (M *WorkManager) DisconnectWorker(W *Worker) {
 	W.RPC.Close()
 	// Remove from the connected workers list:
 	delete(M.ConnectedWorkers, W)
+	fmt.Println(W.Address, "Disconnected.")
 }
 
 func (M *WorkManager) DisconnectAll() {
@@ -110,7 +112,6 @@ func (M *WorkManager) RemotelyPlayGame(W *Worker, GameToPlay Game) {
 
 	fmt.Println("Round", GameToPlay.Round, "being played by", W.Address)
 	var CompletedGame Game
-	GameToPlay.Site = fmt.Sprint(W.Address)
 
 	// Make sure MD5 sums are set:
 	GameToPlay.Player[0].ValidateEngineFile()
@@ -120,6 +121,7 @@ func (M *WorkManager) RemotelyPlayGame(W *Worker, GameToPlay Game) {
 	err := W.RPC.Call("Worker.PlayGame", GameToPlay, &CompletedGame)
 	if err != nil {
 		fmt.Println("Error remotely playing game:", err)
+		M.DisconnectWorker(W)
 		return
 	}
 	fmt.Println("Round", CompletedGame.Round, "completed.")
@@ -191,6 +193,7 @@ func HostTourney(T *Tourney) error {
 
 	fmt.Println("\n\nHosting:", T.Event)
 	M := NewWorkManager(T)
+	T.NetworkManager = M
 	go M.ServeEngineFiles(T) // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
 	go M.ListenForWorkers(T)
 
@@ -242,6 +245,8 @@ func HostTourney(T *Tourney) error {
 				}
 				fmt.Println("Success.")
 				// Remotely play game:
+				T.GameList[*pNextGameIndex].Site = fmt.Sprint(freeWorker.Address)
+				T.GameList[*pNextGameIndex].StartTime = time.Now()
 				GameToPlay := T.GameList[*pNextGameIndex] // make a copy to prevent race conditions.
 				go M.RemotelyPlayGame(freeWorker, GameToPlay)
 
