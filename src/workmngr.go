@@ -30,6 +30,7 @@ import (
 	"net/rpc"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type WorkManager struct {
@@ -63,8 +64,10 @@ func (M *WorkManager) ConnectWorker(conn net.Conn) {
 func (M *WorkManager) DisconnectWorker(W *Worker) {
 	//Close the connection:
 	W.RPC.Close()
+	// Update Worker status:
 	// Remove from the connected workers list:
 	delete(M.ConnectedWorkers, W)
+
 }
 
 func (M *WorkManager) DisconnectAll() {
@@ -111,6 +114,7 @@ func (M *WorkManager) RemotelyPlayGame(W *Worker, GameToPlay Game) {
 	fmt.Println("Round", GameToPlay.Round, "being played by", W.Address)
 	var CompletedGame Game
 	GameToPlay.Site = fmt.Sprint(W.Address)
+	GameToPlay.StartTime = time.Now()
 
 	// Make sure MD5 sums are set:
 	GameToPlay.Player[0].ValidateEngineFile()
@@ -191,6 +195,7 @@ func HostTourney(T *Tourney) error {
 
 	fmt.Println("\n\nHosting:", T.Event)
 	M := NewWorkManager(T)
+	T.NetworkManager = M
 	go M.ServeEngineFiles(T) // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
 	go M.ListenForWorkers(T)
 

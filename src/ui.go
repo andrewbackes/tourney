@@ -425,6 +425,24 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				return
 			}},
 		{
+			label: []string{"workers"},
+			desc:  "Show the stats for connected workers.",
+			f: func() {
+				s := T.WorkerStats()
+				for name, stats := range s {
+					fmt.Print(name)
+					if stats.Connected {
+						fmt.Print("\t[Connected]\tAssigned Round ", stats.InProgress, "\t@ ", stats.Timestamp, "\n")
+					} else {
+						fmt.Print("\t[Disconnected]\n")
+					}
+				}
+				if len(s) == 0 {
+					fmt.Println("There are no workers for this tourney.")
+				}
+				return
+			}},
+		{
 			label: []string{"broadcast"},
 			desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort) + ". Broadcasting is enabled by default. The default port is specified in the 'tourney.settings' file.",
 			f: func() {

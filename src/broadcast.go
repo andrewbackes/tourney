@@ -85,6 +85,14 @@ func renderRoundPage(w http.ResponseWriter, T *Tourney, round int) {
 	}
 }
 
+func renderNetworkPage(w http.ResponseWriter, T *Tourney) {
+	if T == nil {
+		renderNothingLoaded(w)
+		return
+	}
+	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "network.html"), T)
+}
+
 func renderGameListPage(w http.ResponseWriter, T *Tourney) {
 	if T == nil {
 		renderNothingLoaded(w)
@@ -171,6 +179,8 @@ func requestHandler(w http.ResponseWriter, req *http.Request, t *Tourney) {
 		renderGameListPage(w, t)
 	case "bookinfo":
 		renderBookInfoPage(w, t)
+	case "network":
+		renderNetworkPage(w, t)
 	}
 }
 
