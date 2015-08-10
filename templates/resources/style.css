@@ -74,6 +74,11 @@ a {
 .menu_link {
 	margin-bottom: 5px;
 }
+#submenu {
+	margin-top: 10px;
+	color: white;
+	font-size: 80%;
+}
 .icon {
 	width:16px;
 	height:16px;

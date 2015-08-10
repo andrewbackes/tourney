@@ -57,12 +57,12 @@ func renderTemplate(w http.ResponseWriter, page string, obj interface{}) {
 	}
 }
 
-func renderStandingsPage(w http.ResponseWriter, T *Tourney) {
+func renderOverviewPage(w http.ResponseWriter, T *Tourney) {
 	if T == nil {
 		renderNothingLoaded(w)
 		return
 	}
-	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "standings.html"), T)
+	renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "overview.html"), T)
 }
 
 func renderBookInfoPage(w http.ResponseWriter, T *Tourney) {
@@ -167,8 +167,8 @@ func requestHandler(w http.ResponseWriter, req *http.Request, t *Tourney) {
 		ply = 1
 	}
 	switch query["display"] {
-	case "standings", "":
-		renderStandingsPage(w, t)
+	case "overview", "standings", "":
+		renderOverviewPage(w, t)
 	case "game":
 		renderGameViewer(w, t, round)
 	case "round":

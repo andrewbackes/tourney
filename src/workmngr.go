@@ -64,10 +64,9 @@ func (M *WorkManager) ConnectWorker(conn net.Conn) {
 func (M *WorkManager) DisconnectWorker(W *Worker) {
 	//Close the connection:
 	W.RPC.Close()
-	// Update Worker status:
 	// Remove from the connected workers list:
 	delete(M.ConnectedWorkers, W)
-
+	fmt.Println(W.Address, "Disconnected.")
 }
 
 func (M *WorkManager) DisconnectAll() {

@@ -1,8 +1,8 @@
 <!-- Template for tourney results -->
 <html>
 	<head>
-		<title>Standings</title>
-		<script> var title="Standings"; var eventTitle = "{{ .Event }}"; </script>
+		<title>Overview</title>
+		<script> var title="Overview"; var eventTitle = "{{ .Event }}"; </script>
 		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 		{{ $s := .PlayerStandings }}
 		<script>
@@ -19,7 +19,7 @@
 				'teal':   		[ '004D40', '00897B', '00695C', '009688', '00796B' ],
 				'themed':   	[ '282E3E', '2D3440', '535863', '333946'],
 			}
-			var options = {
+			var def_options = {
 				title: 'Win',
 				pieHole: 0.4,
 				backgroundColor: '#232937',
@@ -53,7 +53,12 @@
 				var container = elem.parentElement.parentElement;
 				var overall_win_chart = new google.visualization.PieChart(elem);
 				if(overall_win_data.length > 1) {
+					var options = def_options;
+					if( overall_win_data.length == 2) {
+						options['pieSliceTextStyle'] = { color: '#232937' };
+					} 
 					overall_win_chart.draw(google.visualization.arrayToDataTable(overall_win_data), options);
+					
 				} else {
 					container.style.height = "200px";
 					elem.parentElement.remove();
@@ -61,6 +66,10 @@
 				elem = document.getElementById('overall_draws');
 				var overall_draw_chart = new google.visualization.PieChart(elem);
 				if(overall_draw_data.length > 1) {
+					var options = def_options;
+					if( overall_draw_data.length == 2) {
+						options['pieSliceTextStyle'] = { color: '#232937' };
+					}
 					overall_draw_chart.draw(google.visualization.arrayToDataTable(overall_draw_data), options);
 				} else {
 					container.style.height = "200px";
@@ -149,9 +158,12 @@
 						</table>
 					</div>
 				</div>
+				<div id="submenu">
+					<a href="view?display=network">Network Information</a> | <a href="view?display=bookinfo">Opening Book Information</a>
+				</div>
 				<div id="overall_standings">
 					<!-- Standings -->
-					<h3>Overall</h3>
+					<h3>Overall Standings</h3>
 					<div>
 						<table style="display: inline-block;vertical-align: top;" id="overall_table">
 							<tr>
