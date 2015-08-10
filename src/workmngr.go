@@ -113,8 +113,6 @@ func (M *WorkManager) RemotelyPlayGame(W *Worker, GameToPlay Game) {
 
 	fmt.Println("Round", GameToPlay.Round, "being played by", W.Address)
 	var CompletedGame Game
-	GameToPlay.Site = fmt.Sprint(W.Address)
-	GameToPlay.StartTime = time.Now()
 
 	// Make sure MD5 sums are set:
 	GameToPlay.Player[0].ValidateEngineFile()
@@ -124,6 +122,7 @@ func (M *WorkManager) RemotelyPlayGame(W *Worker, GameToPlay Game) {
 	err := W.RPC.Call("Worker.PlayGame", GameToPlay, &CompletedGame)
 	if err != nil {
 		fmt.Println("Error remotely playing game:", err)
+		M.DisconnectWorker(W)
 		return
 	}
 	fmt.Println("Round", CompletedGame.Round, "completed.")
@@ -247,6 +246,8 @@ func HostTourney(T *Tourney) error {
 				}
 				fmt.Println("Success.")
 				// Remotely play game:
+				T.GameList[*pNextGameIndex].Site = fmt.Sprint(freeWorker.Address)
+				T.GameList[*pNextGameIndex].StartTime = time.Now()
 				GameToPlay := T.GameList[*pNextGameIndex] // make a copy to prevent race conditions.
 				go M.RemotelyPlayGame(freeWorker, GameToPlay)
 
