@@ -3,6 +3,10 @@
 	<head>
 		{{ $event := .Event }}
 		<title>Game History</title>
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		<script type="text/javascript">
+	      google.load("visualization", "1", {packages:["table", "controls"]});
+	    </script>
 		<script>
 			var title = "Game History";
 			var eventTitle = "{{ .Event }}";
@@ -46,16 +50,15 @@
 				width: 800px;
 				height: calc(100% - 175px);
 				clear: both;
+
 			}
 			table {
 				width: 100%;
 			}
 		</style>
-		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		
 	    <script type="text/javascript">
-	      google.load("visualization", "1", {packages:["table", "controls"]});
 	      
-
 	      function drawTable() {
 	        var data = new google.visualization.DataTable();
 	        data.addColumn('number', 'ROUND');
@@ -68,6 +71,7 @@
 	        data.addColumn('string', 'LOG');
 	        data.addColumn('string', 'LOCATION');
 			var cssClassNamesObj = {
+					headerRow: 'thClass',
 		        	tableRow: 'trClass',
 		        	oddTableRow: 'trOddClass',
 		        	selectedTableRow: 'trSelectedClass',
