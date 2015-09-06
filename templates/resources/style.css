@@ -1,4 +1,6 @@
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900);
+
+
 html, body {
 	font-family: Roboto, Helvetica;
 	margin:0px;
@@ -136,6 +138,15 @@ a {
 	Table Style:
 */
 
+.google-visualization-table {
+	border: inherit;
+	width: 100%;
+}
+.google-visualization-table-table th, .google-visualization-table-table td{ 
+	border: inherit;
+	border-bottom: 1px solid #535863;
+}
+
 table {
 	border-collapse: collapse;
 }
@@ -149,7 +160,6 @@ td, th {
 	background-color: #2D3440;
 	color: white;
 	font-size: 8pt;
-
 }
 .trOddClass {
 	background-color: #2D3440;
@@ -163,7 +173,6 @@ td, th {
 	background: #999DA7;
 }
 .tdClass {
-	border: 0;
 	height: 30px;
 	//border-bottom: 1px solid #999DA7;
 	border-bottom: 1px solid #535863;
@@ -181,3 +190,4 @@ td, th {
 	height: 30px;
 	text-align: center;
 }
+
