@@ -52,6 +52,13 @@
 				clear: both;
 
 			}
+			#selection_count {
+				width: 100%;
+				margin-top: 5px;
+				font-size: 80%;
+				color: #999DA7;
+				text-align: right;
+			}
 			table {
 				width: 100%;
 			}
@@ -128,12 +135,16 @@
 					cssClassNames: cssClassNamesObj  
 		        },
 		        view: {
-		            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+		            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 		        }
 		    });
 		    
 		    var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard'));
 		    dashboard.bind([filter], [table]);
+		    google.visualization.events.addListener(table, 'select', function() { 
+		    	document.getElementById('selection_count').innerHTML = dashboard.getSelection().length + " rows selected";
+		    	console.log(dashboard.getSelection().length); 
+		    });
 		    dashboard.draw(data);
 	      }
 	      google.setOnLoadCallback(drawTable);
@@ -148,6 +159,7 @@
 					<div id="filter_div"></div>
 				</div>
 				<div id="table_div"></div>
+				<div id="selection_count">0 rows selected</div>
 			</div>
 		</div>
 		{{ template "_footer.html" . }}
