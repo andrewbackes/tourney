@@ -122,6 +122,7 @@
 			{{ $event := .Event }}
 			<div id="content">
 				<h3>Round {{ .Round }}</h3>
+				<h4>{{ (index .Player 0).Name }} vs. {{ (index .Player 1).Name }} ({{ if eq .Completed true }}<script>document.write(["1-0","0-1","1/2-1/2"][{{ .Result }}]); </script>{{ else }}Incomplete{{ end }})</h4>
 				<div id="time_chart"></div>
 				<div id="depth_chart"></div>
 				<div id="board_movelist_container">
