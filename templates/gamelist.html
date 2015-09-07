@@ -65,6 +65,7 @@
 	        data.addColumn('string', 'WHITE');
 	        data.addColumn('string', 'BLACK');
 	        data.addColumn('string', 'RESULT');
+	        data.addColumn('string', 'WINNER');
 	        data.addColumn('string', 'ENDING CONDITION');
 	        data.addColumn('string', 'VIEW');
 	        data.addColumn('string', 'DETAILS');
@@ -81,7 +82,7 @@
 				};
 
 			{{ range .GameList }}
-			if({{.Completed}} || ({{ .ResultDetail }}!="") ) { data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', ["1-0","0-1","1/2-1/2"][{{ .Result }}], '{{ .ResultDetail }}', '<a href="view?display=game&round={{ .Round }}">Watch</a>', '<a href="view?display=round&round={{ .Round }}">Details</a>', '<a href="logs/{{ $event }} round {{ .Round }}.log">Log</a>', "{{ .Site }}" ] ]); } else { data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', "", "", "", "", "", "{{ .Site }}" ] ]); }{{ end }}
+			if({{.Completed}} || ({{ .ResultDetail }}!="") ) { data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', ["1-0","0-1","1/2-1/2"][{{ .Result }}],["{{ (index .Player 0).Name }}","{{ (index .Player 1).Name }}","-"][{{ .Result }}], '{{ .ResultDetail }}', '<a href="view?display=game&round={{ .Round }}">Watch</a>', '<a href="view?display=round&round={{ .Round }}">Details</a>', '<a href="logs/{{ $event }} round {{ .Round }}.log">Log</a>', "{{ .Site }}" ] ]); } else { data.addRows([ [ {{ .Round }}, '{{ (index .Player 0).Name }}', '{{ (index .Player 1).Name }}', "", "", "", "", "", "{{ .Site }}" ] ]); }{{ end }}
 			var options = {
 				showRowNumber: false,
 				allowHtml: true,
