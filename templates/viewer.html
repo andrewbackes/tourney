@@ -71,8 +71,8 @@
 				{{ end }}				
 			];
 			var game_data = [    
-				['Ply', 'Move', 'Score', 'Time', 'Depth'],
-				{{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }} [{{$i}}, "{{$v}}",{{ $analysis.Score }},{{ $analysis.Time }},{{ $analysis.Depth }}],
+				['Ply', 'Move', 'Score', 'Time', 'Depth', '&Delta;PV'],
+				{{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }} [{{$i}}, "{{$v}}",{{ $analysis.Score }},{{ $analysis.Time }},{{ $analysis.Depth }}, {{ $analysis.PvChanges }}],
 				{{ end }}
 			];
 
@@ -107,11 +107,12 @@
 				j++;
 			}
 			var move_table_data = [    
-				 ['Number', 'Move', 'Score', 'Time', 'Depth']
+				 ['Number', 'Move', 'Score', 'Time', 'Depth', '&Delta;PV']
 			];
 			for( var i = 1; i < game_data.length; i++ ) {
 				var number = game_data[i][0]/2 +1;
 				var move = game_data[i][1];
+				var pv_changes = game_data[i][5];
 				var player = 0;
 				if(number%1 == 0.5) {
 					player = 1;
@@ -130,7 +131,7 @@
 				var score_div = '<div style="'+style+score_pos+'background:'+score_color[player] +';">'+game_data[i][2]+'</div>';
 				var time_div = '<div style="'+style+'width:'+ ( (game_data[i][3]/(max_time*1.25))*100 ) +'%;background:'+time_color[player] +';">'+game_data[i][3]+'</div>';
 				var depth_div = '<div style="'+style+'width:'+ ( (game_data[i][4]/(max_depth*1.25))*100 ) +'%;background:'+depth_color[player] +';">'+game_data[i][4]+'</div>';
-				move_table_data.push([number,move,score_div,time_div,depth_div]);
+				move_table_data.push([number,move,score_div,time_div,depth_div, pv_changes]);
 			}
 
 		</script>

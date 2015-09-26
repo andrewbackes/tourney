@@ -13,6 +13,10 @@
 
 package main
 
+import (
+	"strings"
+)
+
 const MATESCORE int = 100000
 
 type Move string
@@ -40,6 +44,17 @@ func (M MoveAnalysis) Pv() string {
 		}
 	}
 	return ""
+}
+
+// PvChanges counts the number of times the PV changed for a move.
+func (M MoveAnalysis) PvChanges() int {
+	count := 0;
+	for i:=1; i < len(M.Evaluation); i++ {
+		if !strings.Contains( strings.TrimSpace(M.Evaluation[i].P), strings.TrimSpace(M.Evaluation[i-1].P )) {
+			count++
+		}
+	}
+	return count
 }
 
 func (M MoveAnalysis) Score() int {
