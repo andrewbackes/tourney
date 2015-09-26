@@ -60,6 +60,9 @@
 				baselineColor: graph_axis_color,
 				titleTextStyle: {color: graph_text_color},
 			},
+			tooltip: {
+				trigger: 'selection',
+			},
 		};
 	}
 
@@ -127,6 +130,8 @@
 	function drawScoreChart() {
 		var data = google.visualization.arrayToDataTable(scores);
 		var options = makeOptions("Engine Evaluation", score_color, "left");
+		options.vAxis.viewWindow = { max: 300, min: -300 };
+		options.vAxis.gridlines.count = 7;
 		scoreChart = new google.visualization.ColumnChart(document.getElementById('score_chart'));
 		google.visualization.events.addListener(scoreChart, 'select', function () {
 	        var s = scoreChart.getSelection();
@@ -176,5 +181,16 @@
 		}
 		depthChart.setSelection( [{row: data_row, column: data_col} ] );
 		timeChart.setSelection( [{row: data_row, column: data_col} ] );
+		scoreChart.setSelection( [{row: data_row, column: data_col} ] );
 		table.setSelection( [ {row: number } ] );
+		
+		var el = document.querySelector('#move_table > div > div:first-child');
+		if (el) {
+			var td = document.getElementsByClassName('tdClass');
+			if ( td ) {
+				var n = Math.max( 0 , number - 4 );
+				el.scrollTop = td[0].offsetHeight * n ;
+			}
+		}
+		
 	}

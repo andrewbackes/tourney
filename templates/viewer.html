@@ -27,20 +27,49 @@
 			}
 			#score_chart {
 				margin-top:8px;
+			}
+			#game_info {
+				width: 100%;
+				text-align: center;
+				margin-bottom: 10px;
+			}
+			#game_info td {
+				width: 17%;
+			}
+			.blackplayer {
+				color: #999;
 				
+			}
+			.whiteplayer {
+				color: white;
+			}
+			.black_time {
+				color: #7CBC2D;
+			}
+			.black_score {
+				color: #993CF3;
+			}
+			.black_depth {
+				color: #e89800;
+			}
+			
+			
+			#round_nav_bar {
+				width: 100%;
+				text-align: center;
+				margin-top: 10px;
+			}
+			#round_nav_bar a {
+				font-size: 75%;
 			}
 		</style>
 		<script src="resources/graphs.js"></script>
 		<script>
-			
-
 			var startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
 			var fens = [
 				{{ range $i, $v := .History }} "{{$v}}",
 				{{ end }}				
 			];
-
 			var game_data = [    
 				['Ply', 'Move', 'Score', 'Time', 'Depth'],
 				{{ range $i, $v := .MoveList }}{{ $analysis := (index $.AnalysisList $i) }} [{{$i}}, "{{$v}}",{{ $analysis.Score }},{{ $analysis.Time }},{{ $analysis.Depth }}],
@@ -53,19 +82,8 @@
 		
 		******************************************************************************** */
 
-			var SCORE_BOUND = 1800;
-			// Bound the scores so we don't have charts that overflow
-			for( var i = 1; i < game_data.length; i++ ) {
-				if (i % 2 == 0) {
-					game_data[i][2] = -game_data[i][2];
-				}
-				if(game_data[i][2] > SCORE_BOUND) {
-					game_data[i][2] = SCORE_BOUND;
-				} else if (game_data[i][2] < -SCORE_BOUND) {
-					game_data[i][2] = -SCORE_BOUND;
-				}
-			}
-
+			var SCORE_BOUND = 400;
+			
 			var max_score=game_data[1][2];
 			var max_time=game_data[1][3];
 			var max_depth=game_data[1][4];
@@ -101,9 +119,13 @@
 					move = "..." + move;
 				}
 				var style = "text-shadow: 1px 1px 4px #000000;";
-				var score_pos = 'position:relative;left:45%;width:'+ ((game_data[i][2]/max_score)*45) +'%;';
-				if (game_data[i][2] < 0) {
-					score_pos = 'position:relative;left:'+(45-((-game_data[i][2]/max_score)*45))+'%;width:'+ ((-game_data[i][2]/max_score)*45) +'%;';
+				var bounded_score = game_data[i][2];
+				if ( bounded_score > SCORE_BOUND ) { bounded_score = SCORE_BOUND; }
+				if ( bounded_score < -SCORE_BOUND ) { bounded_score = -SCORE_BOUND; }
+				var score_width = ( bounded_score / SCORE_BOUND ) * 45 ;
+				var score_pos = 'position:relative;left:45%;width:'+ score_width +'%;';
+				if ( bounded_score < 0 ) {
+					score_pos = 'position:relative;left:'+(45+score_width)+'%;width:'+ -score_width +'%;';
 				}
 				var score_div = '<div style="'+style+score_pos+'background:'+score_color[player] +';">'+game_data[i][2]+'</div>';
 				var time_div = '<div style="'+style+'width:'+ ( (game_data[i][3]/(max_time*1.25))*100 ) +'%;background:'+time_color[player] +';">'+game_data[i][3]+'</div>';
@@ -122,7 +144,24 @@
 			{{ $event := .Event }}
 			<div id="content">
 				<h3>Round {{ .Round }}</h3>
-				<h4>{{ (index .Player 0).Name }} vs. {{ (index .Player 1).Name }} ({{ if eq .Completed true }}<script>document.write(["1-0","0-1","1/2-1/2"][{{ .Result }}]); </script>{{ else }}Incomplete{{ end }})</h4>
+					
+				<table id="game_info">
+					<tr class="trClass">
+						<th class="thClass" colspan="2" >Player</th>
+						<td class="tdClass" colspan="2" ><span class="whiteplayer">{{ (index .Player 0).Name }}</span> <script>document.write(["(Winner)","",""][{{ .Result }}]);</script></td>
+						<td class="tdClass" colspan="2" ><span class="blackplayer">{{ (index .Player 1).Name }}</span> <script>document.write(["","(Winner)",""][{{ .Result }}]);</script></td>
+					</tr>
+					<tr class="trClass">
+						<th class="thClass">Ave. Time/Move</th><th class="thClass"># Times Searched Longer</th>
+						<td class="tdClass white_time">-</td><td class="tdClass white_time">-</td>
+						<td class="tdClass black_time">-</td><td class="tdClass black_time">-</td>
+					</tr>
+					<tr class="trClass">
+						<th class="thClass">Ave. Depth</th><th class="thClass"># Times Searched Deeper</th>
+						<td class="tdClass white_depth">-</td><td class="tdClass white_depth">-</td>
+						<td class="tdClass black_depth">-</td><td class="tdClass black_depth">-</td>
+					</tr>
+				</table>
 				<div id="time_chart"></div>
 				<div id="depth_chart"></div>
 				<div id="board_movelist_container">
@@ -147,6 +186,23 @@
 				<div id="score_chart"></div>
 				<div id="timeline"></div>
 				<div id="debug"></div>
+				<table id="round_nav_bar">
+					<tr>
+						<td>
+						{{ if gt .Round 1 }}<script>
+							var prev_round = {{ .Round }} - 1;
+							document.write('<a href="view?display=game&round='+ prev_round + '">&lt;&lt; Previous Round</a>');
+						</script>{{ end }}
+						</td>
+						<td><a href="logs/{{ $event }} round {{ .Round }}.log">View Log</a></td>
+						<td>
+						<script>
+							var next_round = {{ .Round }} + 1;
+							document.write('<a href="view?display=game&round='+ next_round + '">Next Round &gt;&gt;</a>');
+						</script>
+						</td>
+					</tr>
+				</table>
 				<script>
 					setNewBoard();
 				</script>

@@ -895,3 +895,34 @@ func (G *Game) AppendLog() error {
 func (G *Game) CloseLog() error {
 	return G.logFile.Close()
 }
+
+/*******************************************************************************
+
+	Game Analysis:
+
+*******************************************************************************/
+
+// AveDepth returns the average depth reached throughout the game for 
+// the specified player.
+func (G *Game) AveDepth(c Color) float64 {
+	
+	return 0;
+}
+
+// AveTimePerMove returns the average time spent on moves throughout the game.
+func (G *Game) AveTimePerMove(c Color) float64 {
+	return 0;
+}
+
+// TimesSearchedLonger returns the number of times the specified player searched
+// deeper. 
+func (G *Game) TimesSearchedDeeper(c Color) int {
+	return 0;
+}
+
+// TimesSearchedLonger returns the number of times the specified player searched
+// longer. 
+func (G *Game) TimesSearchedLonger(c Color) int {
+	return 0;
+}
+

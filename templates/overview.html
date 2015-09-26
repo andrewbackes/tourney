@@ -203,7 +203,7 @@
 					<!-- Matchups -->
 					<h3>Matchups</h3>
 					{{ range $i, $player := .PlayerStandings.Players }}
-					<h4><script> document.write({{$i}}+1);</script>. {{$player}} (vs)</h4>
+					<h4><script> document.write({{$i}}+1);</script>. {{$player}}</h4>
 					<table class="matchup">
 						<tr>
 							<th>#</th>
@@ -217,7 +217,7 @@
 						 {{ range $j, $record := $.PlayerStandings.MatchupStandings $player }}
 						<tr>
 							<td><script> document.write({{$j}}+1);</script></td>
-							<td>{{ .Name }}</td>
+							<td>{{$player}} (vs) {{ .Name }}</td>
 							<td>{{ .Wins }}-{{ .Losses }}-{{ .Draws }}</td>
 							<td>{{ .Incomplete }}</td>
 							<td>{{ .Score }}</td>
