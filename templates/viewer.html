@@ -152,14 +152,14 @@
 						<td class="tdClass" colspan="2" ><span class="blackplayer">{{ (index .Player 1).Name }}</span> <script>document.write(["","(Winner)",""][{{ .Result }}]);</script></td>
 					</tr>
 					<tr class="trClass">
-						<th class="thClass">Ave. Time/Move</th><th class="thClass"># Times Searched Longer</th>
-						<td class="tdClass white_time">-</td><td class="tdClass white_time">-</td>
-						<td class="tdClass black_time">-</td><td class="tdClass black_time">-</td>
+						<th class="thClass" title="Average time spent per move.">Ave. Time/Move</th><th class="thClass"  title="Count of how many times the engine searched deeper than oponent."># Times Searched Longer</th>
+						<td class="tdClass white_time">{{ .AveTimePerMove 0 }}</td><td class="tdClass white_time">{{ .TimesSearchedLonger 0 }}</td>
+						<td class="tdClass black_time">{{ .AveTimePerMove 1 }}</td><td class="tdClass black_time">{{ .TimesSearchedLonger 1 }}</td>
 					</tr>
 					<tr class="trClass">
-						<th class="thClass">Ave. Depth</th><th class="thClass"># Times Searched Deeper</th>
-						<td class="tdClass white_depth">-</td><td class="tdClass white_depth">-</td>
-						<td class="tdClass black_depth">-</td><td class="tdClass black_depth">-</td>
+						<th class="thClass" title="Average depth reached per move.">Ave. Depth</th><th class="thClass"  title="Count of how many times the engine searched deeper than oponent."># Times Searched Deeper</th>
+						<td class="tdClass white_depth">{{ .AveDepth 0 }}</td><td class="tdClass white_depth">{{ .TimesSearchedDeeper 0 }}</td>
+						<td class="tdClass black_depth">{{ .AveDepth 1 }}</td><td class="tdClass black_depth">{{ .TimesSearchedDeeper 1 }}</td>
 					</tr>
 				</table>
 				<div id="time_chart"></div>

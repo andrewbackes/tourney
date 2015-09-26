@@ -902,27 +902,53 @@ func (G *Game) CloseLog() error {
 
 *******************************************************************************/
 
+// aveGameStat is a helper function that gets the average of a stat in the game.
+func aveGameStat(G Game, c Color, getStat func(int) int) float64 {
+	sum := 0
+	total_moves := 0
+	for i := int(c); i < len(G.AnalysisList); i+=2 {	
+		sum += getStat(i)
+		total_moves++
+	}
+	return float64( (sum*100) / total_moves )/100
+}
+
 // AveDepth returns the average depth reached throughout the game for 
 // the specified player.
-func (G *Game) AveDepth(c Color) float64 {
-	
-	return 0;
+func (G Game) AveDepth(c Color) float64 {
+	return aveGameStat(G, c, func(i int)int { return G.AnalysisList[i].Depth() })
 }
 
 // AveTimePerMove returns the average time spent on moves throughout the game.
-func (G *Game) AveTimePerMove(c Color) float64 {
-	return 0;
+func (G Game) AveTimePerMove(c Color) float64 {
+	return aveGameStat(G, c, func(i int)int { return G.AnalysisList[i].Time() })
+}
+
+// biggerStatCnt is a helper function that counts the number of times one player had
+// a bigger stat that the other for a particular move.
+func biggerStatCnt( G Game, c Color, getStat func(int)int ) int {
+	sum := 0
+	for i:= int(c); i < len(G.AnalysisList); i+=2 {
+		stat := []int{ getStat(i) ,0};
+		if i+1 < len(G.AnalysisList) {
+			stat[1] = getStat(i+1)	
+		}
+		if stat[0] > stat[1] {
+			sum++
+		}
+	}
+	return sum
 }
 
 // TimesSearchedLonger returns the number of times the specified player searched
-// deeper. 
-func (G *Game) TimesSearchedDeeper(c Color) int {
-	return 0;
+// deeper on a move. 
+func (G Game) TimesSearchedDeeper(c Color) int {
+	return biggerStatCnt(G, c, func(i int)int { return G.AnalysisList[i].Depth() })
 }
 
 // TimesSearchedLonger returns the number of times the specified player searched
 // longer. 
-func (G *Game) TimesSearchedLonger(c Color) int {
-	return 0;
+func (G Game) TimesSearchedLonger(c Color) int {
+	return biggerStatCnt(G, c, func(i int)int { return G.AnalysisList[i].Time() })
 }
 
