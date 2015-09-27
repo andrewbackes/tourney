@@ -450,6 +450,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 				return
 			}},
+			/*
 		{
 			label: []string{"broadcast"},
 			desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort) + ". Broadcasting is enabled by default. The default port is specified in the 'tourney.settings' file.",
@@ -472,6 +473,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 				return
 			}},
+			*/
 
 		/*******************************************************************************
 

@@ -32,6 +32,10 @@ func (c *Controller) Enque(command string) {
 	c.commandQue <- command
 }
 
+func (c *Controller) GetTourney() *Tourney {
+	return c.tourneys.Selected()
+}
+
 func (c *Controller) Start() {
 	quit := make(chan struct{})
 	done := false
@@ -52,9 +56,3 @@ func (c *Controller) Stopped() bool {
 	return !blocks(c.quit)
 }
 
-func (c *Controller) PromptString() string {
-	if t := c.tourneys.Selected(); t != nil {
-		return t.Event + "> "
-	}
-	return "> "
-}

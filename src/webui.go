@@ -184,35 +184,46 @@ func requestHandler(w http.ResponseWriter, req *http.Request, t *Tourney) {
 	}
 }
 
-// Broadcast turns starts serving http for the tourney data.
+// setViewHandlers sets up the web server to serve pages that just view data,
+// but don't interact with it.
+//
 // examples:
 // 		http://localhost/view?display=standings
 // 		http://localhost/view?display=round&round=1
 // 		http://localhost/view?display=ply&ply=1
 // 		http://localhost/view?display=game&round=1
 // 		http://localhost/view?display=log&round=1
-func Broadcast(Tourneys *TourneyList) error {
-	//TODO: check that the tourney is valid
-
+func setViewHandlers(controller *Controller) {
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/view", http.StatusFound)
 	})
 
 	http.HandleFunc("/view", func(w http.ResponseWriter, req *http.Request) {
-		requestHandler(w, req, Tourneys.Selected())
+		requestHandler(w, req, controller.GetTourney())
 	})
-
+	
 	// Set up a file server for resources such as scripts, images, etc.
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir(filepath.Join(Settings.TemplateDirectory, "resources")))))
 	// Log Requests:
 	http.Handle("/logs/", http.StripPrefix("/logs/", http.FileServer(http.Dir(Settings.LogDirectory))))
+}
 
+func setApiHandlers(controller *Controller) {
+	
+}
+
+func WebUI(controller *Controller) {
+	
+	fmt.Println("Starting WebUI on port " + strconv.Itoa(Settings.WebPort))
+	fmt.Println("Navigate your web browser to http://localhost:" + strconv.Itoa(Settings.WebPort))
+	
+	// Setup view requests:
+	setViewHandlers(controller)
+	// Setup API requests:
+	setApiHandlers(controller) 
 	// Start the server:
-	// TODO: allow the server to be shut down.
 	err := http.ListenAndServe(":"+strconv.Itoa(Settings.WebPort), nil)
 	if err != nil {
-		return err
+		fmt.Println(err)
 	}
-
-	return nil
 }

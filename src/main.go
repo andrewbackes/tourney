@@ -117,8 +117,8 @@ func main() {
 		go ConsoleUI(&controller)
 	}
 	if broadcast {
-		//go WebUI(&controller)
-		controller.Enque("broadcast")
+		go WebUI(&controller)
+		//controller.Enque("broadcast")
 	}
 
 	controller.Start()

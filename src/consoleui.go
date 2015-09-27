@@ -22,7 +22,7 @@ func ConsoleUI(controller *Controller) {
 
 	var prompt string
 	for ! controller.Stopped() {
-		prompt = controller.PromptString()
+		prompt = ""
 		fmt.Print(prompt)
 		line, _ := inputReader.ReadString('\n')
 		controller.Enque(line)
