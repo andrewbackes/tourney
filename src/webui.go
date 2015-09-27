@@ -28,6 +28,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 func renderNothingLoaded(w http.ResponseWriter) {
@@ -184,35 +185,61 @@ func requestHandler(w http.ResponseWriter, req *http.Request, t *Tourney) {
 	}
 }
 
-// Broadcast turns starts serving http for the tourney data.
-// examples:
-// 		http://localhost/view?display=standings
-// 		http://localhost/view?display=round&round=1
-// 		http://localhost/view?display=ply&ply=1
-// 		http://localhost/view?display=game&round=1
-// 		http://localhost/view?display=log&round=1
-func Broadcast(Tourneys *TourneyList) error {
-	//TODO: check that the tourney is valid
+func apiHandler(w http.ResponseWriter, req *http.Request, controller *Controller) {
+	r := strings.Split( strings.Trim(req.URL.Path,"/"), "/" )
+	cmd, arg := "", ""
+	if len(r) >= 4 {
+		arg = " " + r[3]
+	}
+	if len(r) >= 3 {
+		cmd = r[2]
+		fmt.Println("[API] Recieved: " + cmd + arg)
+		controller.Enque(cmd + arg)
+	}
+}
 
+// setViewHandlers sets up the web server to serve pages that just view data,
+// but don't interact with it.
+func setViewHandlers(controller *Controller) {
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/view", http.StatusFound)
 	})
-
 	http.HandleFunc("/view", func(w http.ResponseWriter, req *http.Request) {
-		requestHandler(w, req, Tourneys.Selected())
+		requestHandler(w, req, controller.GetTourney())
 	})
-
 	// Set up a file server for resources such as scripts, images, etc.
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir(filepath.Join(Settings.TemplateDirectory, "resources")))))
 	// Log Requests:
 	http.Handle("/logs/", http.StripPrefix("/logs/", http.FileServer(http.Dir(Settings.LogDirectory))))
+}
 
+func setAdminHandlers(controller *Controller) {
+	http.HandleFunc("/console", func(w http.ResponseWriter, req *http.Request) {
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "console.html"), controller.GetTourney() )
+	})
+}
+
+func setApiHandlers(controller *Controller) {
+	http.HandleFunc("/api/unsafe/", func(w http.ResponseWriter, req *http.Request) {
+		apiHandler(w, req, controller)
+	})
+}
+
+func WebUI(controller *Controller) {
+	
+	fmt.Println("Starting WebUI on port " + strconv.Itoa(Settings.WebPort))
+	fmt.Println("Navigate your web browser to http://localhost:" + strconv.Itoa(Settings.WebPort))
+	
+	// Setup API requests:
+	setApiHandlers(controller)
+	// Setup Admin requests:
+	setAdminHandlers(controller)
+	// Setup view requests:
+	setViewHandlers(controller)
+	 
 	// Start the server:
-	// TODO: allow the server to be shut down.
 	err := http.ListenAndServe(":"+strconv.Itoa(Settings.WebPort), nil)
 	if err != nil {
-		return err
+		fmt.Println(err)
 	}
-
-	return nil
 }
