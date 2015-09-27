@@ -15,34 +15,25 @@
  playLoop() method.
 
  TODO:
- 	-Opening Book (non-pgn)
- 	-Vertical score graph. rows will be move#'s, cols will be the graph.
  	-ability to pipe commands
-
- BUG:
- 	-current directory could differ from the directory the executable is in.
 
 *******************************************************************************/
 
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	//"strconv"
-	"strings"
-	//"runtime"
 	"path/filepath"
-	"sync"
+	"strings"
 )
 
 var Settings GlobalSettings
 
 const SettingsFile = "tourney.settings"
 
-// handleLaunchArgs processes the command line args 
-func handleLaunchArgs(repl, broadcast, loaddefault *bool, Tourneys *TourneyList, wg *sync.WaitGroup) {
+// handleLaunchArgs processes the command line args
+func handleLaunchArgs(repl, broadcast, loaddefault *bool, controller *Controller) {
 	args := os.Args[1:]
 	for i, arg := range args {
 		if len(arg) == 2 {
@@ -58,21 +49,21 @@ func handleLaunchArgs(repl, broadcast, loaddefault *bool, Tourneys *TourneyList,
 		switch arg {
 		case "-open":
 			// open .tourney file
-			Eval("load "+param, Tourneys, wg)
+			controller.Enque("load " + param)
 			*loaddefault = false
 		case "-play":
 			// open and play the tourney:
-			Eval("load "+param, Tourneys, wg)
-			Eval("start", Tourneys, wg)
+			controller.Enque("load " + param)
+			controller.Enque("start")
 			*loaddefault = false
 		case "-host":
 			// open and host the tourney:
-			Eval("load "+param, Tourneys, wg)
-			Eval("host", Tourneys, wg)
+			controller.Enque("load " + param)
+			controller.Enque("host")
 			*loaddefault = false
 		case "-connect":
 			// connect to a host
-			Eval("connect "+param, Tourneys, wg)
+			controller.Enque("connect " + param)
 			*repl = false
 			*broadcast = false
 			*loaddefault = false
@@ -90,61 +81,47 @@ func loadSettings() {
 	}
 }
 
-func main() {
-	// Adjust working directory:
+// changeWorkingDir adjusts working directory to where the program is located
+func changeWorkingDir() {
+
 	cd, er := filepath.Abs(filepath.Dir(os.Args[0]))
 	err := os.Chdir(cd)
 	if er != nil || err != nil {
 		fmt.Println("Could not change working directory to ", cd)
 	}
+}
+
+func main() {
+
+	changeWorkingDir()
 
 	title := "Tourney"
 	fmt.Println("\n" + strings.Repeat(" ", (80-len(title))/2) + title + "\n")
 	//PrintSysStats()
 
 	loadSettings()
-	
 
-	var wg sync.WaitGroup
-	var Tourneys TourneyList
+	controller := NewController()
+
 	// Depending on the command line arguements, we will adjust these flags:
 	repl := true
 	broadcast := true
 	loaddefault := true
 
-	handleLaunchArgs(&repl, &broadcast, &loaddefault, &Tourneys, &wg)
+	handleLaunchArgs(&repl, &broadcast, &loaddefault, &controller)
 
 	if loaddefault {
-		def, _ := LoadDefault()
-		Tourneys.Add(def)
-		//ListActiveTourneys(&Tourneys)
-		Eval("ls", &Tourneys, &wg)
+		controller.Enque("loaddefault")
 	}
-
-	// Start web services.
-	if broadcast {
-		Eval("broadcast", &Tourneys, &wg)
-	}
-
-	// REPL:
 	if repl {
-
-		inputReader := bufio.NewReader(os.Stdin)
-
-		var quit bool
-		var prompt string
-		for !quit {
-			if len(Tourneys.List) > 0 {
-				prompt = Tourneys.Selected().Event + "> "
-			} else {
-				prompt = "> "
-			}
-			fmt.Print(prompt)
-			line, _ := inputReader.ReadString('\n')
-			quit = Eval(line, &Tourneys, &wg)
-		}
+		go ConsoleUI(&controller)
 	}
-	wg.Wait()
+	if broadcast {
+		//go WebUI(&controller)
+		controller.Enque("broadcast")
+	}
+
+	controller.Start()
 }
 
 // Helper for common channel usage:

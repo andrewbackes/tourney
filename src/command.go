@@ -1,10 +1,10 @@
 /*******************************************************************************
 
  Project: 		Tourney
- Module: 		ui
+ Module: 		command
  Created: 		7/15/2014
  Author(s): 	Andrew Backes
- Description: 	Handles the user interface.
+ Description: 	Handles all of the possible user commands
 
 TODO:
 	- Need to prevent the user from using commands that both write to the same
@@ -173,6 +173,14 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 					Tourneys.Add(N)
 					ListActiveTourneys(Tourneys)
 				}
+			}},
+		{
+			label:          []string{"loaddefault"},
+			desc:           "Loads the default .tourney file.",
+			f: func() {
+				def, _ := LoadDefault()
+				Tourneys.Add(def)
+				ListActiveTourneys(Tourneys)
 			}},
 		{
 			label:          []string{"save"},

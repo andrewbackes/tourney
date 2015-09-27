@@ -140,7 +140,7 @@ func applyOpeningToGame(opening BookPosition, fen string, G *Game) error {
 	for _, move := range opening.MoveList {
 		G.MakeMove(move)
 		G.AddMoveAnalysis(MoveAnalysis{Comment: BOOKMOVE})
-		
+
 		if G.toMove() == WHITE {
 			G.MovesToGo -= 1
 			if G.MovesToGo == 0 && G.Repeating == true {
