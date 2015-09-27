@@ -41,9 +41,8 @@ var Settings GlobalSettings
 
 const SettingsFile = "tourney.settings"
 
+// handleLaunchArgs processes the command line args 
 func handleLaunchArgs(repl, broadcast, loaddefault *bool, Tourneys *TourneyList, wg *sync.WaitGroup) {
-	
-	// Parse the command line arguements:
 	args := os.Args[1:]
 	for i, arg := range args {
 		if len(arg) == 2 {
@@ -81,6 +80,16 @@ func handleLaunchArgs(repl, broadcast, loaddefault *bool, Tourneys *TourneyList,
 	}
 }
 
+// loadSettings loads Global Settings:
+func loadSettings() {
+	if err := Settings.Load(SettingsFile); err != nil {
+		fmt.Println(err)
+		fmt.Println("Using default program settings.")
+		Settings = DefaultSettings()
+		Settings.Save("tourney.settings")
+	}
+}
+
 func main() {
 	// Adjust working directory:
 	cd, er := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -93,13 +102,8 @@ func main() {
 	fmt.Println("\n" + strings.Repeat(" ", (80-len(title))/2) + title + "\n")
 	//PrintSysStats()
 
-	// Load Global Settings:
-	if err := Settings.Load(SettingsFile); err != nil {
-		fmt.Println(err)
-		fmt.Println("Using default program settings.")
-		Settings = DefaultSettings()
-		Settings.Save("tourney.settings")
-	}
+	loadSettings()
+	
 
 	var wg sync.WaitGroup
 	var Tourneys TourneyList
