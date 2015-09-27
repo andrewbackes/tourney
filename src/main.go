@@ -118,7 +118,6 @@ func main() {
 	}
 	if broadcast {
 		go WebUI(&controller)
-		//controller.Enque("broadcast")
 	}
 
 	controller.Start()

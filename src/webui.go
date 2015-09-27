@@ -28,6 +28,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 func renderNothingLoaded(w http.ResponseWriter) {
@@ -184,6 +185,19 @@ func requestHandler(w http.ResponseWriter, req *http.Request, t *Tourney) {
 	}
 }
 
+func apiHandler(w http.ResponseWriter, req *http.Request, controller *Controller) {
+	r := strings.Split( strings.Trim(req.URL.Path,"/"), "/" )
+	cmd, arg := "", ""
+	if len(r) >= 4 {
+		arg = " " + r[3]
+	}
+	if len(r) >= 3 {
+		cmd = r[2]
+		fmt.Println("[API] Recieved: " + cmd + arg)
+		controller.Enque(cmd + arg)
+	}
+}
+
 // setViewHandlers sets up the web server to serve pages that just view data,
 // but don't interact with it.
 //
@@ -197,11 +211,9 @@ func setViewHandlers(controller *Controller) {
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/view", http.StatusFound)
 	})
-
 	http.HandleFunc("/view", func(w http.ResponseWriter, req *http.Request) {
 		requestHandler(w, req, controller.GetTourney())
 	})
-	
 	// Set up a file server for resources such as scripts, images, etc.
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir(filepath.Join(Settings.TemplateDirectory, "resources")))))
 	// Log Requests:
@@ -209,7 +221,9 @@ func setViewHandlers(controller *Controller) {
 }
 
 func setApiHandlers(controller *Controller) {
-	
+	http.HandleFunc("/api/unsafe/", func(w http.ResponseWriter, req *http.Request) {
+		apiHandler(w, req, controller)
+	})
 }
 
 func WebUI(controller *Controller) {
@@ -217,10 +231,11 @@ func WebUI(controller *Controller) {
 	fmt.Println("Starting WebUI on port " + strconv.Itoa(Settings.WebPort))
 	fmt.Println("Navigate your web browser to http://localhost:" + strconv.Itoa(Settings.WebPort))
 	
+	// Setup API requests:
+	setApiHandlers(controller)
 	// Setup view requests:
 	setViewHandlers(controller)
-	// Setup API requests:
-	setApiHandlers(controller) 
+	 
 	// Start the server:
 	err := http.ListenAndServe(":"+strconv.Itoa(Settings.WebPort), nil)
 	if err != nil {
