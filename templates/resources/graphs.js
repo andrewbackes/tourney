@@ -186,7 +186,7 @@
 		
 		var el = document.querySelector('#move_table > div > div:first-child');
 		if (el) {
-			var td = document.getElementsByClassName('tdClass');
+			var td = document.getElementsByClassName('google-visualization-table-td-number');
 			if ( td ) {
 				var n = Math.max( 0 , number - 4 );
 				el.scrollTop = td[0].offsetHeight * n ;

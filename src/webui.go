@@ -200,13 +200,6 @@ func apiHandler(w http.ResponseWriter, req *http.Request, controller *Controller
 
 // setViewHandlers sets up the web server to serve pages that just view data,
 // but don't interact with it.
-//
-// examples:
-// 		http://localhost/view?display=standings
-// 		http://localhost/view?display=round&round=1
-// 		http://localhost/view?display=ply&ply=1
-// 		http://localhost/view?display=game&round=1
-// 		http://localhost/view?display=log&round=1
 func setViewHandlers(controller *Controller) {
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/view", http.StatusFound)
@@ -218,6 +211,12 @@ func setViewHandlers(controller *Controller) {
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir(filepath.Join(Settings.TemplateDirectory, "resources")))))
 	// Log Requests:
 	http.Handle("/logs/", http.StripPrefix("/logs/", http.FileServer(http.Dir(Settings.LogDirectory))))
+}
+
+func setAdminHandlers(controller *Controller) {
+	http.HandleFunc("/console", func(w http.ResponseWriter, req *http.Request) {
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "console.html"), controller.GetTourney() )
+	})
 }
 
 func setApiHandlers(controller *Controller) {
@@ -233,6 +232,8 @@ func WebUI(controller *Controller) {
 	
 	// Setup API requests:
 	setApiHandlers(controller)
+	// Setup Admin requests:
+	setAdminHandlers(controller)
 	// Setup view requests:
 	setViewHandlers(controller)
 	 

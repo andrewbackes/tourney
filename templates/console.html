@@ -1,0 +1,76 @@
+<html>
+	<head>
+		<title>Admin Console</title>
+		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script> var title = "Console"; var eventTitle = "Administrator"; </script>
+		<link href="../resources/style.css" rel="stylesheet" type="text/css">
+		<style>
+			.console {
+				width: 80%;
+				background: black;
+				color: white;
+				font-family: "Courier New", Courier, monospace;
+				font-size: 90%;
+			}
+			#console_out {
+				height: 20em;
+				overflow-y: auto;
+			}
+			input{
+			    outline: none;
+				border: 0;
+			}
+		</style>
+		<script>
+			var API_SERVER = "/api/unsafe/"; 
+			
+			$( document ).ready(function() {
+				$(".console").each(function( index, element ) {
+					$( this ).click( function() {
+						$("#command").focus();
+					});
+				});
+			});
+			
+			function sendCommand(command) {
+				var path = command.replace(" ", "/");
+				var req = API_SERVER + path;
+				console.log(req);
+				$.ajax(req);
+			}
+			
+			function inputCommand() {
+				var command = $('#command').val();
+				sendCommand( command );
+				$('#console_out').html( $('#console_out').html() + "<br>" + command ); 
+				$('#command').val("");
+				var con = $('#console_out');
+    			var height = con[0].scrollHeight;
+    			con.scrollTop(height);
+			}
+			
+		</script>
+	</head>
+	<body>
+		<div id="main">
+			{{ template "_header.html" . }}
+			{{ $event := .Event }}
+			<div id="content">
+				<div class="console" id="console_out">
+					Tourney Admin Console. You can enter commands here.
+				</div>
+				<input type="text" class="console" id="command">
+			</div>
+		</div>
+		{{ template "_footer.html" . }}
+		<script>
+			$('#command').keypress(function(event){
+				var keycode = (event.keyCode ? event.keyCode : event.which);
+				if(keycode == '13'){
+					inputCommand();
+				}
+			});	
+		</script>
+		<script type="text/javascript" src="../resources/styletables.js"></script>
+	</body>
+</html>
