@@ -8,20 +8,12 @@
 		</script>
 		<link href="resources/style.css" rel="stylesheet" type="text/css">
 		<style>
-			#board_movelist_container {
-				width:800px;height:350px;position:relative;
-			}
-			#board_container {
-				width: 352px; height: 350px; position: relative; background-color: #333946; border: #535863 solid 1px; margin-right: 8px;}
-			#board {
-				width: 336px;height:336px;position:absolute;left: 15px;top:0px;}
-			.dark_square {
-				width:40px;height:40px;border:black solid 1px; background-color:gray;  }
-			.light_square {
-				width:40px;height:40px;border:black solid 1px; background-color: white;   }
-			#score_chart {
-				margin-top:8px;
-			}
+			#board_movelist_container { width:800px;height:350px;position:relative; }
+			#board_container { width: 352px; height: 350px; position: relative; background-color: #333946; border: #535863 solid 1px; margin-right: 8px;}
+			#board { width: 336px;height:336px;position:absolute;left: 15px;top:0px;}
+			.dark_square { width:40px;height:40px;border:black solid 1px; background-color:gray;  }
+			.light_square { width:40px;height:40px;border:black solid 1px; background-color: white;   }
+			#score_chart { margin-top:8px; }
 			.game_info {
 				width: 100%;
 				text-align: center;
@@ -32,34 +24,18 @@
 				width: 16.6%;
 				height: 24px;
 			}
-			.blackplayer {
-				color: #999;
-				
-			}
-			.whiteplayer {
-				color: white;
-			}
-			.black_time {
-				color: #7CBC2D;
-			}
-			.black_score {
-				color: #993CF3;
-			}
-			.black_depth {
-				color: #e89800;
-			}
-
+			.blackplayer { color: #999; }
+			.whiteplayer { color: white; }
+			.black_time { color: #7CBC2D;}
+			.black_score { color: #993CF3; }
+			.black_depth { color: #e89800; }
 			#round_nav_bar {
 				width: 100%;
 				text-align: center;
-				margin-top: 10px;
+				margin-top: 15px;
 			}
-			#round_nav_bar a {
-				font-size: 75%;
-			}
-			.leftBorder {
-				border-left: #535863 solid 1px;
-			}
+			#round_nav_bar a { font-size: 75%; }
+			.leftBorder { border-left: #535863 solid 1px; }
 		</style>
 		<script src="resources/graphs.js"></script>
 		<script>
@@ -147,10 +123,12 @@
 				<h3>Round {{ .Round }}</h3>
 				<table class="game_info">
 					<tr class="trClass">
-						<th class="thClass" colspan="2" >Player:</th>
-						<td class="tdClass" colspan="2" ><span class="whiteplayer">{{ (index .Player 0).Name }}</span> <script>document.write(["(Winner)","",""][{{ .Result }}]);</script></td>
-						<td class="tdClass leftBorder" colspan="2" ><span class="blackplayer">{{ (index .Player 1).Name }}</span> <script>document.write(["","(Winner)",""][{{ .Result }}]);</script></td>
-					</tr>	
+						<td class="tdClass" colspan="3" ><span class="whiteplayer">White: {{ (index .Player 0).Name }}</span> <script>document.write(["(Winner)","",""][{{ .Result }}]);</script></td>
+						<td class="tdClass leftBorder" colspan="3" ><span class="blackplayer">Black: {{ (index .Player 1).Name }}</span> <script>document.write(["","(Winner)",""][{{ .Result }}]);</script></td>
+					</tr>
+					<tr class="trClass">
+						<td class="tdClass" colspan="6">{{ if .Completed }}{{ .ResultDetail }}{{ else }}Incomplete{{ end }}</td>
+					</tr>
 				</table>
 				<div id="time_chart"></div>
 				<table class="game_info">
