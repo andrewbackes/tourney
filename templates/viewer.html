@@ -19,22 +19,18 @@
 				width:40px;height:40px;border:black solid 1px; background-color:gray;  }
 			.light_square {
 				width:40px;height:40px;border:black solid 1px; background-color: white;   }
-			#time_chart {
-				margin-bottom:8px;
-			}
-			#depth_chart {
-				margin-bottom:8px;
-			}
 			#score_chart {
 				margin-top:8px;
 			}
-			#game_info {
+			.game_info {
 				width: 100%;
 				text-align: center;
 				margin-bottom: 10px;
+				margin-top: 4px;
 			}
-			#game_info td {
-				width: 17%;
+			.game_info td, .game_info th {
+				width: 16.6%;
+				height: 24px;
 			}
 			.blackplayer {
 				color: #999;
@@ -52,8 +48,7 @@
 			.black_depth {
 				color: #e89800;
 			}
-			
-			
+
 			#round_nav_bar {
 				width: 100%;
 				text-align: center;
@@ -61,6 +56,9 @@
 			}
 			#round_nav_bar a {
 				font-size: 75%;
+			}
+			.leftBorder {
+				border-left: #535863 solid 1px;
 			}
 		</style>
 		<script src="resources/graphs.js"></script>
@@ -147,26 +145,29 @@
 			{{ $event := .Event }}
 			<div id="content">
 				<h3>Round {{ .Round }}</h3>
-					
-				<table id="game_info">
+				<table class="game_info">
 					<tr class="trClass">
-						<th class="thClass" colspan="2" >Player</th>
+						<th class="thClass" colspan="2" >Player:</th>
 						<td class="tdClass" colspan="2" ><span class="whiteplayer">{{ (index .Player 0).Name }}</span> <script>document.write(["(Winner)","",""][{{ .Result }}]);</script></td>
-						<td class="tdClass" colspan="2" ><span class="blackplayer">{{ (index .Player 1).Name }}</span> <script>document.write(["","(Winner)",""][{{ .Result }}]);</script></td>
-					</tr>
-					<tr class="trClass">
-						<th class="thClass" title="Average time spent per move.">Ave. Time/Move</th><th class="thClass"  title="Count of how many times the engine searched deeper than oponent."># Times Searched Longer</th>
-						<td class="tdClass white_time">{{ .AveTimePerMove 0 }}</td><td class="tdClass white_time">{{ .TimesSearchedLonger 0 }}</td>
-						<td class="tdClass black_time">{{ .AveTimePerMove 1 }}</td><td class="tdClass black_time">{{ .TimesSearchedLonger 1 }}</td>
-					</tr>
-					<tr class="trClass">
-						<th class="thClass" title="Average depth reached per move.">Ave. Depth</th><th class="thClass"  title="Count of how many times the engine searched deeper than oponent."># Times Searched Deeper</th>
-						<td class="tdClass white_depth">{{ .AveDepth 0 }}</td><td class="tdClass white_depth">{{ .TimesSearchedDeeper 0 }}</td>
-						<td class="tdClass black_depth">{{ .AveDepth 1 }}</td><td class="tdClass black_depth">{{ .TimesSearchedDeeper 1 }}</td>
-					</tr>
+						<td class="tdClass leftBorder" colspan="2" ><span class="blackplayer">{{ (index .Player 1).Name }}</span> <script>document.write(["","(Winner)",""][{{ .Result }}]);</script></td>
+					</tr>	
 				</table>
 				<div id="time_chart"></div>
+				<table class="game_info">
+					<tr class="trClass">
+						<th class="thClass" title="Average time spent per move.">Time/Move:</th><th class="thClass"  title="Count of how many times the engine searched deeper than oponent."># Longer:</th>
+						<td class="tdClass white_time">{{ .AveTimePerMove 0 }}</td><td class="tdClass white_time">{{ .TimesSearchedLonger 0 }}</td>
+						<td class="tdClass black_time leftBorder">{{ .AveTimePerMove 1 }}</td><td class="tdClass black_time">{{ .TimesSearchedLonger 1 }}</td>
+					</tr>
+				</table>
 				<div id="depth_chart"></div>
+				<table class="game_info">
+					<tr class="trClass">
+						<th class="thClass" title="Average depth reached per move.">Depth/Move:</th><th class="thClass"  title="Count of how many times the engine searched deeper than oponent."># Deeper:</th>
+						<td class="tdClass white_depth">{{ .AveDepth 0 }}</td><td class="tdClass white_depth">{{ .TimesSearchedDeeper 0 }}</td>
+						<td class="tdClass black_depth leftBorder">{{ .AveDepth 1 }}</td><td class="tdClass black_depth">{{ .TimesSearchedDeeper 1 }}</td>
+					</tr>
+				</table>
 				<div id="board_movelist_container">
 					<div id="board_container" style="float:left;">
 						<div id="board">
@@ -186,8 +187,21 @@
 			        </div>
 			        <div id="move_table" style="float:right;"></div>
 		    	</div>
+
 				<div id="score_chart"></div>
+				<table class="game_info">
+					<tr class="trClass">
+						<th class="thClass" colspan="2" title="Average number of times searches failed low per move.">PV Changes/Move:</th>
+						<td class="tdClass" colspan="2">{{ .AvePvChanges 0  }}</td><td class="tdClass leftBorder" colspan="2">{{ .AvePvChanges 1  }}</td>
+					</tr>
+					<tr class="trClass">
+						<th class="thClass" title="Average number of times searches failed low per move.">Fail Lows/Move:</th><th class="thClass" title="Average number of times searches failed high per move.">Fail Highs/Move:</th>
+						<td class="tdClass">{{ .AveFailLows 0  }}</td><td class="tdClass">{{ .AveFailHighs 0 }}</td>
+						<td class="tdClass leftBorder">{{ .AveFailLows 1 }}</td><td class="tdClass">{{ .AveFailHighs 1 }}</td>
+					</tr>
+				</table>
 				<div id="timeline"></div>
+				
 				<div id="debug"></div>
 				<table id="round_nav_bar">
 					<tr>

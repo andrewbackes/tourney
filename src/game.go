@@ -952,3 +952,14 @@ func (G Game) TimesSearchedLonger(c Color) int {
 	return biggerStatCnt(G, c, func(i int)int { return G.AnalysisList[i].Time() })
 }
 
+func (G Game) AveFailLows(c Color) float64 {
+	return aveGameStat(G, c, func(i int)int { return G.AnalysisList[i].Lowerbounds() })
+}
+
+func (G Game) AveFailHighs(c Color) float64 {
+	return aveGameStat(G, c, func(i int)int { return G.AnalysisList[i].Upperbounds() })
+}
+
+func (G Game) AvePvChanges(c Color) float64 {
+	return aveGameStat(G, c, func(i int)int { return G.AnalysisList[i].PvChanges() })
+}
