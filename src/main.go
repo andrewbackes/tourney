@@ -41,6 +41,46 @@ var Settings GlobalSettings
 
 const SettingsFile = "tourney.settings"
 
+func handleLaunchArgs(repl, broadcast, loaddefault *bool, Tourneys *TourneyList, wg *sync.WaitGroup) {
+	
+	// Parse the command line arguements:
+	args := os.Args[1:]
+	for i, arg := range args {
+		if len(arg) == 2 {
+			arg = strings.Replace(arg, "-o", "-open", -1)
+			arg = strings.Replace(arg, "-c", "-connect", -1)
+			arg = strings.Replace(arg, "-h", "-host", -1)
+			arg = strings.Replace(arg, "-p", "-play", -1)
+		}
+		param := ""
+		if len(args) > i+1 {
+			param = args[i+1]
+		}
+		switch arg {
+		case "-open":
+			// open .tourney file
+			Eval("load "+param, Tourneys, wg)
+			*loaddefault = false
+		case "-play":
+			// open and play the tourney:
+			Eval("load "+param, Tourneys, wg)
+			Eval("start", Tourneys, wg)
+			*loaddefault = false
+		case "-host":
+			// open and host the tourney:
+			Eval("load "+param, Tourneys, wg)
+			Eval("host", Tourneys, wg)
+			*loaddefault = false
+		case "-connect":
+			// connect to a host
+			Eval("connect "+param, Tourneys, wg)
+			*repl = false
+			*broadcast = false
+			*loaddefault = false
+		}
+	}
+}
+
 func main() {
 	// Adjust working directory:
 	cd, er := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -68,42 +108,7 @@ func main() {
 	broadcast := true
 	loaddefault := true
 
-	// Parse the command line arguements:
-	args := os.Args[1:]
-	for i, arg := range args {
-		if len(arg) == 2 {
-			arg = strings.Replace(arg, "-o", "-open", -1)
-			arg = strings.Replace(arg, "-c", "-connect", -1)
-			arg = strings.Replace(arg, "-h", "-host", -1)
-			arg = strings.Replace(arg, "-p", "-play", -1)
-		}
-		param := ""
-		if len(args) > i+1 {
-			param = args[i+1]
-		}
-		switch arg {
-		case "-open":
-			// open .tourney file
-			Eval("load "+param, &Tourneys, &wg)
-			loaddefault = false
-		case "-play":
-			// open and play the tourney:
-			Eval("load "+param, &Tourneys, &wg)
-			Eval("start", &Tourneys, &wg)
-			loaddefault = false
-		case "-host":
-			// open and host the tourney:
-			Eval("load "+param, &Tourneys, &wg)
-			Eval("host", &Tourneys, &wg)
-			loaddefault = false
-		case "-connect":
-			// connect to a host
-			Eval("connect "+param, &Tourneys, &wg)
-			repl = false
-			broadcast = false
-			loaddefault = false
-		}
-	}
+	handleLaunchArgs(&repl, &broadcast, &loaddefault, &Tourneys, &wg)
 
 	if loaddefault {
 		def, _ := LoadDefault()
