@@ -13,6 +13,10 @@
 
 package main
 
+import (
+	"strings"
+)
+
 const MATESCORE int = 100000
 
 type Move string
@@ -40,6 +44,41 @@ func (M MoveAnalysis) Pv() string {
 		}
 	}
 	return ""
+}
+
+// PvChanges counts the number of times the PV changed for a move.
+func (M MoveAnalysis) PvChanges() int {
+	count := 0
+	for i:=1; i < len(M.Evaluation); i++ {
+		if !strings.Contains( strings.TrimSpace(M.Evaluation[i].Pv() ), strings.TrimSpace(M.Evaluation[i-1].Pv() )) {
+			count++
+		}
+	}
+	return count
+}
+
+// tallyStat is a helper function to count the occurances of a stat in the
+// evaluation data.
+func (M MoveAnalysis) tallyStat( hasStat func(int)bool ) int {
+	count := 0;
+	for i, _ := range M.Evaluation {
+		if hasStat(i) {
+			count++
+		}
+	}
+	return count
+}
+
+// Lowerbounds counts the number of times a lowerbound was declared in
+// the evaluation data.
+func (M MoveAnalysis) Lowerbounds() int {
+	return M.tallyStat( func(i int)bool { return M.Evaluation[i].Lowerbound() }  )
+}
+
+// Upperbounds counts the number of times a Upperbound was declared in
+// the evaluation data.
+func (M MoveAnalysis) Upperbounds() int {
+	return M.tallyStat( func(i int)bool { return M.Evaluation[i].Upperbound() }  )
 }
 
 func (M MoveAnalysis) Score() int {

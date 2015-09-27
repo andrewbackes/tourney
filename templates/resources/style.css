@@ -181,6 +181,7 @@ td, th {
 	height: 30px;
 	//border-bottom: 1px solid #999DA7;
 	border-bottom: 1px solid #535863;
+	text-align: center;
 }
 .thClass {
 	background: none;
