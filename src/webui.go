@@ -214,8 +214,13 @@ func setViewHandlers(controller *Controller) {
 }
 
 func setAdminHandlers(controller *Controller) {
+	// Admin Console:
 	http.HandleFunc("/console", func(w http.ResponseWriter, req *http.Request) {
 		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "console.html"), controller.GetTourney() )
+	})
+	// New tourney:
+	http.HandleFunc("/new", func(w http.ResponseWriter, req *http.Request) {
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "new.html"), controller.GetTourney() )
 	})
 }
 
