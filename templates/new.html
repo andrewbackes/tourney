@@ -52,6 +52,7 @@
 				width: 70px;
 				border-radius: 8px;
 				font-size: 110%;
+				color: white;
 			}
 			.toggle-bar {
 				width: 550px;
@@ -92,12 +93,26 @@
 				width: 100%;
 			}
 			.delete-engine {
-				color: white;
-				background-color: #990012;
+				background-color: #D9534F;
+				border-color: #D43F3A;
 			}
-			#addenginebutton {
-				color: white;
-				background-color: #387C44;
+			.delete-engine:hover {
+				background-color: #C92C29;  
+				border-color: #AC2925;
+			}
+			#add-engine {
+				background-color: #5CB85C;
+				border-color: #398439;
+			}
+			#add-engine:hover {
+				background-color: #449D44;
+				border-color: #398439;
+			}
+			#start-tourney-container {
+				text-align: right;
+				padding: 0;
+				padding-right: 25px;
+				height: 70px;
 			}
 		</style>
 		<script id="add-engine-template" type="text/tourney-template">
@@ -270,7 +285,11 @@
 				</div>
 				
 				<div id="addengines">
-					<button id="addenginebutton" onClick="AddEngine();" class="button">+</button>
+					<button id="add-engine" onClick="AddEngine();" class="button">+</button>
+				</div>
+				<div id="start-tourney-container">
+					<button id="queue-tourney" onClick="queueTourney();" class="button tourney-button">Queue</button>
+					<button id="start-tourney" onClick="startTourney();" class="button tourney-button">Start</button>
 				</div>
 			</div>
 		</div>
