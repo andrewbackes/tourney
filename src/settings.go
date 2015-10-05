@@ -5,11 +5,7 @@
  Author(s): Andrew Backes
  Created: 1/7/2015
 
-
  Description: Global settings control.
-
- TODO:
- 	-
 
 *******************************************************************************/
 
@@ -18,7 +14,6 @@ package main
 import (
 	"strconv"
 	"strings"
-	//"runtime"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -28,9 +23,10 @@ type GlobalSettings struct {
 	WorkerDirectory   string
 	LogDirectory      string
 	TemplateDirectory string
+	TourneyDirectory  string
 	SaveDirectory     string
 	BookDirectory     string
-
+	
 	ServerPort     int
 	WebPort        int
 	EngineFilePort int
@@ -43,8 +39,9 @@ func DefaultSettings() GlobalSettings {
 		WorkerDirectory:       "worker/",
 		LogDirectory:          "logs/",
 		TemplateDirectory:     "templates/",
-		SaveDirectory:         "",
-		BookDirectory:         "",
+		TourneyDirectory:      "tourneys/",
+		SaveDirectory:         "data/",
+		BookDirectory:         "book/",
 		ServerPort:            9000,
 		WebPort:               8080,
 		EngineFilePort:        9001,
@@ -63,6 +60,7 @@ func (G GlobalSettings) String() string {
 		"WorkerDirectory:      \t" + G.WorkerDirectory + "\n" +
 		"LogDirectory:         \t" + G.LogDirectory + "\n" +
 		"TemplateDirectory:    \t" + G.TemplateDirectory + "\n" +
+		"TourneyDirectory:     \t" + G.TourneyDirectory + "\n" +
 		"SaveDirectory:        \t" + G.SaveDirectory + "\n" +
 		"BookDirectory:        \t" + G.BookDirectory + "\n" +
 		"ServerPort:           \t" + strconv.Itoa(G.ServerPort) + "\n" +

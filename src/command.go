@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"path/filepath"
 )
 
 type UserCommand struct {
@@ -167,9 +168,10 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				filename = strings.Trim(filename, "\r\n") // for windows
 				filename = strings.Trim(filename, "\n")   // for *nix
 				filename = strings.Replace(filename, ".tourney", "", 1) + ".tourney"
+				if ( ! strings.Contains(filename, "/") ) {
+					filename = filepath.Join(Settings.TourneyDirectory, filename)
+				}
 				if N, err := LoadFile(filename); err == nil {
-					//T = append(T, N)
-					//*selected = len(T) - 1
 					Tourneys.Add(N)
 					ListActiveTourneys(Tourneys)
 				}

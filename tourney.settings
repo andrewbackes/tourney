@@ -2,6 +2,7 @@
   "WorkerDirectory": "worker/",
   "LogDirectory": "logs/",
   "TemplateDirectory": "templates/",
+  "TourneyDirectory": "tourneys/",
   "SaveDirectory": "data/",
   "BookDirectory": "books/",
   "ServerPort": 9000,

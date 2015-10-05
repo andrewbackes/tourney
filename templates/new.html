@@ -30,9 +30,7 @@
 				font-weight: 100;
 				margin-right: 15px;
 			}
-			input {
-				font-family: Roboto, Helvetica;
-			}
+			input { font-family: Roboto, Helvetica; }
 			
 			.inputbox {
 				background: #282E3E;
@@ -62,7 +60,6 @@
 			}
 			.toggle-bar div {
 				display: inline-block;
-				background: #282E3E;
 				border: 1px solid #535863;				
 				padding: 5px;
 				cursor: pointer;
@@ -70,28 +67,27 @@
 				margin-bottom: 25px;
 				text-align: center;
 			}
-			.from-file-button {
-				width: 45%;
-				border-top-right-radius: 8px;
-				border-bottom-right-radius: 8px;
-			}
-			.from-github-button {
-				width: 45%;
+			.left-toggle {
 				border-top-left-radius: 8px;
 				border-bottom-left-radius: 8px;
 			}
-			.github-form {
-				height: 60px;
+			.right-toggle {
+				border-top-right-radius: 8px;
+				border-bottom-right-radius: 8px;
 			}
-			.file-form {
-				height: 60px;
+			.toggle-selected { 
+				background-color: #535863;
 			}
-			.add-engine-entry table {
-				width: 520px;
-			}
-			.add-engine-entry table input {
-				width: 100%;
-			}
+			.from-file-button { width: 45%; }
+			.from-github-button { width: 45%; }
+			#timecontrol-toggle { margin-left: auto; margin-right: auto;}
+			#timecontrol-toggle div { width: 20%; }
+			.centered { margin-left: auto; margin-right: auto; }
+			
+			.github-form { height: 140px; }
+			.file-form { height: 40px; }
+			.add-engine-entry table { width: 520px; }
+			.add-engine-entry table input { width: 100%; }
 			.delete-engine {
 				background-color: #D9534F;
 				border-color: #D43F3A;
@@ -121,8 +117,7 @@
 				<table>
 					<tr>
 						<td class="thincell">
-							Gauntlet
-							<input type="checkbox" class="gauntlet">
+							<input type="checkbox" class="gauntlet">Gauntlet
 						</td>
 						<td>
 							<div class="engine-title-bar">
@@ -132,7 +127,7 @@
 										<td class="tdClass">Protocol:</td><td class="tdClass">
 											<select class="inputbox protocol">
 												<option value="uci">UCI</option>
-												<option value="winboard">WinBoard</option>
+												<option value="winboard">WINBOARD</option>
 											</select>
 										</td>
 									</tr>
@@ -140,7 +135,7 @@
 							</div>
 							
 							<div class="toggle-bar">
-								<div class="from-github-button" style="background-color: #535863;" onClick="showGithub($(this));">Github </div><div class="from-file-button"onClick="showFromFile($(this));"> From File</div>
+								<div class="from-github-button left-toggle" style="background-color: #535863;" onClick="showGithub($(this));">Github</div><div class="from-file-button right-toggle" onClick="showFromFile($(this));">From File</div>
 							</div>
 							
 							<div class="github-form">
@@ -150,6 +145,12 @@
 									</tr>
 									<tr class="trClass">
 										<td class="tdClass" width="100px">Branch:</td><td class="tdClass"><input type="text" class="thick inputbox branch"></td>
+									</tr>
+									<tr class="trClass">
+										<td class="tdClass" width="100px">Build command:</td><td class="tdClass"><input type="text" class="thick inputbox buildfile"></td>
+									</tr>
+									<tr class="trClass">
+										<td class="tdClass" width="100px">Engine path:</td><td class="tdClass"><input type="text" class="thick inputbox enginefile"></td>
 									</tr>
 								</table>
 							</div>
@@ -170,13 +171,23 @@
 			</div>
 		</script>
 		<script>
-			var API_SERVER = "/api/unsafe/"; 
+			var API_SERVER = "/api/v1/"; 
 			
-			function sendCommand(command) {
-				var path = command.replace(" ", "/");
-				var req = API_SERVER + path;
-				console.log(req);
-				$.ajax(req);
+			$( document ).ready(function() {
+				AddEngine();
+			});
+			
+			function PostAPI(resource, payload) {
+				var url = API_SERVER + resource;
+				console.log("URL:" + url);
+				console.log(payload);
+				$.post(
+					url,
+					JSON.stringify(payload),
+					function() {
+						console.log("success");
+						writeSuccess();
+				});
 			}
 			
 			function AddEngine() {
@@ -204,8 +215,139 @@
 				$container.find('.from-file-button').css("background-color", "#535863") ;
 			}
 			
-			$( document ).ready(function() {
-				AddEngine();
+			function setTimeControlFields( time, inc, moves, repeating ) {
+				$( "#time" ).val(time);
+				$( "#increment" ).val(inc);
+				$( "#moves" ).val(moves);
+				if ( repeating ) {
+					$( "#repeating" ).prop( "checked", true );
+				}
+			}
+			
+			function setDefaultBook() {
+				$( "#booklocation" ).val("default.book");
+				$( "#bookmoves" ).val("4");
+				$( "#randombook" ).prop( "checked", true );
+				$( "#bookmirroring" ).prop( "checked", true );
+			}
+			
+			function setDefaultLogistics() {
+				$( "#rounds" ).val("2");
+				$( "#carousel" ).prop( "checked", true );
+			}
+			
+			function setDefaultServer() {
+				$( "#workers" ).val("3");
+				$( "#workers" ).prop( "disabled", true );
+				$( "#host" ).prop( "checked", true );
+				$( "#host" ).prop( "disabled", true );
+			}
+			
+			function SetTimeControl( button, preset ) {
+				$( '#timecontrol-toggle' ).children().each( function(i,e) {
+					$(e).removeClass("toggle-selected");
+				});
+				$( button ).addClass("toggle-selected");
+				if ( preset == "turbo" ) {
+					setTimeControlFields("10000","0","40", true);
+				} else if ( preset == "blitz" ) { 
+					setTimeControlFields("60000","0","40", true);
+				} else if ( preset == "2/40" ) { 
+					setTimeControlFields("120000","0","40", true);
+				} else if ( preset == "40/40" ) { 
+					setTimeControlFields("2400000","0","40", true);
+				}
+			}
+			
+			function getEngines() {
+				var gauntlet_engines = [];
+				var engines = [];
+				var build_engines = [];
+				$('#engine-list').children().each( function(i,e) {
+					var engine = {};
+					engine.Name = $( this ).find('.name').val();
+					engine.Protocol = $( this ).find('.protocol').val();
+					if ( $( this ).find('.github-form').css('display') != 'none' ) {
+						var $form = $( this ).find('.github-form')
+						engine.Path =  $form.find('.enginefile').val();
+						build_engines.push({
+							Repo: $form.find('.repo').val(),
+							Branch: $form.find('.branch').val(),
+							BuildFile: $form.find('.buildfile').val(),	
+						});
+					} else {
+						engine.Path =  $( this ).find('.file-form').find('.filepath').val();
+					}
+					if ( isChecked( $( this ).find('.gauntlet') ) == "true" ) {
+						gauntlet_engines.push( engine );	
+					} else {
+						engines.push( engine );
+					}
+				});
+				return [ gauntlet_engines, engines, build_engines ];
+			}
+			
+			function isChecked( checkbox ) {
+				if ( $(checkbox).is(":checked") ) {
+					return true;
+				}
+				return false;
+			}
+			
+			function getTourneyInfo() {
+				return ({
+					Event: $("#event").val(),
+					Site: "",
+					Date: "",
+					Carousel: isChecked($('#carousel')),
+					Moves: parseInt($('#moves').val()),
+					Time: parseInt($('#time').val()),
+					Repeating: isChecked($('#repeating')),
+					Rounds: parseInt($('#rounds').val()),
+					QuitAfter: false,
+					BookLocation: $('#booklocation').val(),
+					BookMoves: parseInt($('#bookmoves').val()),
+					RandomBook: isChecked($('#randombook')),
+					BookMirroring: isChecked($('#bookmirroring')),
+				});
+			}
+			
+			function SubmitTourney() {
+				var tourney = getTourneyInfo();
+				var participants = getEngines();
+				
+				var gauntlets = participants[0];
+				var non_gauntlets = participants[1];
+				if ( gauntlets.length == 0 ) {
+					tourney.TestSeats = 1;
+				} else {
+					tourney.TestSeats = gauntlets.length;
+				}
+				
+				tourney.Engines = gauntlets.concat(non_gauntlets);
+				tourney.BuildEngines = participants[2];
+				
+				PostAPI("tourney",tourney);
+			}
+			
+			function queueTourney() {
+				SubmitTourney();
+			}
+			
+			function startTourney() {
+				SubmitTourney();
+			}
+			
+			function writeSuccess() {
+				var msg = "'" + $( "#event" ).val() + "' created successfully..."
+				$( "#content" ).html("<h4>" + msg + "</h4>");
+			}
+			
+			$( document ).ready( function() {
+				SetTimeControl( $( "#turbo" ), 'turbo' );
+				setDefaultBook();
+				setDefaultLogistics();
+				setDefaultServer();
 			});
 			
 		</script>
@@ -220,6 +362,10 @@
 					<span class="title">Tourney Name:</span> <input type="text" id="event" class="inputbox">
 				</div>
 				<div class="dashedborder">
+					<div class="toggle-bar" id="timecontrol-toggle">
+						<div id="turbo" class="left-toggle toggle-button" onclick="SetTimeControl( $( this ), 'turbo')">Turbo</div><div id="blitz" class="mid-toggle toggle-button" onclick="SetTimeControl( $( this ), 'blitz')">Blitz</div><div id="two" class="mid-toggle toggle-button" onclick="SetTimeControl( $( this ), '2/40')">2/40</div><div id="fourty" class="right-toggle toggle-button" onclick="SetTimeControl( $( this ), '40/40')">40/40</div>
+					</div>
+					
 					<div class="nowrap">
 						<h4>Time Control</h4>
 						<table>
@@ -270,15 +416,25 @@
 								<td><input type="text" id="rounds" class="thin inputbox"></td>
 							</tr>
 							<tr>
-								<td>Gauntlet Seats:</td>
-								<td><input type="text" id="testseats" class="thin inputbox"></td>
-							</tr>
-							<tr>
 								<td>Carousel:</td>
 								<td><input type="checkbox" id="carousel"></td>
 							</tr>
 						</table>
 					</div>
+					<div class="nowrap">
+						<h4>Server</h4>
+						<table>
+							<tr>
+								<td>#Workers:</td>
+								<td><input type="text" id="workers" class="thin inputbox"></td>
+							</tr>
+							<tr>
+								<td>Host:</td>
+								<td><input type="checkbox" id="host"></td>
+							</tr>
+						</table>
+					</div>
+					
 				</div>
 				<div id="engine-list">
 					
@@ -288,8 +444,8 @@
 					<button id="add-engine" onClick="AddEngine();" class="button">+</button>
 				</div>
 				<div id="start-tourney-container">
-					<button id="queue-tourney" onClick="queueTourney();" class="button tourney-button">Queue</button>
-					<button id="start-tourney" onClick="startTourney();" class="button tourney-button">Start</button>
+					<!-- <button id="queue-tourney" onclick="queueTourney()" class="button tourney-button">Queue</button> -->
+					<button id="start-tourney" onclick="startTourney()" class="button tourney-button">Start</button>
 				</div>
 			</div>
 		</div>

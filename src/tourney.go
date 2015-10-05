@@ -67,6 +67,7 @@ type Tourney struct {
 	Date  string
 
 	Engines []Engine // which engines are playing in the tournament
+	BuildEngines []BuildSpec // which engines need to be compiled from source
 
 	// The following will determine gauntlet, multigauntlet, roundrobin
 	// 		if TestSeats=1 then normal gauntlet (for the first engine)
@@ -455,7 +456,7 @@ func SaveSettings(T *Tourney) error {
 		T.filename = T.filename + ".tourney"
 	}
 	filename := T.filename
-	filename = filepath.Join(Settings.SaveDirectory, filename)
+	filename = filepath.Join(Settings.TourneyDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	var file *os.File
 	var err error
