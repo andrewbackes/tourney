@@ -191,8 +191,15 @@
 			}
 			
 			function AddEngine() {
-				var $template = $( $( document.getElementById( 'add-engine-template' ) ).html() );
+				var $template;
 				var $container = $( document.getElementById( 'engine-list' ) );
+				if ( $container.children().length > 0 ) {
+					$template = $( $container.children().last().clone() );
+					var v = $template.find('.name').val() + " (Copy)";
+					$template.find('.name').val(v);
+				} else {
+					$template = $( $( document.getElementById( 'add-engine-template' ) ).html() );
+				}
 				$container.append( $template );
 				
 			}
