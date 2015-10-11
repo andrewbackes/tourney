@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"path/filepath"
 )
 
 type UserCommand struct {
@@ -167,12 +168,29 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				filename = strings.Trim(filename, "\r\n") // for windows
 				filename = strings.Trim(filename, "\n")   // for *nix
 				filename = strings.Replace(filename, ".tourney", "", 1) + ".tourney"
+				if ( ! strings.Contains(filename, "/") ) {
+					filename = filepath.Join(Settings.TourneyDirectory, filename)
+				}
 				if N, err := LoadFile(filename); err == nil {
-					//T = append(T, N)
-					//*selected = len(T) - 1
 					Tourneys.Add(N)
 					ListActiveTourneys(Tourneys)
 				}
+			}},
+		{
+			label: []string{"buildengines"},
+			desc:  "Builds engines in the tourney from source.",
+			f: func() {
+				fmt.Println("Building engines...")
+				if err := T.PreBuildEngines(); err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println("Done building engines.")
+			}},
+		{
+			label: []string{"engines"},
+			desc:  "Shows the engine's in the tourney",
+			f: func() {
+				fmt.Print(T.Engines)
 			}},
 		{
 			label:          []string{"loaddefault"},
@@ -258,7 +276,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				return
 			}},
 		{
-			label:          []string{"engine", "add", "addengine"},
+			label:          []string{"addengine"},
 			desc:           "Adds an engine to the tournament.",
 			classification: TOURNEY_CONTROL,
 			f: func() {
@@ -389,6 +407,12 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 					wg.Done()
 				}()
 				return
+			}},
+		{
+			label: []string{"spawn"},
+			desc:  "Spawns provided number of workers.",
+			f: func() {
+				
 			}},
 		{
 			label: []string{"connect", "c"},

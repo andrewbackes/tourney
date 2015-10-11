@@ -28,7 +28,6 @@ import (
 	"net/url"
 	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 func renderNothingLoaded(w http.ResponseWriter) {
@@ -185,19 +184,6 @@ func requestHandler(w http.ResponseWriter, req *http.Request, t *Tourney) {
 	}
 }
 
-func apiHandler(w http.ResponseWriter, req *http.Request, controller *Controller) {
-	r := strings.Split( strings.Trim(req.URL.Path,"/"), "/" )
-	cmd, arg := "", ""
-	if len(r) >= 4 {
-		arg = " " + r[3]
-	}
-	if len(r) >= 3 {
-		cmd = r[2]
-		fmt.Println("[API] Recieved: " + cmd + arg)
-		controller.Enque(cmd + arg)
-	}
-}
-
 // setViewHandlers sets up the web server to serve pages that just view data,
 // but don't interact with it.
 func setViewHandlers(controller *Controller) {
@@ -214,14 +200,19 @@ func setViewHandlers(controller *Controller) {
 }
 
 func setAdminHandlers(controller *Controller) {
+	// Admin Console:
 	http.HandleFunc("/console", func(w http.ResponseWriter, req *http.Request) {
 		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "console.html"), controller.GetTourney() )
+	})
+	// New tourney:
+	http.HandleFunc("/new", func(w http.ResponseWriter, req *http.Request) {
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "new.html"), controller.GetTourney() )
 	})
 }
 
 func setApiHandlers(controller *Controller) {
-	http.HandleFunc("/api/unsafe/", func(w http.ResponseWriter, req *http.Request) {
-		apiHandler(w, req, controller)
+	http.HandleFunc("/api/", func(w http.ResponseWriter, req *http.Request) {
+		APIHandler(w, req, controller)
 	})
 }
 

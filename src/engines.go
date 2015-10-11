@@ -70,6 +70,7 @@ type Engine struct {
 	//Public:
 	Name string
 	Path string // file location
+	Spec BuildSpec
 	// TODO: case sensitive issues with protocol?
 	Protocol string            // = "UCI" or "WINBOARD" (TODO: Auto)
 	Options  map[string]string // initialized in E.Initialize()
@@ -90,6 +91,27 @@ type Setting struct {
 	Type  string
 	Min   string
 	Max   string
+}
+
+func (E *Engine) BuildRequired() bool {
+	hasrepo := (E.Spec.Repo != "")
+	hasbranch := (E.Spec.Branch != "")
+	hasbuildfile := (E.Spec.BuildFile != "")
+	return hasrepo && hasbranch && hasbuildfile
+	/*
+	if hasrepo && hasbranch && hasbuildfile {
+		enginefile, _ := filepath.Abs( filepath.Join( E.Spec.Dir(), E.Spec.EngineFile ) )
+		_, err := os.Stat(enginefile)
+		built := !os.IsNotExist(err)
+		return !built
+	}
+	return false
+	*/
+}
+
+func (E *Engine) Exists() bool {
+	_, err := os.Stat(E.Path)
+	return !os.IsNotExist(err)
 }
 
 func (E *Engine) Equals(E2 *Engine) bool {
