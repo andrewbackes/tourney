@@ -262,19 +262,18 @@
 			function getEngines() {
 				var gauntlet_engines = [];
 				var engines = [];
-				var build_engines = [];
 				$('#engine-list').children().each( function(i,e) {
 					var engine = {};
 					engine.Name = $( this ).find('.name').val();
 					engine.Protocol = $( this ).find('.protocol').val();
 					if ( $( this ).find('.github-form').css('display') != 'none' ) {
 						var $form = $( this ).find('.github-form')
-						engine.Path =  $form.find('.enginefile').val();
-						build_engines.push({
+						engine.Spec = {
 							Repo: $form.find('.repo').val(),
 							Branch: $form.find('.branch').val(),
 							BuildFile: $form.find('.buildfile').val(),	
-						});
+							EngineFile: $form.find('.enginefile').val(),
+						};
 					} else {
 						engine.Path =  $( this ).find('.file-form').find('.filepath').val();
 					}
@@ -284,7 +283,7 @@
 						engines.push( engine );
 					}
 				});
-				return [ gauntlet_engines, engines, build_engines ];
+				return [ gauntlet_engines, engines ];
 			}
 			
 			function isChecked( checkbox ) {
@@ -325,7 +324,6 @@
 				}
 				
 				tourney.Engines = gauntlets.concat(non_gauntlets);
-				tourney.BuildEngines = participants[2];
 				
 				PostAPI("tourney",tourney);
 			}

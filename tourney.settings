@@ -5,6 +5,7 @@
   "TourneyDirectory": "tourneys/",
   "SaveDirectory": "data/",
   "BookDirectory": "books/",
+  "BuildDirectory": "build/",
   "ServerPort": 9000,
   "WebPort": 8080,
   "EngineFilePort": 9001,

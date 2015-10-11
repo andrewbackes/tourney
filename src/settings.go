@@ -26,6 +26,7 @@ type GlobalSettings struct {
 	TourneyDirectory  string
 	SaveDirectory     string
 	BookDirectory     string
+	BuildDirectory	  string
 	
 	ServerPort     int
 	WebPort        int
@@ -42,6 +43,7 @@ func DefaultSettings() GlobalSettings {
 		TourneyDirectory:      "tourneys/",
 		SaveDirectory:         "data/",
 		BookDirectory:         "book/",
+		BuildDirectory:        "build/",
 		ServerPort:            9000,
 		WebPort:               8080,
 		EngineFilePort:        9001,
@@ -63,6 +65,7 @@ func (G GlobalSettings) String() string {
 		"TourneyDirectory:     \t" + G.TourneyDirectory + "\n" +
 		"SaveDirectory:        \t" + G.SaveDirectory + "\n" +
 		"BookDirectory:        \t" + G.BookDirectory + "\n" +
+		"BookDirectory:        \t" + G.BuildDirectory + "\n" +
 		"ServerPort:           \t" + strconv.Itoa(G.ServerPort) + "\n" +
 		"WebPort:              \t" + strconv.Itoa(G.WebPort) + "\n" +
 		"EngineFilePort:       \t" + strconv.Itoa(G.EngineFilePort) + "\n" +

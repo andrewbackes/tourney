@@ -54,6 +54,16 @@ func (W *Worker) DownloadEngine(ServerPath string, rpcResponse *string) error {
 	parsed = strings.SplitAfter(parsed[len(parsed)-1], "\\") // windows
 	EngineFileName := parsed[len(parsed)-1]
 
+	// Get it from the server:
+	httpFile, err := http.Get("http://" + strings.Split(W.serverAddr, ":")[0] + ":" + strconv.Itoa(Settings.EngineFilePort) + "/" + ServerPath)
+	defer httpFile.Body.Close()
+	if err != nil {
+		return err
+	}
+	if httpFile.StatusCode != 200 {
+		return errors.New(httpFile.Status)
+	}
+
 	// Make the file locally:
 	LocalEngineFilePath := filepath.Join(Settings.WorkerDirectory, EngineFileName)
 	LocalFile, err := os.Create(LocalEngineFilePath)
@@ -65,13 +75,6 @@ func (W *Worker) DownloadEngine(ServerPath string, rpcResponse *string) error {
 	err = LocalFile.Chmod(0755)
 	if err != nil && !strings.Contains(err.Error(), "not supported by windows") {
 		fmt.Println("Error modifying file permissions.")
-		return err
-	}
-
-	// Get it from the server:
-	httpFile, err := http.Get("http://" + strings.Split(W.serverAddr, ":")[0] + ":" + strconv.Itoa(Settings.EngineFilePort) + "/" + ServerPath)
-	defer httpFile.Body.Close()
-	if err != nil {
 		return err
 	}
 

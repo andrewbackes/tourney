@@ -67,7 +67,6 @@ type Tourney struct {
 	Date  string
 
 	Engines []Engine // which engines are playing in the tournament
-	BuildEngines []BuildSpec // which engines need to be compiled from source
 
 	// The following will determine gauntlet, multigauntlet, roundrobin
 	// 		if TestSeats=1 then normal gauntlet (for the first engine)
@@ -145,10 +144,11 @@ func (W *TourneyList) Remove() {
 
 func RunTourney(T *Tourney) error {
 
-	//var state Status
-	if len(T.GameList) == 0 {
-		return errors.New("There are no games to play in this tournament.")
+	// verify that the tourney is in a safe state to start:
+	if err := T.PreliminaryChecks(); err != nil {
+		return err
 	}
+	
 	for i, _ := range T.GameList {
 		select {
 		case <-T.Done:
@@ -198,8 +198,62 @@ func RunTourney(T *Tourney) error {
 	return nil
 }
 
+func (T *Tourney) PreliminaryChecks() error {
+	//var state Status
+	if len(T.GameList) == 0 {
+		return errors.New("There are no games to play in this tournament.")
+	}
+	// Build engines from source if needed:
+	if err := T.PreBuildEngines(); err != nil {
+		return err
+	}
+	// Verify engines exist:
+	if !T.EnginesExist() {
+		return errors.New("Can not find engine(s).")
+	}
+	return nil
+}
+
+func (T *Tourney) PreBuildEngines() error {
+	for i, e := range T.Engines {
+		if e.BuildRequired() {
+			// clone and build:
+			if err := e.Spec.GitClone(); err != nil {
+				return err
+			}
+			if err := e.Spec.Build(); err != nil {
+				return err
+			}
+			// update the engine path to what was built:
+			newpath := e.Spec.FullEngineFile()
+			T.Engines[i].Path = newpath
+			fmt.Println("Engine path set to: ", T.Engines[i].Path)
+			// HACK: crappy hack cuz of a poor design desicion that I will fix later, we need to update the game structs:
+			for j, g := range T.GameList {
+				if g.Player[WHITE].Name == e.Name {
+					T.GameList[j].Player[WHITE].Path = newpath
+				}
+				if g.Player[BLACK].Name == e.Name {
+					T.GameList[j].Player[BLACK].Path = newpath
+				}
+			}
+		} 
+	}
+	return nil
+}
+
+func (T *Tourney) EnginesExist() bool {
+	for _, e := range T.Engines {
+		if !e.Exists() {
+			fmt.Println(e.Name,  "not found at", e.Path )
+			return false
+		}
+	}
+	return true
+}
+
 //
-// Adds the game data to all of the files
+// AppendGameToFiles adds the game data to all of the files
 // that includes the .data .pgn and .txt files
 // The difference between this function and just plain old Save() is that this appends the data
 // Save() re-saves all of the data, not appends.
@@ -279,7 +333,8 @@ func Save(T *Tourney) error {
 
 func SaveResults(T *Tourney) error {
 	//check if the file exists:
-	filename := T.filename + ".txt"
+	_, filename := filepath.Split(T.filename)
+	filename = filename + ".txt"
 	filename = filepath.Join(Settings.SaveDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	//var file *os.File
@@ -303,7 +358,8 @@ func SaveResults(T *Tourney) error {
 //
 func SaveData(T *Tourney) error {
 	//check if the file exists:
-	filename := T.filename + ".data"
+	_, filename := filepath.Split(T.filename)
+	filename = filename + ".data"
 	filename = filepath.Join(Settings.SaveDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	var file *os.File
@@ -353,7 +409,8 @@ func SaveData(T *Tourney) error {
 //
 func AppendData(T *Tourney, G *Game) error {
 	//check if the file exists:
-	filename := T.filename + ".data"
+	_, filename := filepath.Split(T.filename)
+	filename = filename + ".data"
 	filename = filepath.Join(Settings.SaveDirectory, filename)
 	//fmt.Print("Appending '" + filename + "'... ")
 	var file *os.File
@@ -392,7 +449,8 @@ func SavePGN(T *Tourney) error {
 	// TODO: should append any completed games rather than save fresh.
 
 	//check if the file exists:
-	filename := T.filename + ".pgn"
+	_, filename := filepath.Split(T.filename)
+	filename = filename + ".pgn"
 	filename = filepath.Join(Settings.SaveDirectory, filename)
 	fmt.Print("Saving '" + filename + "'... ")
 	if _, test := os.Stat(filename); os.IsNotExist(test) {
@@ -419,7 +477,8 @@ func SavePGN(T *Tourney) error {
 //
 func AppendPGN(T *Tourney, G *Game) error {
 	//check if the file exists:
-	filename := T.filename + ".pgn"
+	_, filename := filepath.Split(T.filename)
+	filename = filename + ".pgn"
 	filename = filepath.Join(Settings.SaveDirectory, filename)
 	//fmt.Print("Appending '" + filename + "'... ")
 	fmt.Print("Updating '" + filename + "'... ")
@@ -490,7 +549,8 @@ func LoadPreviousResults(T *Tourney) (bool, error) {
 	// BUG:
 	// 		-Index out of range can occur when the .tourney file is loaded and generates games
 	//		 but then this .data file is loaded with potentially more games.
-	filename := filepath.Join(Settings.SaveDirectory, T.filename+".data")
+	_, filename := filepath.Split(T.filename)
+	filename = filepath.Join(Settings.SaveDirectory, filename+".data")
 	var err error
 	if _, err = os.Stat(filename); os.IsNotExist(err) {
 		// file doesnt exist

@@ -177,6 +177,22 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 			}},
 		{
+			label: []string{"buildengines"},
+			desc:  "Builds engines in the tourney from source.",
+			f: func() {
+				fmt.Println("Building engines...")
+				if err := T.PreBuildEngines(); err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println("Done building engines.")
+			}},
+		{
+			label: []string{"engines"},
+			desc:  "Shows the engine's in the tourney",
+			f: func() {
+				fmt.Print(T.Engines)
+			}},
+		{
 			label:          []string{"loaddefault"},
 			desc:           "Loads the default .tourney file.",
 			f: func() {
@@ -260,7 +276,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				return
 			}},
 		{
-			label:          []string{"engine", "add", "addengine"},
+			label:          []string{"addengine"},
 			desc:           "Adds an engine to the tournament.",
 			classification: TOURNEY_CONTROL,
 			f: func() {
@@ -391,6 +407,12 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 					wg.Done()
 				}()
 				return
+			}},
+		{
+			label: []string{"spawn"},
+			desc:  "Spawns provided number of workers.",
+			f: func() {
+				
 			}},
 		{
 			label: []string{"connect", "c"},
