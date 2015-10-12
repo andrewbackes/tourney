@@ -203,6 +203,12 @@ func HostTourney(T *Tourney) error {
 	go M.ServeEngineFiles(T) // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
 	go M.ListenForWorkers(T)
 
+	// Connect local workers:
+	for i:=0; i < T.LocalWorkers; i++ {
+		address := fmt.Sprint("127.0.0.1:", Settings.ServerPort)
+		go ConnectAndWait(address, T.Done)
+	}
+
 	// TODO: refactoring required: consolidate with RunTourney()
 
 	// Helper function:

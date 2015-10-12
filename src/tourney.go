@@ -89,10 +89,6 @@ type Tourney struct {
 	BookPGN      []Game // TODO: depreciated
 	RandomBook   bool   // do not choose the openings in sequence. TODO.
 
-	//BookIteratorMap        []int
-	//BookIteratorReverseMap []int
-	//BookIteratorIndex      int
-
 	// if engine A vs engine B uses opening X then the next occurrence
 	// of engine B vs engine A will also use opening X:
 	BookMirroring bool
@@ -107,6 +103,7 @@ type Tourney struct {
 	GameList        []Game //list of all games in the tourney. populated when the tourney starts
 	PlayerStandings TourneyStandings
 	NetworkManager  *WorkManager
+	LocalWorkers	int
 
 	Done chan struct{}
 }
@@ -227,7 +224,7 @@ func (T *Tourney) PreBuildEngines() error {
 			// update the engine path to what was built:
 			newpath := e.Spec.FullEngineFile()
 			T.Engines[i].Path = newpath
-			fmt.Println("Engine path set to: ", T.Engines[i].Path)
+			//fmt.Println("Engine path set to: ", T.Engines[i].Path)
 			// HACK: crappy hack cuz of a poor design desicion that I will fix later, we need to update the game structs:
 			for j, g := range T.GameList {
 				if g.Player[WHITE].Name == e.Name {

@@ -83,11 +83,11 @@ func (v V1) POST(resource string, payload []byte) error {
 			filename := filepath.Join( Settings.TourneyDirectory, strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + ".tourney" )
 			fmt.Println("Saving", filename)
 			if err := ioutil.WriteFile(filename, payload, 0644); err == nil {
+				v.controller.Enque("stop")
 				v.controller.Enque("load " + filename)
 				v.controller.Enque("host")
-				v.controller.Enque("spawn 3")
 			} else {
-				return errors.New( "500 " + err.Error() )	
+				return errors.New( "500 " + err.Error() )
 			}
 			
 		default:

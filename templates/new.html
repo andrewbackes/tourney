@@ -225,7 +225,10 @@
 			function setTimeControlFields( time, inc, moves, repeating ) {
 				$( "#time" ).val(time);
 				$( "#increment" ).val(inc);
+				$( "#increment" ).prop( "disabled", true );
+				
 				$( "#moves" ).val(moves);
+				$( "#repeating" ).prop( "disabled", true ); // temp
 				if ( repeating ) {
 					$( "#repeating" ).prop( "checked", true );
 				}
@@ -234,7 +237,8 @@
 			function setDefaultBook() {
 				$( "#booklocation" ).val("default.book");
 				$( "#bookmoves" ).val("4");
-				$( "#randombook" ).prop( "checked", true );
+				$( "#randombook" ).prop( "checked", false );
+				$( "#randombook" ).prop( "disabled", true );
 				$( "#bookmirroring" ).prop( "checked", true );
 			}
 			
@@ -245,7 +249,6 @@
 			
 			function setDefaultServer() {
 				$( "#workers" ).val("3");
-				$( "#workers" ).prop( "disabled", true );
 				$( "#host" ).prop( "checked", true );
 				$( "#host" ).prop( "disabled", true );
 			}
@@ -315,6 +318,7 @@
 					BookMoves: parseInt($('#bookmoves').val()),
 					RandomBook: isChecked($('#randombook')),
 					BookMirroring: isChecked($('#bookmirroring')),
+					LocalWorkers: parseInt($('#workers').val()),
 				});
 			}
 			
