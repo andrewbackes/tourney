@@ -86,9 +86,8 @@ func (v V1) POST(resource string, payload []byte) error {
 				v.controller.Enque("stop")
 				v.controller.Enque("load " + filename)
 				v.controller.Enque("host")
-				v.controller.Enque("spawn 3")
 			} else {
-				return errors.New( "500 " + err.Error() )	
+				return errors.New( "500 " + err.Error() )
 			}
 			
 		default:
