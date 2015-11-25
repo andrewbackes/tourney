@@ -25,13 +25,14 @@ import (
 	"errors"
 	"fmt"
 	//"io/ioutil"
-	//"math/rand"
+	"math/rand"
 	"strconv"
 	"strings"
 	//"time"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"sort"
 )
 
 const BOOKMOVE string = "Book Move"
@@ -68,7 +69,18 @@ func (B *Book) Iterate() {
 			value.Index = len(B.Iterator[i]) - 1
 			B.Positions[i][k] = value
 		}
-		// TODO: sort by weight. then reassign the index's
+	}
+	B.sortByOccurrence()
+}
+
+func (B *Book) setIndexes() {
+	for i, _ := range B.Iterator {
+		for j, _ := range B.Iterator[i] {
+			key := B.Iterator[i][j]
+			value := B.Positions[i][key]
+			value.Index = j
+			B.Positions[i][key] = value
+		}
 	}
 }
 
@@ -306,4 +318,55 @@ func BuildBookFromPGN(PGNfilename string, MoveNumber int, filters []PGNFilter) (
 
 func (B *Book) uniquePositions(BookMoves int) int {
 	return len(B.Positions[BookMoves-1])
+}
+
+func (B *Book) Randomize(seed int64) {
+	r := rand.New(rand.NewSource(seed))
+	swap := func(depth, i, j int) {
+		key := B.Iterator[depth][i]
+		B.Iterator[depth][i] = B.Iterator[depth][j]
+		B.Iterator[depth][j] = key
+	}
+	for depth, _ := range B.Iterator {
+		for i := len(B.Iterator[depth]) - 1; i>=0; i-- {
+			j := r.Intn(i+1)
+			swap(depth, i, j)
+		}
+	}
+	B.setIndexes()
+}
+
+type sortWrapper struct {
+	book *Book
+	depth int
+}
+
+func (sw sortWrapper) Len() int {
+	return len(sw.book.Iterator[sw.depth])
+}
+
+func (sw sortWrapper) Swap(i, j int) {
+	key := sw.book.Iterator[sw.depth][i]
+	sw.book.Iterator[sw.depth][i] = sw.book.Iterator[sw.depth][j]
+	sw.book.Iterator[sw.depth][j] = key
+}
+
+func (sw sortWrapper) Less(i, j int) bool {
+	weightOf := func(i int)int {
+		key := sw.book.Iterator[sw.depth][i]
+		value := sw.book.Positions[sw.depth][key]
+		return value.Weight
+	} 
+	return weightOf(i) < weightOf(j)
+}
+
+func (B *Book) sortByOccurrence() {
+	for depth, _ := range B.Iterator {
+		sw := sortWrapper{
+			book: B,
+			depth: depth,
+		}
+		sort.Sort(sw)
+	}
+	B.setIndexes()
 }
