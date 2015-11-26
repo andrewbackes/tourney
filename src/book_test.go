@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func mockBook() *Book{
+func mockBook() *Book {
 	p := map[string]BookPosition{
 		"a": BookPosition{Weight: 1},
 		"b": BookPosition{Weight: 3},
@@ -15,9 +15,9 @@ func mockBook() *Book{
 	i := []string{"a", "b", "c", "d", "e"}
 	return &Book{
 		Positions: []map[string]BookPosition{p},
-		Iterator: [][]string{i},
+		Iterator:  [][]string{i},
 	}
-	
+
 }
 
 func TestSortByOccurrence(t *testing.T) {
@@ -35,5 +35,5 @@ func TestRandomize(t *testing.T) {
 	b := mockBook()
 	b.Randomize(1234567890)
 	//expected := []int{3, 1, 1, 0, 0}
-	// todo: do something
+	t.Log(b.Iterator[0])
 }

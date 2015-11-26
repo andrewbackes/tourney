@@ -71,6 +71,7 @@ func (B *Book) Iterate() {
 		}
 	}
 	B.sortByOccurrence()
+	B.setIndexes()
 }
 
 func (B *Book) setIndexes() {
@@ -328,8 +329,8 @@ func (B *Book) Randomize(seed int64) {
 		B.Iterator[depth][j] = key
 	}
 	for depth, _ := range B.Iterator {
-		for i := len(B.Iterator[depth]) - 1; i>=0; i-- {
-			j := r.Intn(i+1)
+		for i := len(B.Iterator[depth]) - 1; i >= 0; i-- {
+			j := r.Intn(i + 1)
 			swap(depth, i, j)
 		}
 	}
@@ -337,7 +338,7 @@ func (B *Book) Randomize(seed int64) {
 }
 
 type sortWrapper struct {
-	book *Book
+	book  *Book
 	depth int
 }
 
@@ -352,18 +353,18 @@ func (sw sortWrapper) Swap(i, j int) {
 }
 
 func (sw sortWrapper) Less(i, j int) bool {
-	weightOf := func(i int)int {
+	weightOf := func(i int) int {
 		key := sw.book.Iterator[sw.depth][i]
 		value := sw.book.Positions[sw.depth][key]
 		return value.Weight
-	} 
+	}
 	return weightOf(i) < weightOf(j)
 }
 
 func (B *Book) sortByOccurrence() {
 	for depth, _ := range B.Iterator {
 		sw := sortWrapper{
-			book: B,
+			book:  B,
 			depth: depth,
 		}
 		sort.Sort(sw)

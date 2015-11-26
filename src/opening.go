@@ -15,7 +15,7 @@ package main
 
 import (
 	"errors"
-	//"fmt"
+	"fmt"
 	//"io/ioutil"
 	//"math/rand"
 	//"strconv"
@@ -80,6 +80,8 @@ func (B *Book) nextOpening(T *Tourney, GameIndex int) (string, error) {
 
 	// Determine if we should just use the same position as the last game in the matchup:
 	if mirror, fen := shouldMirror(T, GameIndex); mirror {
+		fmt.Println("\nMIRRORED OPENING") // DEBUG
+		fmt.Println("FEN:",fen) // DEBUG
 		return fen, nil
 	}
 
@@ -96,9 +98,9 @@ func (B *Book) nextOpening(T *Tourney, GameIndex int) (string, error) {
 			}
 		}
 	}
+	fmt.Println("\nNEXT INDEX:", nextIndex) // DEBUG
+	fmt.Println("FEN:",B.Iterator[T.BookMoves-1][nextIndex]) // DEBUG
 	return B.Iterator[T.BookMoves-1][nextIndex], nil
-
-	return "", nil
 }
 
 // Determines if the game should be mirrored and if so, returns what fen to use.
@@ -122,11 +124,13 @@ func shouldMirror(T *Tourney, GameIndex int) (bool, string) {
 			if GameIndex >= 2 {
 				gameBeforeLast := &(T.GameList[GameIndex-2])
 				if lastgame.StartingFEN == gameBeforeLast.StartingFEN {
+					fmt.Println("\nNOT MIRRORING: lastgame.StartingFEN != gameBeforeLast.StartingFEN")
 					mirror = false
 				}
 			}
 		} else {
 			// last game is not in this matchup, so dont mirror it.
+			fmt.Println("\nNOT MIRRORING:  !(lastgame.Player[WHITE].Equals(b) && lastgame.Player[BLACK].Equals(w)) -- ", lastgame.Player[WHITE].Name, "!=", b.Name, "||", lastgame.Player[BLACK].Name, "!=", w.Name, "||", lastgame.Player[WHITE].Path, "!=", b.Path, "||", lastgame.Player[BLACK].Path, "!=", w.Path, "||", lastgame.Player[WHITE].Protocol, "!=", b.Protocol, "||", lastgame.Player[BLACK].Protocol, "!=", w.Protocol)
 			mirror = false
 		}
 	}

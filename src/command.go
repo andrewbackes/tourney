@@ -19,11 +19,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
-	"path/filepath"
 )
 
 type UserCommand struct {
@@ -168,7 +168,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				filename = strings.Trim(filename, "\r\n") // for windows
 				filename = strings.Trim(filename, "\n")   // for *nix
 				filename = strings.Replace(filename, ".tourney", "", 1) + ".tourney"
-				if ( ! strings.Contains(filename, "/") ) {
+				if !strings.Contains(filename, "/") {
 					filename = filepath.Join(Settings.TourneyDirectory, filename)
 				}
 				if N, err := LoadFile(filename); err == nil {
@@ -193,8 +193,8 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				fmt.Print(T.Engines)
 			}},
 		{
-			label:          []string{"loaddefault"},
-			desc:           "Loads the default .tourney file.",
+			label: []string{"loaddefault"},
+			desc:  "Loads the default .tourney file.",
 			f: func() {
 				def, _ := LoadDefault()
 				Tourneys.Add(def)
@@ -412,7 +412,7 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 			label: []string{"spawn"},
 			desc:  "Spawns provided number of workers.",
 			f: func() {
-				
+
 			}},
 		{
 			label: []string{"connect", "c"},
@@ -474,30 +474,30 @@ func Eval(command string, Tourneys *TourneyList, wg *sync.WaitGroup) bool {
 				}
 				return
 			}},
-			/*
-		{
-			label: []string{"broadcast"},
-			desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort) + ". Broadcasting is enabled by default. The default port is specified in the 'tourney.settings' file.",
-			f: func() {
-				if !Tourneys.broadcasting {
-					fmt.Println("Broadcasting http on port " + strconv.Itoa(Settings.WebPort))
-					fmt.Println("Navigate your web browser to http://localhost:" + strconv.Itoa(Settings.WebPort))
-					go func() {
-						//if err := Broadcast(&T, selected); err != nil {
-						if err := Broadcast(Tourneys); err != nil {
-							fmt.Println(err)
-						} else {
+		/*
+			{
+				label: []string{"broadcast"},
+				desc:  "Broadcasts the currently selected tourney over http port " + strconv.Itoa(Settings.WebPort) + ". Broadcasting is enabled by default. The default port is specified in the 'tourney.settings' file.",
+				f: func() {
+					if !Tourneys.broadcasting {
+						fmt.Println("Broadcasting http on port " + strconv.Itoa(Settings.WebPort))
+						fmt.Println("Navigate your web browser to http://localhost:" + strconv.Itoa(Settings.WebPort))
+						go func() {
+							//if err := Broadcast(&T, selected); err != nil {
+							if err := Broadcast(Tourneys); err != nil {
+								fmt.Println(err)
+							} else {
 
-						}
-						Tourneys.broadcasting = true
-					}()
+							}
+							Tourneys.broadcasting = true
+						}()
 
-				} else {
-					fmt.Println("Already broadcasting on port " + strconv.Itoa(Settings.WebPort))
-				}
-				return
-			}},
-			*/
+					} else {
+						fmt.Println("Already broadcasting on port " + strconv.Itoa(Settings.WebPort))
+					}
+					return
+				}},
+		*/
 
 		/*******************************************************************************
 

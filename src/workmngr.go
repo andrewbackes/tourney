@@ -190,21 +190,21 @@ func (M *WorkManager) ServeEngineFiles(T *Tourney) {
 func HostTourney(T *Tourney) error {
 
 	// TODO: if the client cant play the game, this loop just goes on forever.
-	
+
 	fmt.Println("\n\nHosting:", T.Event)
-	
+
 	// verify that the tourney is in a safe state to start:
 	if err := T.PreliminaryChecks(); err != nil {
 		return err
 	}
-	
+
 	M := NewWorkManager(T)
 	T.NetworkManager = M
 	go M.ServeEngineFiles(T) // TODO: BUG: race condition here. if server isnt up and clients are trying to download the files.
 	go M.ListenForWorkers(T)
 
 	// Connect local workers:
-	for i:=0; i < T.LocalWorkers; i++ {
+	for i := 0; i < T.LocalWorkers; i++ {
 		address := fmt.Sprint("127.0.0.1:", Settings.ServerPort)
 		go ConnectAndWait(address, T.Done)
 	}

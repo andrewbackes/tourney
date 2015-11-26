@@ -12,8 +12,8 @@ package main
 
 import (
 	"bufio"
-	"os"
 	"fmt"
+	"os"
 )
 
 func ConsoleUI(controller *Controller) {
@@ -21,7 +21,7 @@ func ConsoleUI(controller *Controller) {
 	inputReader := bufio.NewReader(os.Stdin)
 
 	var prompt string
-	for ! controller.Stopped() {
+	for !controller.Stopped() {
 		prompt = ""
 		fmt.Print(prompt)
 		line, _ := inputReader.ReadString('\n')
