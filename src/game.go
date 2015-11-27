@@ -196,6 +196,8 @@ func ExecuteNextTurn(G *Game) bool {
 			strconv.FormatInt(G.Timer[color]+(lapsed.Nanoseconds()/1000000), 10)+"ms.")
 		return true
 	}
+	G.Timer[color] += G.BonusTime
+	
 	// Convert the notation from the engines notation to pure coordinate notation
 	parsedMove := engineMove
 	parsedMove, err = ConvertToPCN(G, string(parsedMove))
