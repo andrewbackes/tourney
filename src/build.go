@@ -14,18 +14,17 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"fmt"
-	
 )
 
 type BuildSpec struct {
-	Repo string
-	Branch string
-	BuildFile string
+	Repo       string
+	Branch     string
+	BuildFile  string
 	EngineFile string
 }
 
@@ -46,7 +45,7 @@ func (B BuildSpec) Name() string {
 }
 
 func (B BuildSpec) Folder() string {
-	return B.Name() + "-" +B.Branch
+	return B.Name() + "-" + B.Branch
 }
 
 func (B BuildSpec) Dir() string {
@@ -63,7 +62,7 @@ func (B *BuildSpec) GitClone() error {
 	if err := os.MkdirAll(B.Dir(), os.ModePerm); err != nil {
 		return err
 	}
-	err := B.exec( "git", "clone", "-b", B.Branch, B.Repo, "." )
+	err := B.exec("git", "clone", "-b", B.Branch, B.Repo, ".")
 	if err != nil {
 		fmt.Println("FAILED.", err)
 	} else {
@@ -74,8 +73,8 @@ func (B *BuildSpec) GitClone() error {
 
 func (B *BuildSpec) Build() error {
 	fmt.Print("Building... ")
-	fp, _ := filepath.Abs( filepath.Join(B.Dir(), B.BuildFile) )
-	err := B.exec( fp )
+	fp, _ := filepath.Abs(filepath.Join(B.Dir(), B.BuildFile))
+	err := B.exec(fp)
 	// rename the file that was built:
 	B.RenameEngineFile()
 	if err != nil {
@@ -90,7 +89,7 @@ func (B *BuildSpec) FullEngineFile() string {
 	if filepath.IsAbs(B.EngineFile) {
 		return B.EngineFile
 	}
-	f, _ := filepath.Abs( filepath.Join(B.Dir(), B.EngineFile ) )
+	f, _ := filepath.Abs(filepath.Join(B.Dir(), B.EngineFile))
 	return f
 }
 
@@ -98,7 +97,7 @@ func (B *BuildSpec) FullEngineFile() string {
 func (B *BuildSpec) RenameEngineFile() {
 	oldpath := B.FullEngineFile()
 	d, f := filepath.Split(oldpath)
-	newfile := strings.TrimSuffix( f, ".exe" )
+	newfile := strings.TrimSuffix(f, ".exe")
 	newfile += "-" + B.Branch
 	if strings.HasSuffix(f, ".exe") {
 		newfile += ".exe"

@@ -12,11 +12,11 @@
 package main
 
 import (
-	"strconv"
-	"strings"
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type GlobalSettings struct {
@@ -26,8 +26,8 @@ type GlobalSettings struct {
 	TourneyDirectory  string
 	SaveDirectory     string
 	BookDirectory     string
-	BuildDirectory	  string
-	
+	BuildDirectory    string
+
 	ServerPort     int
 	WebPort        int
 	EngineFilePort int

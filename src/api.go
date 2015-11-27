@@ -12,14 +12,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
-	"strconv"
-	"errors"
-	"time"
 	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type API interface {
@@ -40,32 +40,32 @@ type Unsafe struct {
 
 func APIHandler(w http.ResponseWriter, req *http.Request, controller *Controller) {
 	// TODO: set up the correct error codes.
-	r := strings.SplitN( strings.Trim(req.URL.Path,"/"), "/", 3 )
+	r := strings.SplitN(strings.Trim(req.URL.Path, "/"), "/", 3)
 	var err error
 	if len(r) >= 3 {
 		var api API
 		var payload []byte
 		switch r[1] {
-			case "v1":
-				api = V1{ controller: controller }
-			case "unsafe":
-				api = Unsafe{ controller: controller }
-			default:
-				err = errors.New("Bad Request")
-				return
+		case "v1":
+			api = V1{controller: controller}
+		case "unsafe":
+			api = Unsafe{controller: controller}
+		default:
+			err = errors.New("Bad Request")
+			return
 		}
 		switch req.Method {
-			case "POST":
-				if payload, err = ioutil.ReadAll(req.Body); err == nil {
-					err = api.POST(r[2], payload)
-				}
-				
-			case "GET":
-				if payload, err = api.GET(r[2]); err == nil {
-					w.Write(payload)	
-				}
-			default:
-				err = errors.New("Bad Request")
+		case "POST":
+			if payload, err = ioutil.ReadAll(req.Body); err == nil {
+				err = api.POST(r[2], payload)
+			}
+
+		case "GET":
+			if payload, err = api.GET(r[2]); err == nil {
+				w.Write(payload)
+			}
+		default:
+			err = errors.New("Bad Request")
 		}
 	} else {
 		err = errors.New("Bad Request")
@@ -79,19 +79,19 @@ func APIHandler(w http.ResponseWriter, req *http.Request, controller *Controller
 func (v V1) POST(resource string, payload []byte) error {
 	fmt.Println(string(payload))
 	switch resource {
-		case "tourney":
-			filename := filepath.Join( Settings.TourneyDirectory, strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + ".tourney" )
-			fmt.Println("Saving", filename)
-			if err := ioutil.WriteFile(filename, payload, 0644); err == nil {
-				v.controller.Enque("stop")
-				v.controller.Enque("load " + filename)
-				v.controller.Enque("host")
-			} else {
-				return errors.New( "500 " + err.Error() )
-			}
-			
-		default:
-			return errors.New("404")
+	case "tourney":
+		filename := filepath.Join(Settings.TourneyDirectory, strconv.FormatInt(time.Now().UTC().UnixNano(), 10)+".tourney")
+		fmt.Println("Saving", filename)
+		if err := ioutil.WriteFile(filename, payload, 0644); err == nil {
+			v.controller.Enque("stop")
+			v.controller.Enque("load " + filename)
+			v.controller.Enque("host")
+		} else {
+			return errors.New("500 " + err.Error())
+		}
+
+	default:
+		return errors.New("404")
 	}
 	return nil
 }
@@ -101,12 +101,12 @@ func (v V1) GET(resource string) ([]byte, error) {
 }
 
 func (v Unsafe) POST(resource string, payload []byte) error {
-	
+
 	return nil
 }
 
 func (v Unsafe) GET(resource string) ([]byte, error) {
-	r := strings.Split( strings.Trim(resource,"/"), "/" )
+	r := strings.Split(strings.Trim(resource, "/"), "/")
 	cmd, arg := "", ""
 	if len(r) >= 2 {
 		arg = " " + r[1]
@@ -118,4 +118,3 @@ func (v Unsafe) GET(resource string) ([]byte, error) {
 	}
 	return []byte{}, nil
 }
-

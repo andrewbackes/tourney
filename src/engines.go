@@ -99,13 +99,13 @@ func (E *Engine) BuildRequired() bool {
 	hasbuildfile := (E.Spec.BuildFile != "")
 	return hasrepo && hasbranch && hasbuildfile
 	/*
-	if hasrepo && hasbranch && hasbuildfile {
-		enginefile, _ := filepath.Abs( filepath.Join( E.Spec.Dir(), E.Spec.EngineFile ) )
-		_, err := os.Stat(enginefile)
-		built := !os.IsNotExist(err)
-		return !built
-	}
-	return false
+		if hasrepo && hasbranch && hasbuildfile {
+			enginefile, _ := filepath.Abs( filepath.Join( E.Spec.Dir(), E.Spec.EngineFile ) )
+			_, err := os.Stat(enginefile)
+			built := !os.IsNotExist(err)
+			return !built
+		}
+		return false
 	*/
 }
 
@@ -115,7 +115,7 @@ func (E *Engine) Exists() bool {
 }
 
 func (E *Engine) Equals(E2 *Engine) bool {
-	return (E.Name == E2.Name) && (E.Path == E2.Path) && (E.Protocol == E2.Protocol)
+	return (E.Name == E2.Name) && /*(E.Path == E2.Path) &&*/ (E.Protocol == E2.Protocol)
 }
 
 func (E *Engine) ValidateEngineFile() error {

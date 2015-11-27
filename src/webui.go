@@ -202,11 +202,11 @@ func setViewHandlers(controller *Controller) {
 func setAdminHandlers(controller *Controller) {
 	// Admin Console:
 	http.HandleFunc("/console", func(w http.ResponseWriter, req *http.Request) {
-		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "console.html"), controller.GetTourney() )
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "console.html"), controller.GetTourney())
 	})
 	// New tourney:
 	http.HandleFunc("/new", func(w http.ResponseWriter, req *http.Request) {
-		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "new.html"), controller.GetTourney() )
+		renderTemplate(w, filepath.Join(Settings.TemplateDirectory, "new.html"), controller.GetTourney())
 	})
 }
 
@@ -217,17 +217,17 @@ func setApiHandlers(controller *Controller) {
 }
 
 func WebUI(controller *Controller) {
-	
+
 	fmt.Println("Starting WebUI on port " + strconv.Itoa(Settings.WebPort))
 	fmt.Println("Navigate your web browser to http://localhost:" + strconv.Itoa(Settings.WebPort))
-	
+
 	// Setup API requests:
 	setApiHandlers(controller)
 	// Setup Admin requests:
 	setAdminHandlers(controller)
 	// Setup view requests:
 	setViewHandlers(controller)
-	 
+
 	// Start the server:
 	err := http.ListenAndServe(":"+strconv.Itoa(Settings.WebPort), nil)
 	if err != nil {

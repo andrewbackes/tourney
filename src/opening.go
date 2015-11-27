@@ -15,12 +15,6 @@ package main
 
 import (
 	"errors"
-	//"fmt"
-	//"io/ioutil"
-	//"math/rand"
-	//"strconv"
-	//"strings"
-	//"time"
 )
 
 func PlayOpening(T *Tourney, GameIndex int) error {
@@ -97,8 +91,6 @@ func (B *Book) nextOpening(T *Tourney, GameIndex int) (string, error) {
 		}
 	}
 	return B.Iterator[T.BookMoves-1][nextIndex], nil
-
-	return "", nil
 }
 
 // Determines if the game should be mirrored and if so, returns what fen to use.

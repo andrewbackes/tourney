@@ -23,7 +23,7 @@ type Controller struct {
 
 func NewController() Controller {
 	return Controller{
-		commandQue: make(chan string , 16),
+		commandQue: make(chan string, 16),
 		quit:       make(chan struct{}),
 	}
 }
@@ -55,4 +55,3 @@ func (c *Controller) Start() {
 func (c *Controller) Stopped() bool {
 	return !blocks(c.quit)
 }
-

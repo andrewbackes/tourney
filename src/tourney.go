@@ -44,7 +44,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	//"time"
+	"time"
 	//"runtime"
 	"io/ioutil"
 	"path/filepath"
@@ -64,7 +64,7 @@ type Tourney struct {
 	// Predetermined Settings for a tourney:
 	Event string //identifier for this tournament. Unique may be better?
 	Site  string
-	Date  string
+	Date  string // YYYY.MM.DD format
 
 	Engines []Engine // which engines are playing in the tournament
 
@@ -87,7 +87,7 @@ type Tourney struct {
 	BookLocation string // File location of the book
 	BookMoves    int    // Number of Moves to use out of the book
 	BookPGN      []Game // TODO: depreciated
-	RandomBook   bool   // do not choose the openings in sequence. TODO.
+	RandomBook   bool
 
 	// if engine A vs engine B uses opening X then the next occurrence
 	// of engine B vs engine A will also use opening X:
@@ -103,7 +103,7 @@ type Tourney struct {
 	GameList        []Game //list of all games in the tourney. populated when the tourney starts
 	PlayerStandings TourneyStandings
 	NetworkManager  *WorkManager
-	LocalWorkers	int
+	LocalWorkers    int
 
 	Done chan struct{}
 }
@@ -145,7 +145,7 @@ func RunTourney(T *Tourney) error {
 	if err := T.PreliminaryChecks(); err != nil {
 		return err
 	}
-	
+
 	for i, _ := range T.GameList {
 		select {
 		case <-T.Done:
@@ -234,7 +234,7 @@ func (T *Tourney) PreBuildEngines() error {
 					T.GameList[j].Player[BLACK].Path = newpath
 				}
 			}
-		} 
+		}
 	}
 	return nil
 }
@@ -242,7 +242,7 @@ func (T *Tourney) PreBuildEngines() error {
 func (T *Tourney) EnginesExist() bool {
 	for _, e := range T.Engines {
 		if !e.Exists() {
-			fmt.Println(e.Name,  "not found at", e.Path )
+			fmt.Println(e.Name, "not found at", e.Path)
 			return false
 		}
 	}
@@ -625,6 +625,12 @@ func LoadFile(filename string) (*Tourney, error) {
 			//fmt.Print("Success. (", len(T.OpeningBook.Positions[T.BookMoves-1]), " unique openings.)\n")
 		}
 	}
+	// Randomize book:
+	if T.RandomBook {
+		seed := makeSeed(T.Date)
+		fmt.Print("Randomizing opening book (seed: ", seed, ").\n")
+		T.OpeningBook.Randomize(seed)
+	}
 
 	// Check if this tourney was previously stopped midway
 	fmt.Print("Loading previous tourney data... ")
@@ -650,6 +656,18 @@ func LoadFile(filename string) (*Tourney, error) {
 	*/
 
 	return T, nil
+}
+
+// makeSeed returns the timestamp for the date of the tourney. The date format
+// is according to PGN convention: YYYY.MM.DD
+func makeSeed(date string) int64 {
+	layout := "2006.01.02"
+	if t, err := time.Parse(layout, date); err != nil {
+		fmt.Println("Error randomizing book. Use date format YYYY.MM.DD in your tourney file.")
+	} else {
+		return t.Unix()
+	}
+	return 0
 }
 
 func LoadDefault() (*Tourney, error) {
