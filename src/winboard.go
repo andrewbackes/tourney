@@ -43,7 +43,7 @@ func (W WINBOARD) Initialize() (string, func(parse string) bool) {
 	}
 }
 
-func (W *WINBOARD) Move(Timer [2]int64, MovesToGo int64, EngineColor Color) (string, func(parse string) bool) {
+func (W *WINBOARD) Move(Timer [2]int64, BonusTime int64, MovesToGo int64, EngineColor Color) (string, func(parse string) bool) {
 	var goString string
 
 	// Note: remember that winboard uses centiseconds

@@ -710,6 +710,7 @@ func (T *Tourney) GenerateGames() {
 	def.initialize()
 	def.Event = T.Event
 	def.Time = T.Time
+	def.BonusTime = T.BonusTime
 	def.Moves = T.Moves
 	def.Repeating = T.Repeating
 	def.Completed = false

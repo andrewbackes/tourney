@@ -42,14 +42,14 @@ func (U UCI) Initialize() (string, func(string) bool) {
 	}
 }
 
-func (U UCI) Move(Timer [2]int64, MovesToGo int64, EngineColor Color) (string, func(parse string) bool) {
+func (U UCI) Move(Timer [2]int64, BonusTime int64, MovesToGo int64, EngineColor Color) (string, func(parse string) bool) {
 	goString := "go"
 
 	if Timer[WHITE] > 0 {
-		goString += " wtime " + strconv.FormatInt(Timer[WHITE], 10)
+		goString += " wtime " + strconv.FormatInt(Timer[WHITE], 10) + " winc " + strconv.FormatInt(BonusTime, 10)
 	}
 	if Timer[BLACK] > 0 {
-		goString += " btime " + strconv.FormatInt(Timer[BLACK], 10)
+		goString += " btime " + strconv.FormatInt(Timer[BLACK], 10) + " binc " + strconv.FormatInt(BonusTime, 10)
 	}
 	if MovesToGo > 0 {
 		goString += " movestogo " + strconv.FormatInt(MovesToGo, 10)

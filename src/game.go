@@ -184,7 +184,7 @@ func ExecuteNextTurn(G *Game) bool {
 		return true
 	}
 	// Request a move from the engine:
-	engineMove, engineAnalysis, lapsed, err := G.Player[color].Move(G.Timer, G.MovesToGo, color)
+	engineMove, engineAnalysis, lapsed, err := G.Player[color].Move(G.Timer, G.BonusTime, G.MovesToGo, color)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
@@ -196,6 +196,8 @@ func ExecuteNextTurn(G *Game) bool {
 			strconv.FormatInt(G.Timer[color]+(lapsed.Nanoseconds()/1000000), 10)+"ms.")
 		return true
 	}
+	G.Timer[color] += G.BonusTime
+	
 	// Convert the notation from the engines notation to pure coordinate notation
 	parsedMove := engineMove
 	parsedMove, err = ConvertToPCN(G, string(parsedMove))
