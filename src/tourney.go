@@ -628,6 +628,7 @@ func LoadFile(filename string) (*Tourney, error) {
 	// Randomize book:
 	if T.RandomBook {
 		seed := makeSeed(T.Date)
+		fmt.Print("Randomizing opening book (seed: ", seed, ").\n")
 		T.OpeningBook.Randomize(seed)
 	}
 
@@ -661,8 +662,10 @@ func LoadFile(filename string) (*Tourney, error) {
 // is according to PGN convention: YYYY.MM.DD
 func makeSeed(date string) int64 {
 	layout := "2006.01.02"
-	if time, err := time.Parse(layout, date); err != nil {
-		return time.Unix()
+	if t, err := time.Parse(layout, date); err != nil {
+		fmt.Println("Error randomizing book. Use date format YYYY.MM.DD in your tourney file.")
+	} else {
+		return t.Unix()
 	}
 	return 0
 }
