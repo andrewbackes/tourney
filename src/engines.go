@@ -49,7 +49,7 @@ type rec struct {
 
 type Protocoler interface {
 	Initialize() (string, func(string) bool)
-	Move(timers [2]int64, MovesToGo int64, EngineColor Color) (string, func(string) bool)
+	Move(timers [2]int64, BonusTime int64, MovesToGo int64, EngineColor Color) (string, func(string) bool)
 	Ping(int) (string, func(string) bool)
 
 	NewGame(Time, Moves int64) string
@@ -327,8 +327,8 @@ func (E *Engine) Shutdown() error {
 }
 
 // The engine should decide what move it wants to make:
-func (E *Engine) Move(timers [2]int64, MovesToGo int64, EngineColor Color) (Move, MoveAnalysis, time.Duration, error) {
-	s, r := E.protocol.Move(timers, MovesToGo, EngineColor)
+func (E *Engine) Move(timers [2]int64, BonusTime int64, MovesToGo int64, EngineColor Color) (Move, MoveAnalysis, time.Duration, error) {
+	s, r := E.protocol.Move(timers, BonusTime, MovesToGo, EngineColor)
 	E.Send(s)
 	max := timers[WHITE]
 	if timers[BLACK] > max {

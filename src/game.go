@@ -184,7 +184,7 @@ func ExecuteNextTurn(G *Game) bool {
 		return true
 	}
 	// Request a move from the engine:
-	engineMove, engineAnalysis, lapsed, err := G.Player[color].Move(G.Timer, G.MovesToGo, color)
+	engineMove, engineAnalysis, lapsed, err := G.Player[color].Move(G.Timer, G.BonusTime, G.MovesToGo, color)
 	if err != nil {
 		G.GameOver(color, err.Error())
 		return true
