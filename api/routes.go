@@ -1,37 +1,14 @@
 package api
 
-type Method int
-
-const (
-	Post Method = iota
-	Get
-	Put
-	Patch
-	Delete
-	Options
+import (
+	"github.com/gorilla/mux"
 )
 
-type Endpoint struct {
-	Method Method
-	Path   string
+func router(c *controller) *mux.Router {
+	r := mux.NewRouter()
+	s := r.PathPrefix("/api/v2").Subrouter()
+	s.HandleFunc("/tournaments", c.getTournaments).Methods("GET")
+	s.HandleFunc("/tournaments", c.postTournaments).Methods("POST")
+	s.HandleFunc("/tournaments/{id}", c.postTournaments).Methods("GET")
+	return r
 }
-
-type CommandLine struct {
-}
-
-type Route struct {
-	Endpoint Endpoint
-}
-
-/*
-
-Endpoints:
-
-	/tournaments
-	/tournaments/<tourney-id>
-	/tournaments/<tourney-id>/games
-	/tournaments/<tourney-id>/games/<game-id>
-	/tournaments/<tourney-id>/games/<game-id>/plies/<#>
-	/tournaments/<tourney-id>/engines
-
-*/
