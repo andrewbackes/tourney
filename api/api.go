@@ -7,19 +7,6 @@ import (
 	"net/http"
 )
 
-/*
-
-Endpoints:
-
-	/tournaments
-	/tournaments/<tourney-id>
-	/tournaments/<tourney-id>/games
-	/tournaments/<tourney-id>/games/<game-id>
-	/tournaments/<tourney-id>/games/<game-id>/plies/<#>
-	/tournaments/<tourney-id>/engines
-
-*/
-
 type Api struct {
 	model  *model.Model
 	router *mux.Router

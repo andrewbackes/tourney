@@ -41,7 +41,7 @@ func (m *MongoDB) GetTournaments() []structures.Tournament {
 	return ts
 }
 
-func (m *MongoDB) AddTournament(t structures.Tournament) {
+func (m *MongoDB) AddTournament(t *structures.Tournament) {
 	s := m.session.Copy()
 	c := s.DB(m.db).C("tournaments")
 	err := c.Insert(&t)

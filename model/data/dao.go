@@ -7,7 +7,7 @@ import (
 
 type Accessor interface {
 	GetTournaments() []structures.Tournament
-	AddTournament(structures.Tournament)
+	AddTournament(*structures.Tournament)
 	DeleteTournament(id bson.ObjectId)
 	Close()
 }
