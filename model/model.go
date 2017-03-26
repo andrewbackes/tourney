@@ -5,6 +5,7 @@ import (
 	"github.com/andrewbackes/tourney/model/data"
 	"github.com/andrewbackes/tourney/model/structures"
 	"gopkg.in/mgo.v2/bson"
+	"sync"
 )
 
 var (
@@ -17,20 +18,21 @@ const (
 )
 
 type Model struct {
-	Tournaments map[bson.ObjectId]*structures.Tournament
-	Engines     map[bson.ObjectId]*structures.Engine
-	Books       map[bson.ObjectId]*structures.Book
-	Workers     map[bson.ObjectId]*structures.Worker
+	tournaments     map[bson.ObjectId]*structures.Tournament
+	tournamentMutex sync.RWMutex
 
-	queue chan *structures.Tournament
-	dao   data.Accessor
+	Engines map[bson.ObjectId]*structures.Engine
+	Books   map[bson.ObjectId]*structures.Book
+	Workers map[bson.ObjectId]*structures.Worker
+
+	dao  data.Accessor
+	done chan struct{}
 }
 
-func New(dao data.Accessor) *Model {
+func New() *Model {
 	m := Model{
-		Tournaments: make(map[bson.ObjectId]*structures.Tournament),
-		queue:       make(chan *structures.Tournament, TournamentQueueBuffer),
-		dao:         dao,
+		tournaments: make(map[bson.ObjectId]*structures.Tournament),
+		done:        make(chan struct{}),
 	}
 	/*
 		ts := m.dao.GetTournaments()
@@ -38,5 +40,10 @@ func New(dao data.Accessor) *Model {
 			m.Tournaments[v.Id] = &v
 		}
 	*/
+
 	return &m
+}
+
+func (m *Model) Stop() {
+	close(m.done)
 }

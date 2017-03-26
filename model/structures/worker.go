@@ -5,8 +5,9 @@ import (
 )
 
 type Worker struct {
-	Id     bson.ObjectId
-	GameId bson.ObjectId
+	Id           bson.ObjectId
+	GameId       bson.ObjectId
+	TournamentId bson.ObjectId
 }
 
 func NewWorker() *Worker {

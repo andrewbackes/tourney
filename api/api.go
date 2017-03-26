@@ -15,7 +15,7 @@ type Api struct {
 func New(model *model.Model) *Api {
 	c := controller{model: model}
 	a := Api{
-		router: router(&c),
+		router: newRouter(&c),
 	}
 	return &a
 }
