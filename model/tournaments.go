@@ -4,23 +4,41 @@ import (
 	"errors"
 	"github.com/andrewbackes/tourney/model/structures"
 	"gopkg.in/mgo.v2/bson"
+	"sort"
+	"time"
 )
+
+type tournamentList []*structures.Tournament
+
+func (t tournamentList) Len() int           { return len(t) }
+func (t tournamentList) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
+func (t tournamentList) Less(i, j int) bool { return t[i].Created.Sub(t[j].Created) < 0 }
 
 func (m *Model) AddTournament(t *structures.Tournament) (bson.ObjectId, error) {
 	t.Init()
+	t.Created = time.Now()
 	m.tournamentMutex.Lock()
 	m.tournaments[t.Id] = t
 	m.tournamentMutex.Unlock()
 	return t.Id, nil
 }
 
-func (m *Model) GetTournaments() []*structures.Tournament {
-	arr := make([]*structures.Tournament, 0, len(m.tournaments))
+func (m *Model) GetTournaments(filters map[string][]string) []*structures.Tournament {
+	arr := make([]*structures.Tournament, 0, 0)
+	filterIncompleteOnly := false
+	if filters != nil {
+		if v, exists := filters["completed"]; exists && len(v) > 0 && v[0] == "false" {
+			filterIncompleteOnly = true
+		}
+	}
 	m.tournamentMutex.RLock()
 	for _, v := range m.tournaments {
-		arr = append(arr, v)
+		if !filterIncompleteOnly || (filterIncompleteOnly && !v.Complete()) {
+			arr = append(arr, v)
+		}
 	}
 	m.tournamentMutex.RUnlock()
+	sort.Sort(tournamentList(arr))
 	return arr
 }
 

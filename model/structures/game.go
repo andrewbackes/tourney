@@ -9,9 +9,9 @@ import (
 // methods for playing a game. Playing a game is done through chess.Game.
 type Game struct {
 	sync.RWMutex
-	Id        bson.ObjectId     `json:"id" bson:"_id"`
-	Tags      map[string]string `json:"tags" bson:"tags"`
-	Positions []*Position       `json:"positions" bson:"positions"`
+	Id        bson.ObjectId     `json:"id,omitempty" bson:"_id"`
+	Tags      map[string]string `json:"tags,omitempty" bson:"tags"`
+	Positions []*Position       `json:"positions,omitempty" bson:"positions"`
 }
 
 func NewGame() *Game {
@@ -48,4 +48,28 @@ func (g *Game) AddPosition(p *Position) {
 	}
 	g.Positions[index] = p
 	g.Unlock()
+}
+
+func (g *Game) Complete() bool {
+	if result, exists := g.Tags["result"]; exists {
+		return result == "1/2-1/2" || result == "1-0" || result == "0-1"
+	}
+	return false
+}
+
+func (g *Game) UpdateTags(t map[string]string) {
+	if t != nil {
+		for k, v := range t {
+			g.Lock()
+			g.Tags[k] = v
+			g.Unlock()
+		}
+	}
+}
+
+func (g *Game) TournamentId() bson.ObjectId {
+	g.RLock()
+	tid := g.Tags["tournamentId"]
+	g.RUnlock()
+	return bson.ObjectIdHex(tid)
 }

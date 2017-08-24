@@ -15,6 +15,7 @@ func newRouter(c *controller) *mux.Router {
 	s.HandleFunc("/tournaments/{tid}", c.getTournament).Methods("GET")
 	s.HandleFunc("/tournaments/{tid}/games", c.getGames).Methods("GET")
 	s.HandleFunc("/tournaments/{tid}/games/{gid}", c.getGame).Methods("GET")
+	s.HandleFunc("/tournaments/{tid}/games/{gid}", c.patchGame).Methods("PATCH")
 	s.HandleFunc("/tournaments/{tid}/games/{gid}/positions", c.getPositions).Methods("GET")
 	s.HandleFunc("/tournaments/{tid}/games/{gid}/positions", c.postPosition).Methods("POST")
 	s.HandleFunc("/tournaments/{tid}/games/{gid}/positions/{pid}", c.getPosition).Methods("GET")

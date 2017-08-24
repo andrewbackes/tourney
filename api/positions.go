@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/andrewbackes/tourney/helpers"
 	"github.com/andrewbackes/tourney/model/structures"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2/bson"
@@ -15,7 +16,7 @@ func (c *controller) getPositions(w http.ResponseWriter, req *http.Request) {
 	t, _ := c.model.GetTournament(tid)
 	g := t.GetGame(gid)
 	p := g.GetPositions
-	writeJSON(p, w)
+	helpers.WriteJSON(p, w)
 }
 
 func (c *controller) getPosition(w http.ResponseWriter, req *http.Request) {
@@ -26,12 +27,12 @@ func (c *controller) getPosition(w http.ResponseWriter, req *http.Request) {
 	t, _ := c.model.GetTournament(tid)
 	g := t.GetGame(gid)
 	p := g.GetPosition(pid)
-	writeJSON(p, w)
+	helpers.WriteJSON(p, w)
 }
 
 func (c *controller) postPosition(w http.ResponseWriter, req *http.Request) {
 	var p structures.Position
-	readJSON(req.Body, &p)
+	helpers.ReadJSON(req.Body, &p)
 	defer req.Body.Close()
 	vars := mux.Vars(req)
 	tid := bson.ObjectIdHex(vars["tid"])

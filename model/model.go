@@ -8,13 +8,13 @@ import (
 	"sync"
 )
 
+const (
+	tournamentQueueBuffer = 2048
+)
+
 var (
 	// ErrorNotFound Resource can not be found.
 	ErrorNotFound = errors.New("Not found")
-)
-
-const (
-	TournamentQueueBuffer = 1000
 )
 
 type Model struct {
@@ -34,16 +34,5 @@ func New() *Model {
 		tournaments: make(map[bson.ObjectId]*structures.Tournament),
 		done:        make(chan struct{}),
 	}
-	/*
-		ts := m.dao.GetTournaments()
-		for _, v := range ts {
-			m.Tournaments[v.Id] = &v
-		}
-	*/
-
 	return &m
-}
-
-func (m *Model) Stop() {
-	close(m.done)
 }

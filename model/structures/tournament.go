@@ -1,20 +1,23 @@
 package structures
 
 import (
+	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type Tournament struct {
 	sync.RWMutex
 	Id          bson.ObjectId           `json:"id" bson:"_id"`
+	Created     time.Time               `json:"created,omitempty" bson:"created,omitempty"`
 	Tags        map[string]string       `json:"tags,omitempty" bson:"tags,omitempty"`
 	TestSeats   int                     `json:"testSeats" bson:"testSeats"`
 	Carousel    bool                    `json:"carousel" bson:"carousel"`
 	Rounds      int                     `json:"rounds" bson:"rounds"`
 	Contestants []Engine                `json:"contestants" bson:"contestants"`
-	Games       map[bson.ObjectId]*Game `json:"-" bson:"-"`
+	games       map[bson.ObjectId]*Game `json:"-" bson:"-"`
 	queue       chan *Game
 }
 
@@ -26,22 +29,23 @@ func NewTournament() *Tournament {
 		Carousel:    true,
 		Rounds:      0,
 		Contestants: make([]Engine, 0),
-		Games:       make(map[bson.ObjectId]*Game),
+		games:       make(map[bson.ObjectId]*Game),
 		queue:       make(chan *Game),
 	}
 }
+
 func NewGameQueue(t *Tournament) chan *Game {
-	queue := make(chan *Game, len(t.Games))
-	ordered := make([]*Game, len(t.Games))
-	for k := range t.Games {
-		if r, err := strconv.Atoi(t.Games[k].Tags["round"]); err == nil {
-			ordered[r-1] = t.Games[k]
+	queue := make(chan *Game, len(t.games))
+	ordered := make([]*Game, len(t.games))
+	for k := range t.games {
+		if r, err := strconv.Atoi(t.games[k].Tags["round"]); err == nil {
+			ordered[r-1] = t.games[k]
 		} else {
 			panic(err)
 		}
 	}
 	for _, v := range ordered {
-		if result, exists := v.Tags["result"]; !exists || result == "*" {
+		if !v.Complete() {
 			queue <- v
 		}
 	}
@@ -49,10 +53,16 @@ func NewGameQueue(t *Tournament) chan *Game {
 }
 
 func (t *Tournament) NextGame() *Game {
+	if len(t.queue) == 0 && !t.Complete() {
+		t.Lock()
+		t.queue = NewGameQueue(t)
+		t.Unlock()
+	}
 	select {
 	case g := <-t.queue:
 		return g
 	default:
+		fmt.Printf("Game queue depleted for tournament %s\n", t.Id.Hex())
 		return nil
 	}
 }
@@ -63,7 +73,7 @@ func (t *Tournament) Init() {
 		t.Id = bson.NewObjectId()
 	}
 	t.Contestants = IdentifyContestants(t)
-	t.Games = NewGameList(t)
+	t.games = NewGameList(t)
 	t.queue = NewGameQueue(t)
 	t.Unlock()
 }
@@ -81,7 +91,6 @@ func IdentifyContestants(t *Tournament) []Engine {
 
 func NewGameList(t *Tournament) map[bson.ObjectId]*Game {
 	games := make(map[bson.ObjectId]*Game)
-
 	round := 0
 	for i := 0; i < t.TestSeats; i++ {
 		if t.Carousel {
@@ -89,11 +98,8 @@ func NewGameList(t *Tournament) map[bson.ObjectId]*Game {
 				for e := i + 1; e < len(t.Contestants); e++ {
 					round++
 					g := NewGame()
-					gid := bson.NewObjectId()
 					g.Tags["round"] = strconv.Itoa(round)
 					g.Tags["tournamentId"] = t.Id.Hex()
-					g.Tags["id"] = gid.Hex()
-
 					if r%2 == 0 {
 						g.Tags["whiteId"] = t.Contestants[i].Id.Hex()
 						g.Tags["blackId"] = t.Contestants[e].Id.Hex()
@@ -101,15 +107,13 @@ func NewGameList(t *Tournament) map[bson.ObjectId]*Game {
 						g.Tags["blackId"] = t.Contestants[i].Id.Hex()
 						g.Tags["whiteId"] = t.Contestants[e].Id.Hex()
 					}
-					games[gid] = g
-
+					games[g.Id] = g
 					if t.Rounds%2 == 0 {
 						round++
 						ng := NewGame()
-						ngid := bson.NewObjectId()
 						ng.Tags["round"] = strconv.Itoa(round)
 						ng.Tags["tournamentId"] = t.Id.Hex()
-						ng.Tags["id"] = ngid.Hex()
+
 						if r%2 == 0 {
 							ng.Tags["whiteId"] = t.Contestants[e].Id.Hex()
 							ng.Tags["blackId"] = t.Contestants[i].Id.Hex()
@@ -117,7 +121,7 @@ func NewGameList(t *Tournament) map[bson.ObjectId]*Game {
 							ng.Tags["blackId"] = t.Contestants[i].Id.Hex()
 							ng.Tags["whiteId"] = t.Contestants[e].Id.Hex()
 						}
-						games[ngid] = ng
+						games[ng.Id] = ng
 					}
 				}
 			}
@@ -128,10 +132,8 @@ func NewGameList(t *Tournament) map[bson.ObjectId]*Game {
 				for r := 0; r < t.Rounds; r++ {
 					round++
 					g := NewGame()
-					gid := bson.NewObjectId()
 					g.Tags["round"] = strconv.Itoa(round)
 					g.Tags["tournamentId"] = t.Id.Hex()
-					g.Tags["id"] = gid.Hex()
 					if r%2 == 0 {
 						g.Tags["whiteId"] = t.Contestants[i].Id.Hex()
 						g.Tags["blackId"] = t.Contestants[e].Id.Hex()
@@ -139,7 +141,7 @@ func NewGameList(t *Tournament) map[bson.ObjectId]*Game {
 						g.Tags["blackId"] = t.Contestants[i].Id.Hex()
 						g.Tags["whiteId"] = t.Contestants[e].Id.Hex()
 					}
-					games[gid] = g
+					games[g.Id] = g
 				}
 			}
 		}
@@ -149,17 +151,31 @@ func NewGameList(t *Tournament) map[bson.ObjectId]*Game {
 
 func (t *Tournament) GetGame(id bson.ObjectId) *Game {
 	t.RLock()
-	g := t.Games[id]
+	g, exists := t.games[id]
 	t.RUnlock()
-	return g
+	if exists {
+		return g
+	}
+	panic("gid not found")
 }
 
 func (t *Tournament) GetGames() []*Game {
-	arr := make([]*Game, 0, len(t.Games))
+	arr := make([]*Game, 0, len(t.games))
 	t.RLock()
-	for _, v := range t.Games {
+	for _, v := range t.games {
 		arr = append(arr, v)
 	}
 	t.RUnlock()
 	return arr
+}
+
+func (t *Tournament) Complete() bool {
+	t.RLock()
+	for k, _ := range t.games {
+		if !t.games[k].Complete() {
+			return false
+		}
+	}
+	t.RUnlock()
+	return true
 }

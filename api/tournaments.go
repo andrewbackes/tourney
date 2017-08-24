@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/andrewbackes/tourney/helpers"
 	"github.com/andrewbackes/tourney/model"
 	"github.com/andrewbackes/tourney/model/structures"
 	"github.com/gorilla/mux"
@@ -10,8 +11,9 @@ import (
 )
 
 func (c *controller) getTournaments(w http.ResponseWriter, req *http.Request) {
-	t := c.model.GetTournaments()
-	writeJSON(t, w)
+	filters := req.URL.Query()
+	t := c.model.GetTournaments(filters)
+	helpers.WriteJSON(t, w)
 }
 
 func (c *controller) getTournament(w http.ResponseWriter, req *http.Request) {
@@ -19,7 +21,7 @@ func (c *controller) getTournament(w http.ResponseWriter, req *http.Request) {
 	id := bson.ObjectIdHex(vars["tid"])
 	t, err := c.model.GetTournament(id)
 	if err == nil {
-		writeJSON(t, w)
+		helpers.WriteJSON(t, w)
 	} else if err == model.ErrorNotFound {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -30,14 +32,16 @@ func (c *controller) getTournament(w http.ResponseWriter, req *http.Request) {
 
 func (c *controller) postTournament(w http.ResponseWriter, req *http.Request) {
 	var t structures.Tournament
-	readJSON(req.Body, &t)
+	helpers.ReadJSON(req.Body, &t)
 	defer req.Body.Close()
 	id, err := c.model.AddTournament(&t)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
 	}
-	w.Write([]byte(fmt.Sprintf("{\"id\":\"%s\"}", id.Hex())))
+	resp := fmt.Sprintf("{\"id\":\"%s\"}", id.Hex())
+	fmt.Printf("Received tournament: %s\n", resp)
+	w.Write([]byte(resp))
 }
 
 func (c *controller) getTournamentsNextGame(w http.ResponseWriter, req *http.Request) {
@@ -46,7 +50,7 @@ func (c *controller) getTournamentsNextGame(w http.ResponseWriter, req *http.Req
 	t, _ := c.model.GetTournament(id)
 	g := t.NextGame()
 	if g != nil {
-		writeJSON(g, w)
+		helpers.WriteJSON(g, w)
 	} else {
 		w.Write([]byte("{}"))
 	}
