@@ -1,9 +1,8 @@
-package v2
+package api
 
 import (
-	"github.com/andrewbackes/tourney/db"
+	"github.com/andrewbackes/tourney/data"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 /*
@@ -28,24 +27,9 @@ func newRouter(c *controller) *mux.Router {
 */
 
 // Bind sets the routes in the router.
-func Bind(db db.Database, r *mux.Router) {
-	s := r.PathPrefix("/api/v2").Subrouter()
-	h := make([][]string, 0)
-	bind := func(m, p string, f func(w http.ResponseWriter, req *http.Request)) {
-		s.HandleFunc(p, f).Methods(m)
-		h = append(h, []string{m, p})
-	}
-
-	bind("GET", "/tournaments", func(w http.ResponseWriter, req *http.Request) {
-
-	})
-	/*
-		s.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-			resp := `{`
-			for k, v := range h {
-				resp += `  "` +  +`":["` + +`"]`
-			}
-			resp += '}'
-		}).Methods("GET")
-	*/
+func Bind(s data.Service, r *mux.Router) {
+	sub := r.PathPrefix("/api/v2").Subrouter()
+	sub.HandleFunc("/tournaments", getTournaments(s)).Methods("GET")
+	sub.HandleFunc("/tournaments/{id}", getTournaments(s)).Methods("GET")
+	sub.HandleFunc("/tournaments", postTournament(s)).Methods("POST")
 }

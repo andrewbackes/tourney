@@ -1,7 +1,7 @@
 package memdb
 
 import (
-	"github.com/andrewbackes/tourney/models"
+	"github.com/andrewbackes/tourney/data/models"
 )
 
 func (m *MemDB) CreateTournament(t *models.Tournament) models.Id {

@@ -1,11 +1,11 @@
-package db
+package data
 
 import (
-	"github.com/andrewbackes/tourney/models"
+	"github.com/andrewbackes/tourney/data/models"
 )
 
-// Database is what is needed to CRUD the models.
-type Database interface {
+// Store persists data vai CRUD.
+type Store interface {
 	CreateTournament(*models.Tournament) models.Id
 	CreateGame(*models.Game) models.Id
 

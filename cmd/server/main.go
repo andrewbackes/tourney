@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/andrewbackes/tourney/db/memdb"
+	"github.com/andrewbackes/tourney/data/store/memdb"
 	"github.com/andrewbackes/tourney/server"
 )
 

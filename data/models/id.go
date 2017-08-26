@@ -9,3 +9,7 @@ type Id string
 func NewId() Id {
 	return Id(bson.NewObjectId())
 }
+
+func (i Id) String() string {
+	return bson.ObjectId(i).Hex()
+}

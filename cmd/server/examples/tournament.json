@@ -1,0 +1,27 @@
+{
+    "settings": {
+        "engines": [
+            {
+                "name": "dirty-bit",
+                "version": "0.39.5.t5",
+                "protocol": "uci",
+                "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
+            },
+            {
+                "name": "dirty-bit",
+                "version": "0.2",
+                "protocol": "uci",
+                "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.20/DirtyBit.0.2.exe"
+            }
+        ],
+        "testSeats": 2,
+        "carousel": true,
+        "rounds": 10,
+        "timeControl": {
+            "time": "5m",
+            "increment": "0",
+            "moves": 40,
+            "repeating": true
+        }
+    }
+}
