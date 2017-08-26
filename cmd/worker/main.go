@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	fmt.Println("Client")
+	fmt.Println("Worker.")
 }

@@ -1,41 +1,20 @@
+// Package memdb is an in memory database.
 package memdb
 
 import (
-	"github.com/andrewbackes/tourney/models"
+	"sync"
 )
 
-type MemDB struct{}
+// MemDB is an in memory database.
+type MemDB struct {
+	tournaments sync.Map
+	games       sync.Map
+}
 
+// NewMemDB creates a new in memory database.
 func NewMemDB() *MemDB {
-	return &MemDB{}
+	return &MemDB{
+		tournaments: sync.Map{},
+		games:       sync.Map{},
+	}
 }
-
-func (m *MemDB) createTournament(*models.Tournament) models.Id {
-	return ""
-}
-
-func (m *MemDB) createGame(*models.Game) models.Id {
-	return ""
-}
-
-func (m *MemDB) readTournament(id models.Id) *models.Tournament {
-	return nil
-}
-
-func (m *MemDB) readTournaments(filter func(*models.Tournament) bool) []*models.Tournament {
-	return nil
-}
-
-func (m *MemDB) readGame(id models.Id) *models.Game {
-	return nil
-}
-
-func (m *MemDB) readGames(filter func(*models.Game) bool) []*models.Game {
-	return nil
-}
-
-func (m *MemDB) updateTournamentSummary(id models.Id, summary models.Summary) {}
-func (m *MemDB) updateTournamentStatus(id models.Id, status models.Status)    {}
-func (m *MemDB) updateGameTags(id models.Id, tags map[string]string)          {}
-func (m *MemDB) updateGameStatus(id models.Id, status models.Status)          {}
-func (m *MemDB) updateGamePosition(id models.Id)                              {}
