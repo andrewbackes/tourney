@@ -6,6 +6,6 @@ import (
 
 // Common errors that can be returned by the service.
 var (
-	ErrDoesNotExist = errors.New("entity does not exist")
-	ErrMalformed    = errors.New("missing information needed to create entity")
+	ErrNotFound  = errors.New("entity not found")
+	ErrMalformed = errors.New("missing information needed to create entity")
 )

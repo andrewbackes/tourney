@@ -4,27 +4,32 @@ import (
 	"fmt"
 	"github.com/andrewbackes/tourney/data"
 	"github.com/andrewbackes/tourney/data/models"
+	"github.com/andrewbackes/tourney/data/service"
 	"github.com/andrewbackes/tourney/util"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 func getTournaments(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-
+		log.Debug("Request recieved: ", *req)
+		ts := s.ReadTournaments(nil)
+		util.WriteJSON(ts, w)
 	}
 }
 
 func getTournament(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
+		log.Debug("Request recieved: ", *req)
 		vars := mux.Vars(req)
 		id := models.Id(vars["id"])
-		t := s.ReadTournament(id)
-		if t != nil {
-			util.WriteJSON(t, w)
-		} else {
+		t, err := s.ReadTournament(id)
+		if err == service.ErrNotFound {
+			w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, err)))
 			w.WriteHeader(http.StatusNotFound)
-			return
+		} else {
+			util.WriteJSON(t, w)
 		}
 	}
 }
@@ -34,7 +39,7 @@ func postTournament(s data.Service) func(w http.ResponseWriter, req *http.Reques
 		var t models.Tournament
 		util.ReadJSON(req.Body, &t)
 		defer req.Body.Close()
-		id := s.CreateTournament(&t)
+		id, _ := s.CreateTournament(&t)
 		w.Write([]byte(fmt.Sprintf("{\"id\":\"%s\"}", id)))
 	}
 }

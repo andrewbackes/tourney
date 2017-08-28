@@ -7,9 +7,9 @@ import (
 type Id string
 
 func NewId() Id {
-	return Id(bson.NewObjectId())
+	return Id(bson.NewObjectId().Hex())
 }
 
 func (i Id) String() string {
-	return bson.ObjectId(i).Hex()
+	return string(i)
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/andrewbackes/tourney/server/api/v2"
 	"github.com/andrewbackes/tourney/server/ui"
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
 type Server struct {
@@ -22,4 +23,6 @@ func New(port string, s data.Service) *Server {
 	}
 }
 
-func (s *Server) Start() {}
+func (s *Server) Start() {
+	http.ListenAndServe(s.port, s.router)
+}

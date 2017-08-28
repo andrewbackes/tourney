@@ -18,8 +18,8 @@
         "carousel": true,
         "rounds": 10,
         "timeControl": {
-            "time": "5m",
-            "increment": "0",
+            "time": 0,
+            "increment": 0,
             "moves": 40,
             "repeating": true
         }

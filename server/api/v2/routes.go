@@ -30,6 +30,6 @@ func newRouter(c *controller) *mux.Router {
 func Bind(s data.Service, r *mux.Router) {
 	sub := r.PathPrefix("/api/v2").Subrouter()
 	sub.HandleFunc("/tournaments", getTournaments(s)).Methods("GET")
-	sub.HandleFunc("/tournaments/{id}", getTournaments(s)).Methods("GET")
+	sub.HandleFunc("/tournaments/{id}", getTournament(s)).Methods("GET")
 	sub.HandleFunc("/tournaments", postTournament(s)).Methods("POST")
 }
