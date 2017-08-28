@@ -5,9 +5,8 @@ import (
 	"github.com/andrewbackes/tourney/data/stores"
 )
 
-func (m *MemDB) CreateTournament(t *models.Tournament) models.Id {
+func (m *MemDB) CreateTournament(t *models.Tournament) {
 	m.tournaments.Store(t.Id, t)
-	return t.Id
 }
 
 func (m *MemDB) ReadTournament(id models.Id) (*models.Tournament, error) {

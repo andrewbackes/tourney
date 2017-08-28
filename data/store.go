@@ -6,17 +6,17 @@ import (
 
 // Store persists data vai CRUD.
 type Store interface {
-	CreateTournament(*models.Tournament) models.Id
-	CreateGame(*models.Game) models.Id
+	CreateTournament(*models.Tournament)
+	CreateGame(*models.Game)
 
 	ReadTournament(id models.Id) (*models.Tournament, error)
 	ReadTournaments(filter func(*models.Tournament) bool) []*models.Tournament
-	ReadGame(id models.Id) *models.Game
-	ReadGames(filter func(*models.Game) bool) []*models.Game
+	ReadGame(tid, gid models.Id) (*models.Game, error)
 
-	UpdateTournamentSummary(id models.Id, summary models.Summary)
-	UpdateTournamentStatus(id models.Id, status models.Status)
-	UpdateGameTags(id models.Id, tags map[string]string)
-	UpdateGameStatus(id models.Id, status models.Status)
-	UpdateGamePosition(id models.Id)
+	AddPosition(tid, gid models.Id, p models.Position) error
+	UpdateStatus(tid, gid models.Id, s models.Status)
+
+	CreateWorker(w models.Worker)
+	ReadWorker(id models.Id) (models.Worker, error)
+	DeleteWorker(id models.Id)
 }
