@@ -7,13 +7,11 @@ import (
 	"github.com/andrewbackes/tourney/data/service"
 	"github.com/andrewbackes/tourney/util"
 	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 func getTournaments(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		log.Debug("Request recieved: ", *req)
 		ts := s.ReadTournaments(nil)
 		util.WriteJSON(ts, w)
 	}
@@ -21,7 +19,6 @@ func getTournaments(s data.Service) func(w http.ResponseWriter, req *http.Reques
 
 func getTournament(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		log.Debug("Request recieved: ", *req)
 		vars := mux.Vars(req)
 		id := models.Id(vars["id"])
 		t, err := s.ReadTournament(id)

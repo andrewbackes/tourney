@@ -55,8 +55,13 @@ func patchGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 			switch *patch.Status {
 			case models.Complete:
 				s.CompleteGame(tid, gid)
+				w.Write([]byte(fmt.Sprintf("{\"status\":\"%s\"}", "success")))
 			case models.Running:
 				s.AssignGame(tid, gid)
+				w.Write([]byte(fmt.Sprintf("{\"status\":\"%s\"}", "success")))
+			default:
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(fmt.Sprintf("{\"status\":\"%s\"}", "invalid game status")))
 			}
 		}
 	}
