@@ -1,18 +1,25 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import NavBar from './Nav'
+import TournamentsDashboard from './Tournaments'
 
 class App extends Component {
+  content(navPath) {
+    if (navPath[0].toLowerCase() === 'tournaments') {
+      if (navPath.length === 1) {
+        return <TournamentsDashboard/>;
+      }
+    }
+  }
+
   render() {
+    var navPath = ["Tournaments", "123"];
     return (
       <div className="App">
-        <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
+        <div className="col-xs-10 col-xs-offset-1">
+          <NavBar navPath={navPath}/>
+          {this.content(navPath)}
         </div>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
       </div>
     );
   }
