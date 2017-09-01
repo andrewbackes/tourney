@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import './App.css';
-import NavBar from './Nav';
-import TournamentsDashboard from './Tournaments';
-import TournamentDashboard from './Tournament';
-import GameList from './Games';
+import 'style/App.css';
+import NavBar from 'components/nav';
+import TournamentsDashboard from 'components/tournaments';
+import TournamentDashboard from 'components/tournament';
+import GameList from 'components/games';
 
 class App extends Component {
   content(navPath) {
