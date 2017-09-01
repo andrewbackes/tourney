@@ -25,7 +25,7 @@ class App extends Component {
   }
   
   render() {
-    var navPath = ["Tournaments", "123"];
+    var navPath = ["Tournaments", "123", "Games"];
     return (
       <div className="App">
         <div className="col-xs-10 col-xs-offset-1">

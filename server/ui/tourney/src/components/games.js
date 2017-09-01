@@ -1,11 +1,52 @@
 import React, { Component } from 'react';
+import Panel from 'components/panel';
+import TournamentService from 'services/tournament';
 
-class GameList extends Component {
+export default class GameList extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      tournament: TournamentService.getTournament("something"),
+      gameList: TournamentService.getGameList("something"),
+      filter: ""
+    };
+  }
+
+  componentDidMount() {
+    if (this.state.tournament.status !== "Complete") {
+      this.timerID = setInterval(
+        () => this.refreshGameList(),
+        10000
+      );
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timerID);
+  }
+
+  handleFilterTextInput(text) {
+    this.setState({filter: text});
+  }
+
+  refreshGameList() {
+    this.setState({
+      tournament: TournamentService.getTournament("something"),
+      gameList: TournamentService.getGameList("something")
+    });
+    if (this.state.tournament.status === "Complete") {
+      clearInterval(this.timerID);
+    }
+  }
+  
   render() {
     return (
-      <div className="panel panel-default">
-        <div className="panel-body">
-          <GameTable/>
+      <div>
+        <Panel title="Search" mode="default" content={<Search/>}/>
+        <div className="panel panel-default">
+          <div className="panel-body">
+            <GameTable gameList={this.state.gameList} filter={this.state.filter}/>
+          </div>
         </div>
       </div>
     );
@@ -13,7 +54,20 @@ class GameList extends Component {
 }
 
 class GameTable extends Component {
+  
+  shouldRender(game, filter) {
+    if (filter === "") {
+      return true;
+    }
+  }
+
   render() {
+    let rows = [];
+    this.props.gameList.forEach( (game) => {
+      if (this.shouldRender(game, this.props.filter)) {
+        rows.push(<GameTableRow key={game.id} game={game}/>)
+      }
+    })
     return (
       <table className="table table-hover table-condensed">
         <thead>
@@ -23,30 +77,39 @@ class GameTable extends Component {
             <th>Black</th>
             <th>Result</th>
             <th>Winner</th>
-            <th>Ending Condistion</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>Dirty-Bit 09ba34ef</td> 
-            <td>Dirty-Bit 1ab34ef</td>
-            <td>1-0</td>
-            <td>Dirty-Bit 09ba34ef</td>
-            <td>Checkmate</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>Dirty-Bit 1ab34ef</td> 
-            <td>Dirty-Bit 09ba34ef</td> 
-            <td>0-1</td>
-            <td>Dirty-Bit 09ba34ef</td>
-            <td>Checkmate</td>
-          </tr>
+          { rows }
         </tbody>
       </table>
     );
   }
 }
 
-export default GameList;
+function engineLabel(engine) {
+  return engine.name + " " + engine.version;
+}
+
+class GameTableRow extends Component {
+  render() {
+    return (
+      <tr>
+        <td>{this.props.game.round}</td>
+        <td>{engineLabel(this.props.game.contestants["0"])}</td> 
+        <td>{engineLabel(this.props.game.contestants["1"])}</td> 
+        <td>-</td>
+        <td>-</td>
+        <td>{this.props.game.status}</td>
+      </tr>
+    );
+  }
+}
+class Search extends Component {
+  render() {
+    return (
+      <div></div>
+    );
+  }
+}
