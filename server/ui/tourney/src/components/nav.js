@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom'
 
-class NavBar extends Component {
+export default class NavBar extends Component {
   render() {
     return (
       <div>
@@ -16,34 +17,47 @@ class NavBar extends Component {
             </div>
             <div className="collapse navbar-collapse" id="myNavbar">
             <ul className="nav navbar-nav">
-              <li className={this.props.navPath[0].toLowerCase() === 'tournaments' ? 'active' : ''}><a href="">Tournaments</a></li>
-              <li className={this.props.navPath[0].toLowerCase() === 'engines' ? 'active' : ''}><a href="">Engines</a></li>
-              <li className={this.props.navPath[0].toLowerCase() === 'books' ? 'active' : ''}><a href="">Books</a></li>
-              <li className={this.props.navPath[0].toLowerCase() === 'workers' ? 'active' : ''}><a href="">Workers</a></li>
+              <li className='active'><Link to='/tournaments'>Tournaments</Link></li>
+              <li><Link to=''>Engines</Link></li>
+              <li><Link to=''>Books</Link></li>
+              <li><Link to=''>Workers</Link></li>
             </ul>
             <ul className="nav navbar-nav navbar-right">
-              <li><a href=""><span className="glyphicon glyphicon-user"></span> Sign Up</a></li>
-              <li><a href=""><span className="glyphicon glyphicon-log-in"></span> Login</a></li>
+              <li><Link to=''><span className="glyphicon glyphicon-user"></span> Sign Up</Link></li>
+              <li><Link to=''><span className="glyphicon glyphicon-log-in"></span> Login</Link></li>
             </ul>
             </div>
           </div>
         </nav>
-        <NavBreadcrumbs navPath={this.props.navPath} navLink={this.props.navLink}/>
+        <NavBreadcrumbs navPath={this.props.location.pathname}/>
       </div>
     ); 
   }
 }
 
-export default NavBar;
-
 class NavBreadcrumbs extends Component {
   render() {
+    let path = this.props.navPath;
+    if (path.length > 0 && path[0] === '/') {
+      path = path.substring(1, path.length);
+    }
+    if (path.length > 0 && path[path.length-1] === '/') {
+      path = path.substring(0, path.length-1);
+    }
+
     var crumbItems = [];
-    this.props.navPath.forEach( (item) => {
-      crumbItems.push(<li key={item}><a href="">{item}</a></li>);
-    });
-    var lastIndex = this.props.navPath.length - 1;
-    crumbItems[lastIndex] = <li className="active" key={this.props.navPath[lastIndex]}>{this.props.navPath[lastIndex]}</li>;
+    let pathTerms = path.split('/');
+    for (let i=0; i < pathTerms.length; i++) {
+      if (pathTerms[i] !== '') {
+        let term = pathTerms[i].charAt(0).toUpperCase() + pathTerms[i].slice(1);
+        if (i < pathTerms.length - 1) {
+          crumbItems.push(<li key={term}><a href="">{term}</a></li>);
+        } else {
+        crumbItems.push(<li className="active" key={term}>{term}</li>);
+        }
+      }
+    }
+
     var link;
     if (this.props.navLink) {
       link = <li className="pull-right"><a href="">{this.props.navLink}<span className="glyphicon glyphicon-menu-right"></span></a></li>;

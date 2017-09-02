@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom'
 import Panel from 'components/panel';
 import TournamentService from 'services/tournament';
 
@@ -6,7 +7,7 @@ export default class TournamentDashboard extends Component {
   constructor(props) {
     super(props);
     this.state = { 
-      tournament: TournamentService.getTournament("something"),
+      tournament: TournamentService.getTournament(this.props.match.params.tournamentId),
       workers: []
     };
   }
@@ -26,7 +27,7 @@ export default class TournamentDashboard extends Component {
 
   refreshTournament() {
     this.setState({
-      tournament: TournamentService.getTournament("something")
+      tournament: TournamentService.getTournament(this.props.match.params.tournamentId)
     });
     if (this.state.tournament.status === "Complete") {
       clearInterval(this.timerID);
@@ -36,6 +37,17 @@ export default class TournamentDashboard extends Component {
   render() {
     return (
       <div>
+        <div className="row">
+          <div className="col-xs-12">
+            <div className="panel-group">
+              <div className="panel panel-default">
+                <div className="panel-body text-right">
+                  <Link to=''>Games<span className="glyphicon glyphicon-menu-right"></span></Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="row">
           <div className="col-xs-6">
             <Panel title="Standings" mode="default" content={<StandingsTable tournament={this.props.tournament}/>}/>

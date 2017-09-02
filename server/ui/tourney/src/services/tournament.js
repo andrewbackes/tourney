@@ -29,9 +29,9 @@ const MOCK_TOURNAMENT = {
     "engines": [
       {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       {
@@ -62,15 +62,15 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.2",
+        "name": "stockfish",
+        "version": "",
         "protocol": "uci",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.20/DirtyBit.0.2.exe"
       }
@@ -95,9 +95,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },
@@ -114,9 +114,9 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
@@ -147,9 +147,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },
@@ -166,9 +166,9 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
@@ -199,9 +199,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },
@@ -218,9 +218,9 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
@@ -251,9 +251,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },
@@ -270,9 +270,9 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
@@ -303,9 +303,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },
@@ -322,9 +322,9 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
@@ -355,9 +355,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },
@@ -374,9 +374,9 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
@@ -407,9 +407,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },
@@ -426,9 +426,9 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
@@ -459,9 +459,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },
@@ -478,9 +478,9 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
@@ -511,9 +511,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },
@@ -530,9 +530,9 @@ const MOCK_GAME_LIST = [
     "contestants": {
       "0": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       },
       "1": {
@@ -563,9 +563,9 @@ const MOCK_GAME_LIST = [
       },
       "1": {
         "Id": "",
-        "name": "dirty-bit",
-        "version": "0.39.5.t5",
-        "protocol": "uci",
+        "name": "exacto",
+        "version": "0.f",
+        "protocol": "winboard",
         "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
       }
     },

@@ -6,10 +6,11 @@ export default class GameList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      tournament: TournamentService.getTournament("something"),
-      gameList: TournamentService.getGameList("something"),
-      filter: ""
+      tournament: TournamentService.getTournament(this.props.match.params.tournamentId),
+      gameList: TournamentService.getGameList(this.props.match.params.tournamentId),
+      filterText: ""
     };
+    this.handleFilterTextInput = this.handleFilterTextInput.bind(this);
   }
 
   componentDidMount() {
@@ -25,9 +26,12 @@ export default class GameList extends Component {
     clearInterval(this.timerID);
   }
 
-  handleFilterTextInput(text) {
-    this.setState({filter: text});
+  handleFilterTextInput(filterText) {
+    this.setState({
+      filterText: filterText
+    });
   }
+  
 
   refreshGameList() {
     this.setState({
@@ -42,10 +46,12 @@ export default class GameList extends Component {
   render() {
     return (
       <div>
-        <Panel title="Search" mode="default" content={<Search/>}/>
+        <Panel title="Search" mode="default" content={
+          <Search onFilterTextInput={this.handleFilterTextInput} filterText={this.state.filterText}/>
+        }/>
         <div className="panel panel-default">
           <div className="panel-body">
-            <GameTable gameList={this.state.gameList} filter={this.state.filter}/>
+            <GameTable gameList={this.state.gameList} filterText={this.state.filterText}/>
           </div>
         </div>
       </div>
@@ -55,16 +61,17 @@ export default class GameList extends Component {
 
 class GameTable extends Component {
   
-  shouldRender(game, filter) {
-    if (filter === "") {
+  filterGame(game, filterText) {
+    if (filterText === "") {
       return true;
     }
+    return JSON.stringify(game).includes(filterText);
   }
 
   render() {
     let rows = [];
     this.props.gameList.forEach( (game) => {
-      if (this.shouldRender(game, this.props.filter)) {
+      if (this.filterGame(game, this.props.filterText)) {
         rows.push(<GameTableRow key={game.id} game={game}/>)
       }
     })
@@ -107,9 +114,25 @@ class GameTableRow extends Component {
   }
 }
 class Search extends Component {
+  constructor(props) {
+    super(props);
+    this.handleFilterTextInputChange = this.handleFilterTextInputChange.bind(this);
+  }
+
+  handleFilterTextInputChange(e) {
+    this.props.onFilterTextInput(e.target.value);
+  }
+
   render() {
     return (
-      <div></div>
+      <form>
+        <input
+          type="text"
+          placeholder="Search..."
+          value={this.props.filterText}
+          onChange={this.handleFilterTextInputChange}
+        />
+      </form>
     );
   }
 }
