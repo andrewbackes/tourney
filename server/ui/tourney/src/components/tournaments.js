@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Panel from 'components/panel';
 import TournamentService from 'services/tournament';
+import 'style/main.css';
 
 class TournamentsDashboard extends Component {
   constructor(props) {
@@ -36,15 +37,15 @@ class TournamentsDashboard extends Component {
       <div>
         <div className="row">
           <div className="col-xs-8">
-            <Panel title="Active" mode="success" content={<ActiveTournamentsTable list={this.state.active}/>}/>
+            <Panel title="Active" mode="success" content={<ActiveTournamentsTable list={this.state.active} history={this.props.history}/>}/>
           </div>
           <div className="col-xs-4">
-            <Panel title="Pending" mode="info" content={<PendingTournamentsTable list={this.state.pending}/>}/>
+            <Panel title="Pending" mode="info" content={<PendingTournamentsTable list={this.state.pending} history={this.props.history}/>}/>
           </div>
         </div>
         <div className="row">
           <div className="col-xs-12">
-            <Panel title="Completed" mode="default" content={<CompletedTournamentsTable list={this.state.complete}/>}/>
+            <Panel title="Completed" mode="default" content={<CompletedTournamentsTable list={this.state.complete} history={this.props.history}/>}/>
           </div>
         </div>
       </div>
@@ -58,7 +59,7 @@ class ActiveTournamentsTable extends Component {
   render() {
     var rows = [];
     this.props.list.forEach( (tournament) => {
-      rows.push(<ActiveTournamentsTableRow key={tournament.id} tournament={tournament}></ActiveTournamentsTableRow>);
+      rows.push(<ActiveTournamentsTableRow key={tournament.id} tournament={tournament} history={this.props.history}></ActiveTournamentsTableRow>);
     });
     return (
       <table className="table table-hover table-condensed">
@@ -90,9 +91,13 @@ function formatTimeControl(timeControl) {
 }
 
 class ActiveTournamentsTableRow extends Component {
+  handleClick(e) {
+    this.props.history.push('/tournaments/' + this.props.tournament.id);
+  }
+
   render() {
     return (
-      <tr>
+      <tr className='clickable' onClick={this.handleClick.bind(this)}>
         <td>{this.props.tournament.id}</td>
         <td>{formatTimeControl(this.props.tournament.settings.timeControl)}</td>
         <td>-</td>
@@ -106,7 +111,7 @@ class PendingTournamentsTable extends Component {
   render() {
     var rows = [];
     this.props.list.forEach( (tournament) => {
-      rows.push(<PendingTournamentsTableRow key={tournament.id} tournament={tournament}></PendingTournamentsTableRow>);
+      rows.push(<PendingTournamentsTableRow key={tournament.id} tournament={tournament} history={this.props.history}></PendingTournamentsTableRow>);
     });
     return (
       <table className="table table-hover table-condensed">
@@ -125,9 +130,13 @@ class PendingTournamentsTable extends Component {
 }
 
 class PendingTournamentsTableRow extends Component {
+  handleClick(e) {
+    this.props.history.push('/tournaments/' + this.props.tournament.id);
+  }
+
   render() {
     return (
-      <tr>
+      <tr className='clickable' onClick={this.handleClick.bind(this)}>
         <td>{this.props.tournament.id}</td>
         <td>{formatTimeControl(this.props.tournament.settings.timeControl)}</td>
       </tr>
@@ -139,7 +148,7 @@ class CompletedTournamentsTable extends Component {
   render() {
     var rows = [];
     this.props.list.forEach( (tournament) => {
-      rows.push(<CompletedTournamentsTableRow key={tournament.id} tournament={tournament}></CompletedTournamentsTableRow>);
+      rows.push(<CompletedTournamentsTableRow key={tournament.id} tournament={tournament} history={this.props.history}></CompletedTournamentsTableRow>);
     });
     return (
       <table className="table table-hover table-condensed">
@@ -159,9 +168,13 @@ class CompletedTournamentsTable extends Component {
 }
 
 class CompletedTournamentsTableRow extends Component {
+  handleClick(e) {
+    this.props.history.push('/tournaments/' + this.props.tournament.id);
+  }
+
   render() {
     return (
-      <tr>
+      <tr className='clickable' onClick={this.handleClick.bind(this)}>
         <td>{this.props.tournament.id}</td>
         <td>{formatTimeControl(this.props.tournament.settings.timeControl)}</td>
         <td>-</td>

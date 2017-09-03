@@ -17,14 +17,14 @@ export default class NavBar extends Component {
             </div>
             <div className="collapse navbar-collapse" id="myNavbar">
             <ul className="nav navbar-nav">
-              <li className='active'><Link to='/tournaments'>Tournaments</Link></li>
-              <li><Link to=''>Engines</Link></li>
-              <li><Link to=''>Books</Link></li>
-              <li><Link to=''>Workers</Link></li>
+              <li className={this.props.location.pathname.startsWith("/tournaments") ? 'active' : ''}><Link to='/tournaments'>Tournaments</Link></li>
+              <li className={this.props.location.pathname.startsWith("/engines") ? 'active' : ''}><Link to='/engines'>Engines</Link></li>
+              <li className={this.props.location.pathname.startsWith("/books") ? 'active' : ''}><Link to='/books'>Books</Link></li>
+              <li className={this.props.location.pathname.startsWith("/workers") ? 'active' : ''}><Link to='/workers'>Workers</Link></li>
             </ul>
             <ul className="nav navbar-nav navbar-right">
-              <li><Link to=''><span className="glyphicon glyphicon-user"></span> Sign Up</Link></li>
-              <li><Link to=''><span className="glyphicon glyphicon-log-in"></span> Login</Link></li>
+              <li><Link to='/signup'><span className="glyphicon glyphicon-user"></span> Sign Up</Link></li>
+              <li><Link to='/login'><span className="glyphicon glyphicon-log-in"></span> Login</Link></li>
             </ul>
             </div>
           </div>
@@ -49,23 +49,19 @@ class NavBreadcrumbs extends Component {
     let pathTerms = path.split('/');
     for (let i=0; i < pathTerms.length; i++) {
       if (pathTerms[i] !== '') {
+        let link = '/' + pathTerms.slice(0, i+1).join('/');
         let term = pathTerms[i].charAt(0).toUpperCase() + pathTerms[i].slice(1);
         if (i < pathTerms.length - 1) {
-          crumbItems.push(<li key={term}><a href="">{term}</a></li>);
+          crumbItems.push(<li key={term}><Link to={link}>{term}</Link></li>);
         } else {
         crumbItems.push(<li className="active" key={term}>{term}</li>);
         }
       }
     }
 
-    var link;
-    if (this.props.navLink) {
-      link = <li className="pull-right"><a href="">{this.props.navLink}<span className="glyphicon glyphicon-menu-right"></span></a></li>;
-    }
     return (
       <ul className="breadcrumb">
         { crumbItems }
-        { link }
       </ul>
     );
   }

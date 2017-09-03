@@ -42,7 +42,7 @@ export default class TournamentDashboard extends Component {
             <div className="panel-group">
               <div className="panel panel-default">
                 <div className="panel-body text-right">
-                  <Link to=''>Games<span className="glyphicon glyphicon-menu-right"></span></Link>
+                  <Link to={'/tournaments/' + this.props.match.params.tournamentId + '/games'}>Games<span className="glyphicon glyphicon-menu-right"></span></Link>
                 </div>
               </div>
             </div>

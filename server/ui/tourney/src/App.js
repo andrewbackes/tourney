@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {withRouter} from 'react-router-dom';
 import NavBar from 'components/nav';
 import Main from 'components/main';
+import 'style/main.css';
 
 class App extends Component {
 

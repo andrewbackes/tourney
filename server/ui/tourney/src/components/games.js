@@ -51,7 +51,7 @@ export default class GameList extends Component {
         }/>
         <div className="panel panel-default">
           <div className="panel-body">
-            <GameTable gameList={this.state.gameList} filterText={this.state.filterText}/>
+            <GameTable gameList={this.state.gameList} filterText={this.state.filterText} history={this.props.history}/>
           </div>
         </div>
       </div>
@@ -72,7 +72,7 @@ class GameTable extends Component {
     let rows = [];
     this.props.gameList.forEach( (game) => {
       if (this.filterGame(game, this.props.filterText)) {
-        rows.push(<GameTableRow key={game.id} game={game}/>)
+        rows.push(<GameTableRow key={game.id} game={game} history={this.props.history}/>)
       }
     })
     return (
@@ -100,9 +100,13 @@ function engineLabel(engine) {
 }
 
 class GameTableRow extends Component {
+  handleClick(e) {
+    this.props.history.push('/tournaments/' + this.props.game.tournamentId + '/games/' + this.props.game.id);
+  }
+
   render() {
     return (
-      <tr>
+      <tr className='clickable' onClick={this.handleClick.bind(this)}>
         <td>{this.props.game.round}</td>
         <td>{engineLabel(this.props.game.contestants["0"])}</td> 
         <td>{engineLabel(this.props.game.contestants["1"])}</td> 
@@ -125,14 +129,16 @@ class Search extends Component {
 
   render() {
     return (
-      <form>
-        <input
-          type="text"
-          placeholder="Search..."
-          value={this.props.filterText}
-          onChange={this.handleFilterTextInputChange}
+    <div className="input-group">
+      <span className="input-group-addon">Filter</span>
+      <input
+            type="text"
+            className="form-control"
+            placeholder="Search..."
+            value={this.props.filterText}
+            onChange={this.handleFilterTextInputChange}
         />
-      </form>
+    </div>
     );
   }
 }
