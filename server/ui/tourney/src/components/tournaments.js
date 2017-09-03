@@ -7,10 +7,14 @@ class TournamentsDashboard extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      active: TournamentService.getTournamentList(),
-      pending: TournamentService.getTournamentList(),
-      complete: TournamentService.getTournamentList()
+      active: [],
+      pending: [],
+      complete: []
     };
+    this.setActiveTournaments = this.setActiveTournaments.bind(this);
+    this.setPendingTournaments = this.setPendingTournaments.bind(this);
+    this.setCompleteTournaments = this.setCompleteTournaments.bind(this);
+    this.refreshList();
   }
 
   componentDidMount() {
@@ -24,12 +28,22 @@ class TournamentsDashboard extends Component {
     clearInterval(this.timerID);
   }
 
+  setActiveTournaments(tournaments) {
+    this.setState({ active: tournaments });
+  }
+
+  setPendingTournaments(tournaments) {
+    this.setState({ pending: tournaments });
+  }
+
+  setCompleteTournaments(tournaments) {
+    this.setState({ complete: tournaments });
+  }
+
   refreshList() {
-    this.setState({
-      active: TournamentService.getTournamentList(),
-      pending: TournamentService.getTournamentList(),
-      complete: TournamentService.getTournamentList()
-    });
+    TournamentService.getTournamentList('active', this.setActiveTournaments);
+    TournamentService.getTournamentList('pending', this.setPendingTournaments);
+    TournamentService.getTournamentList('complete', this.setCompleteTournaments);
   }
 
   render() {

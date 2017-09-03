@@ -56,6 +56,7 @@ export default class TournamentDashboard extends Component {
             <Panel title="Matchups" mode="default" content={<MathupsTable tournament={this.props.tournament}/>}/>
           </div>
         </div>
+        { this.state.tournament && this.state.tournament.settings &&
         <div className="row">
           <div className="col-xs-4">
             <Panel title="Time Control" mode="default" content={<TimeControlTable timeControl={this.state.tournament.settings.timeControl}/>}/>
@@ -67,6 +68,7 @@ export default class TournamentDashboard extends Component {
             <Panel title="Workers" mode="success" content={<WorkersTable workers={this.state.workers}/>}/>
           </div>
         </div>
+        }
       </div>
     );
   }

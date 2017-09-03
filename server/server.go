@@ -4,6 +4,7 @@ import (
 	"github.com/andrewbackes/tourney/data"
 	"github.com/andrewbackes/tourney/server/api/v2"
 	"github.com/andrewbackes/tourney/server/ui"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -24,5 +25,8 @@ func New(port string, s data.Service) *Server {
 }
 
 func (s *Server) Start() {
-	http.ListenAndServe(s.port, s.router)
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	http.ListenAndServe(s.port, handlers.CORS(originsOk, headersOk, methodsOk)(s.router))
 }
