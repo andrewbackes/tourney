@@ -16,7 +16,6 @@ func getGames(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 		id := models.Id(vars["id"])
 		t, err := s.ReadTournament(id)
 		if err == service.ErrNotFound {
-			w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, err)))
 			w.WriteHeader(http.StatusNotFound)
 		} else {
 			util.WriteJSON(t.Games, w)
@@ -31,7 +30,6 @@ func getGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 		gid := models.Id(vars["gid"])
 		g, err := s.ReadGame(tid, gid)
 		if err == service.ErrNotFound {
-			w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, err)))
 			w.WriteHeader(http.StatusNotFound)
 		} else {
 			util.WriteJSON(g, w)
@@ -71,7 +69,6 @@ func patchGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 				w.Write([]byte(fmt.Sprintf("{\"status\":\"%s\"}", "success")))
 			default:
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte(fmt.Sprintf("{\"status\":\"%s\"}", "invalid game status")))
 			}
 		}
 	}

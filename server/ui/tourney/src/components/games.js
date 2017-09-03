@@ -43,7 +43,6 @@ export default class GameList extends Component {
   }
 
   setGameList(gameList) {
-    console.log(gameList);
     this.setState({ gameList: gameList });
   }
 
