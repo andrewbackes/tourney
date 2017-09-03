@@ -7,9 +7,11 @@ export default class TournamentDashboard extends Component {
   constructor(props) {
     super(props);
     this.state = { 
-      tournament: TournamentService.getTournament(this.props.match.params.tournamentId),
+      tournament: {},
       workers: []
     };
+    this.setTournament = this.setTournament.bind(this);
+    this.refreshTournament();
   }
 
   componentDidMount() {
@@ -25,13 +27,15 @@ export default class TournamentDashboard extends Component {
     clearInterval(this.timerID);
   }
 
-  refreshTournament() {
-    this.setState({
-      tournament: TournamentService.getTournament(this.props.match.params.tournamentId)
-    });
+  setTournament(tournament) {
+    this.setState({ tournament: tournament });
     if (this.state.tournament.status === "Complete") {
       clearInterval(this.timerID);
     }
+  }
+
+  refreshTournament() {
+    TournamentService.getTournament(this.props.match.params.tournamentId, this.setTournament)
   }
 
   render() {

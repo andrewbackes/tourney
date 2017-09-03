@@ -12,7 +12,19 @@ import (
 
 func getTournaments(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		ts := s.ReadTournaments(nil)
+		var filter func(*models.Tournament) bool
+		val := req.URL.Query().Get("status")
+		if val != "" {
+			var status models.Status
+			(&status).UnmarshalJSON([]byte(`"` + val + `"`))
+			filter = func(t *models.Tournament) bool {
+				if t.Status == status {
+					return true
+				}
+				return false
+			}
+		}
+		ts := s.ReadTournaments(filter)
 		util.WriteJSON(ts, w)
 	}
 }

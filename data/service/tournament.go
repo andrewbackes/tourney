@@ -22,10 +22,10 @@ func (s *Service) CreateTournament(t *models.Tournament) (models.Id, error) {
 
 func (s *Service) ReadTournament(id models.Id) (*models.Tournament, error) {
 	t, err := s.store.ReadTournament(id)
-	log.Debug("Read Tournament ", *t)
 	if err == stores.ErrNotFound {
 		return nil, ErrNotFound
 	}
+	log.Debug("Read Tournament ", *t)
 	return t, nil
 }
 

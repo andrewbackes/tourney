@@ -14,7 +14,6 @@ class TournamentsDashboard extends Component {
     this.setActiveTournaments = this.setActiveTournaments.bind(this);
     this.setPendingTournaments = this.setPendingTournaments.bind(this);
     this.setCompleteTournaments = this.setCompleteTournaments.bind(this);
-    this.refreshList();
   }
 
   componentDidMount() {

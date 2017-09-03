@@ -7,13 +7,25 @@ import (
 	"github.com/andrewbackes/tourney/data/service"
 	"github.com/andrewbackes/tourney/util"
 	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
+func getGames(s data.Service) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		id := models.Id(vars["id"])
+		t, err := s.ReadTournament(id)
+		if err == service.ErrNotFound {
+			w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, err)))
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			util.WriteJSON(t.Games, w)
+		}
+	}
+}
+
 func getGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		log.Debug("Request recieved: ", *req)
 		vars := mux.Vars(req)
 		tid := models.Id(vars["tid"])
 		gid := models.Id(vars["gid"])
@@ -29,7 +41,6 @@ func getGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 
 func postPosition(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		log.Debug("Request recieved: ", *req)
 		vars := mux.Vars(req)
 		tid := models.Id(vars["tid"])
 		gid := models.Id(vars["gid"])
@@ -43,7 +54,6 @@ func postPosition(s data.Service) func(w http.ResponseWriter, req *http.Request)
 
 func patchGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		log.Debug("Request recieved: ", *req)
 		vars := mux.Vars(req)
 		tid := models.Id(vars["tid"])
 		gid := models.Id(vars["gid"])

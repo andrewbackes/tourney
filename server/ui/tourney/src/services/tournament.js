@@ -5,7 +5,16 @@ export default class TournamentService {
   static apiHost = 'http://localhost:9090/api/v2';
 
   static getTournament(tournamentId, callback) {
-    $.get(this.apiHost + '/tournament/' + tournamentId, callback);
+    $.ajax({
+      url: this.apiHost + '/tournaments/' + tournamentId,
+      type: "GET",
+      dataType: 'json',
+      contentType: 'application/json',
+      success: callback,
+      error: function (jqXHR, status, err) {
+        console.log("ajax error getting tournament.");
+      }
+    });
   }
 
   static getTournamentList(status, callback) {
@@ -22,10 +31,28 @@ export default class TournamentService {
   }
   
   static getGameList(tournamentId, callback) {
-    $.get(this.apiHost + '/tournaments/' + tournamentId + '/games',callback);
+    $.ajax({
+      url: this.apiHost + '/tournaments/' + tournamentId + '/games',
+      type: "GET",
+      dataType: 'json',
+      contentType: 'application/json',
+      success: callback,
+      error: function (jqXHR, status, err) {
+        console.log("ajax error getting game list.");
+      }
+    });
   }
 
   static getGame(tournamentId, gameId, callback) {
-    $.get(this.apiHost + '/tournaments/' + tournamentId + '/games/' + gameId,callback);
+    $.ajax({
+      url: this.apiHost + '/tournaments/' + tournamentId + '/games/' + gameId,callback,
+      type: "GET",
+      dataType: 'json',
+      contentType: 'application/json',
+      success: callback,
+      error: function (jqXHR, status, err) {
+        console.log("ajax error getting game.");
+      }
+    });
   }
 }

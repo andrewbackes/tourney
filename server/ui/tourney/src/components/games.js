@@ -6,17 +6,20 @@ export default class GameList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      tournament: TournamentService.getTournament(this.props.match.params.tournamentId),
-      gameList: TournamentService.getGameList(this.props.match.params.tournamentId),
+      tournament: {},
+      gameList: [],
       filterText: ""
     };
     this.handleFilterTextInput = this.handleFilterTextInput.bind(this);
+    this.setTournament = this.setTournament.bind(this);
+    this.setGameList = this.setGameList.bind(this);
+    this.refreshState()
   }
 
   componentDidMount() {
     if (this.state.tournament.status !== "Complete") {
       this.timerID = setInterval(
-        () => this.refreshGameList(),
+        () => this.refreshState(),
         10000
       );
     }
@@ -32,15 +35,21 @@ export default class GameList extends Component {
     });
   }
   
-
-  refreshGameList() {
-    this.setState({
-      tournament: TournamentService.getTournament("something"),
-      gameList: TournamentService.getGameList("something")
-    });
+  setTournament(tournament) {
+    this.setState({ tournament: tournament });
     if (this.state.tournament.status === "Complete") {
       clearInterval(this.timerID);
     }
+  }
+
+  setGameList(gameList) {
+    console.log(gameList);
+    this.setState({ gameList: gameList });
+  }
+
+  refreshState() {
+    TournamentService.getTournament(this.props.match.params.tournamentId, this.setTournament)
+    TournamentService.getGameList(this.props.match.params.tournamentId, this.setGameList)
   }
   
   render() {
