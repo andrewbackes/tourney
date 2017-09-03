@@ -2,6 +2,7 @@
 package memdb
 
 import (
+	"github.com/andrewbackes/tourney/data/models"
 	"sync"
 )
 
@@ -21,4 +22,20 @@ func NewMemDB() *MemDB {
 		games:       sync.Map{},
 		workers:     sync.Map{},
 	}
+}
+
+func (m *MemDB) lock(id models.Id) {
+	lock, exists := m.locks.Load(id)
+	if !exists {
+		panic("missing required element in map")
+	}
+	lock.(*sync.Mutex).Lock()
+}
+
+func (m *MemDB) unlock(id models.Id) {
+	lock, exists := m.locks.Load(id)
+	if !exists {
+		panic("missing required element in map")
+	}
+	lock.(*sync.Mutex).Unlock()
 }

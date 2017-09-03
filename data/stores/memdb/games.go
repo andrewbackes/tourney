@@ -1,7 +1,6 @@
 package memdb
 
 import (
-	"github.com/andrewbackes/chess/piece"
 	"github.com/andrewbackes/tourney/data/models"
 	"github.com/andrewbackes/tourney/data/stores"
 	log "github.com/sirupsen/logrus"
@@ -37,6 +36,25 @@ func (m *MemDB) readGame(tid, gid models.Id) (*models.Game, error) {
 	return nil, stores.ErrNotFound
 }
 
+func (m *MemDB) ReadGames(tid models.Id, filter func(*models.Game) bool) []*models.Game {
+	t, err := m.ReadTournament(tid)
+	result := make([]*models.Game, 0)
+	if err != nil {
+		log.Error("Could not read tournament ", tid, " : ", err)
+		return result
+	}
+	if filter == nil {
+		return t.Games
+	}
+	for _, g := range t.Games {
+		if filter(g) {
+			result = append(result, g)
+		}
+	}
+	return result
+}
+
+/*
 func (m *MemDB) AddPosition(tid, gid models.Id, p models.Position) error {
 	m.lock(gid)
 	defer m.unlock(gid)
@@ -61,19 +79,4 @@ func (m *MemDB) UpdateStatus(tid, gid models.Id, s models.Status) {
 	g, _ := m.readGame(tid, gid)
 	g.Status = s
 }
-
-func (m *MemDB) lock(id models.Id) {
-	lock, exists := m.locks.Load(id)
-	if !exists {
-		panic("missing required element in map")
-	}
-	lock.(*sync.Mutex).Lock()
-}
-
-func (m *MemDB) unlock(id models.Id) {
-	lock, exists := m.locks.Load(id)
-	if !exists {
-		panic("missing required element in map")
-	}
-	lock.(*sync.Mutex).Unlock()
-}
+*/

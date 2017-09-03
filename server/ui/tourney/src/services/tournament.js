@@ -30,9 +30,13 @@ export default class TournamentService {
     });
   }
   
-  static getGameList(tournamentId, callback) {
+  static getGameList(tournamentId, callback, status) {
+    let suffix = "";
+    if (status) {
+      suffix = "?status=" + status
+    }
     $.ajax({
-      url: this.apiHost + '/tournaments/' + tournamentId + '/games',
+      url: this.apiHost + '/tournaments/' + tournamentId + '/games' + suffix,
       type: "GET",
       dataType: 'json',
       contentType: 'application/json',

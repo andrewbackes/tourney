@@ -15,6 +15,10 @@ func (s *Service) ReadGame(tid, gid models.Id) (*models.Game, error) {
 	return g, nil
 }
 
+func (s *Service) ReadGames(tid models.Id, filter func(*models.Game) bool) []*models.Game {
+	return s.store.ReadGames(tid, filter)
+}
+
 func (s *Service) UpdateGame(g *models.Game) error {
 	s.store.UpdateGame(g)
 	t, err := s.store.ReadTournament(g.TournamentId)

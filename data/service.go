@@ -11,6 +11,7 @@ type Service interface {
 	ReadTournaments(filter func(*models.Tournament) bool) []*models.Tournament
 
 	ReadGame(tid, gid models.Id) (*models.Game, error)
+	ReadGames(tid models.Id, filter func(*models.Game) bool) []*models.Game
 	UpdateGame(*models.Game) error
 	/*
 		AddPosition(tid, gid models.Id, p models.Position) error

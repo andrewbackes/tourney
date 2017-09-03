@@ -13,12 +13,20 @@ func getGames(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		id := models.Id(vars["id"])
-		t, err := s.ReadTournament(id)
-		if err == service.ErrNotFound {
-			w.WriteHeader(http.StatusNotFound)
-		} else {
-			util.WriteJSON(t.Games, w)
+		var filter func(*models.Game) bool
+		val := req.URL.Query().Get("status")
+		if val != "" {
+			var status models.Status
+			(&status).UnmarshalJSON([]byte(`"` + val + `"`))
+			filter = func(t *models.Game) bool {
+				if t.Status == status {
+					return true
+				}
+				return false
+			}
 		}
+		gs := s.ReadGames(id, filter)
+		util.WriteJSON(gs, w)
 	}
 }
 

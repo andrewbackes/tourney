@@ -8,9 +8,11 @@ export default class TournamentDashboard extends Component {
     super(props);
     this.state = { 
       tournament: {},
+      runningGames: [],
       workers: []
     };
     this.setTournament = this.setTournament.bind(this);
+    this.setRunningGames = this.setRunningGames.bind(this);
     this.refreshTournament();
   }
 
@@ -34,8 +36,13 @@ export default class TournamentDashboard extends Component {
     }
   }
 
+  setRunningGames(games) {
+    this.setState({ runningGames: games });
+  }
+
   refreshTournament() {
     TournamentService.getTournament(this.props.match.params.tournamentId, this.setTournament)
+    TournamentService.getGameList(this.props.match.params.tournamentId, this.setRunningGames, "running")
   }
 
   render() {
@@ -73,6 +80,18 @@ export default class TournamentDashboard extends Component {
           </div>
         </div>
         }
+        <div className="row">
+          <div className="col-xs-12">
+            <Panel title="Running Games" mode="success" content={
+              <div>
+                <GameTable runningGames={this.state.runningGames} history={this.props.history}/>
+                <div className="panel-body text-right">
+                  <Link to={'/tournaments/' + this.props.match.params.tournamentId + '/games'}>All Games<span className="glyphicon glyphicon-menu-right"></span></Link>
+                </div>
+              </div>
+            }/>
+          </div>
+        </div>
       </div>
     );
   }
@@ -205,6 +224,56 @@ class WorkersTableRow extends Component {
       <tr>
         <td>{this.props.worker.id}</td>
         <td>{this.props.worker.gameId}</td> 
+      </tr>
+    );
+  }
+}
+
+
+class GameTable extends Component {
+  render() {
+    let rows = [];
+    this.props.runningGames.forEach( (game) => {
+      rows.push(<GameTableRow key={game.id} game={game} history={this.props.history}/>)
+    })
+    return (
+      <table className="table table-hover table-condensed">
+        <thead>
+          <tr>
+            <th>Round</th>
+            <th>White</th>
+            <th>Black</th>
+            <th>Result</th>
+            <th>Winner</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          { rows }
+        </tbody>
+      </table>
+    );
+  }
+}
+
+function engineLabel(engine) {
+  return engine.name + " " + engine.version;
+}
+
+class GameTableRow extends Component {
+  handleClick(e) {
+    this.props.history.push('/tournaments/' + this.props.game.tournamentId + '/games/' + this.props.game.id);
+  }
+
+  render() {
+    return (
+      <tr className='clickable' onClick={this.handleClick.bind(this)}>
+        <td>{this.props.game.round}</td>
+        <td>{engineLabel(this.props.game.contestants["0"])}</td> 
+        <td>{engineLabel(this.props.game.contestants["1"])}</td> 
+        <td>-</td>
+        <td>-</td>
+        <td>{this.props.game.status}</td>
       </tr>
     );
   }
