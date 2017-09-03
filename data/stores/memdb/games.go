@@ -4,12 +4,23 @@ import (
 	"github.com/andrewbackes/chess/piece"
 	"github.com/andrewbackes/tourney/data/models"
 	"github.com/andrewbackes/tourney/data/stores"
+	log "github.com/sirupsen/logrus"
 	"sync"
 )
 
 func (m *MemDB) CreateGame(g *models.Game) {
 	m.games.Store(g.Id, g)
-	m.gameLocks.Store(g.Id, &sync.Mutex{})
+	m.locks.Store(g.Id, &sync.Mutex{})
+}
+
+func (m *MemDB) UpdateGame(g *models.Game) {
+	old, err := m.ReadGame(g.TournamentId, g.Id)
+	if err != nil {
+		log.Error("Could not read game from data store: ", err)
+	}
+	m.lock(g.Id)
+	defer m.unlock(g.Id)
+	*old = *g
 }
 
 func (m *MemDB) ReadGame(tid, gid models.Id) (*models.Game, error) {
@@ -51,16 +62,16 @@ func (m *MemDB) UpdateStatus(tid, gid models.Id, s models.Status) {
 	g.Status = s
 }
 
-func (m *MemDB) lock(gid models.Id) {
-	lock, exists := m.gameLocks.Load(gid)
+func (m *MemDB) lock(id models.Id) {
+	lock, exists := m.locks.Load(id)
 	if !exists {
 		panic("missing required element in map")
 	}
 	lock.(*sync.Mutex).Lock()
 }
 
-func (m *MemDB) unlock(gid models.Id) {
-	lock, exists := m.gameLocks.Load(gid)
+func (m *MemDB) unlock(id models.Id) {
+	lock, exists := m.locks.Load(id)
 	if !exists {
 		panic("missing required element in map")
 	}

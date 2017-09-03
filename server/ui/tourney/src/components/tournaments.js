@@ -7,11 +7,11 @@ class TournamentsDashboard extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      active: [],
+      running: [],
       pending: [],
       complete: []
     };
-    this.setActiveTournaments = this.setActiveTournaments.bind(this);
+    this.setRunningTournaments = this.setRunningTournaments.bind(this);
     this.setPendingTournaments = this.setPendingTournaments.bind(this);
     this.setCompleteTournaments = this.setCompleteTournaments.bind(this);
     this.refreshList();
@@ -28,8 +28,8 @@ class TournamentsDashboard extends Component {
     clearInterval(this.timerID);
   }
 
-  setActiveTournaments(tournaments) {
-    this.setState({ active: tournaments });
+  setRunningTournaments(tournaments) {
+    this.setState({ running: tournaments });
   }
 
   setPendingTournaments(tournaments) {
@@ -41,7 +41,7 @@ class TournamentsDashboard extends Component {
   }
 
   refreshList() {
-    TournamentService.getTournamentList('active', this.setActiveTournaments);
+    TournamentService.getTournamentList('running', this.setRunningTournaments);
     TournamentService.getTournamentList('pending', this.setPendingTournaments);
     TournamentService.getTournamentList('complete', this.setCompleteTournaments);
   }
@@ -51,7 +51,7 @@ class TournamentsDashboard extends Component {
       <div>
         <div className="row">
           <div className="col-xs-8">
-            <Panel title="Active" mode="success" content={<ActiveTournamentsTable list={this.state.active} history={this.props.history}/>}/>
+            <Panel title="Running" mode="success" content={<RunningTournamentsTable list={this.state.running} history={this.props.history}/>}/>
           </div>
           <div className="col-xs-4">
             <Panel title="Pending" mode="info" content={<PendingTournamentsTable list={this.state.pending} history={this.props.history}/>}/>
@@ -69,11 +69,11 @@ class TournamentsDashboard extends Component {
 
 export default TournamentsDashboard;
 
-class ActiveTournamentsTable extends Component {
+class RunningTournamentsTable extends Component {
   render() {
     var rows = [];
     this.props.list.forEach( (tournament) => {
-      rows.push(<ActiveTournamentsTableRow key={tournament.id} tournament={tournament} history={this.props.history}></ActiveTournamentsTableRow>);
+      rows.push(<RunningTournamentsTableRow key={tournament.id} tournament={tournament} history={this.props.history}></RunningTournamentsTableRow>);
     });
     return (
       <table className="table table-hover table-condensed">
@@ -104,7 +104,7 @@ function formatTimeControl(timeControl) {
   return format(timeControl.moves) + "/" + format(timeControl.time) + "+" + format(timeControl.increment);
 }
 
-class ActiveTournamentsTableRow extends Component {
+class RunningTournamentsTableRow extends Component {
   handleClick(e) {
     this.props.history.push('/tournaments/' + this.props.tournament.id);
   }

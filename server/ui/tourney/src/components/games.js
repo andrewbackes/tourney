@@ -73,7 +73,7 @@ class GameTable extends Component {
     if (filterText === "") {
       return true;
     }
-    return JSON.stringify(game).includes(filterText);
+    return JSON.stringify(game).toLowerCase().includes(filterText);
   }
 
   render() {

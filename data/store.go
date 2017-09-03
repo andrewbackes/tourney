@@ -13,8 +13,8 @@ type Store interface {
 	ReadTournaments(filter func(*models.Tournament) bool) []*models.Tournament
 	ReadGame(tid, gid models.Id) (*models.Game, error)
 
-	AddPosition(tid, gid models.Id, p models.Position) error
-	UpdateStatus(tid, gid models.Id, s models.Status)
+	UpdateGame(*models.Game)
+	UpdateTournament(*models.Tournament)
 
 	CreateWorker(w models.Worker)
 	ReadWorker(id models.Id) (models.Worker, error)

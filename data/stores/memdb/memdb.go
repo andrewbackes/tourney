@@ -9,7 +9,7 @@ import (
 type MemDB struct {
 	tournaments sync.Map
 	games       sync.Map
-	gameLocks   sync.Map
+	locks       sync.Map
 	workers     sync.Map
 }
 
@@ -17,8 +17,8 @@ type MemDB struct {
 func NewMemDB() *MemDB {
 	return &MemDB{
 		tournaments: sync.Map{},
+		locks:       sync.Map{},
 		games:       sync.Map{},
-		gameLocks:   sync.Map{},
 		workers:     sync.Map{},
 	}
 }

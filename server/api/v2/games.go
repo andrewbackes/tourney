@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"github.com/andrewbackes/tourney/data"
 	"github.com/andrewbackes/tourney/data/models"
 	"github.com/andrewbackes/tourney/data/service"
@@ -36,6 +35,16 @@ func getGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 }
+
+func putGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		g := &models.Game{}
+		util.ReadJSON(req.Body, g)
+		s.UpdateGame(g)
+	}
+}
+
+/*
 
 func postPosition(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -73,3 +82,5 @@ func patchGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 }
+
+*/

@@ -3,13 +3,22 @@ package memdb
 import (
 	"github.com/andrewbackes/tourney/data/models"
 	"github.com/andrewbackes/tourney/data/stores"
+	log "github.com/sirupsen/logrus"
+	"sync"
 )
 
 func (m *MemDB) CreateTournament(t *models.Tournament) {
 	m.tournaments.Store(t.Id, t)
+	m.locks.Store(t.Id, &sync.Mutex{})
 }
 
 func (m *MemDB) ReadTournament(id models.Id) (*models.Tournament, error) {
+	m.lock(id)
+	defer m.unlock(id)
+	return m.readTournament(id)
+}
+
+func (m *MemDB) readTournament(id models.Id) (*models.Tournament, error) {
 	t, exists := m.tournaments.Load(id)
 	if !exists {
 		return nil, stores.ErrNotFound
@@ -28,12 +37,12 @@ func (m *MemDB) ReadTournaments(filter func(*models.Tournament) bool) []*models.
 	return result
 }
 
-func (m *MemDB) UpdateTournamentStatus(id models.Id, status models.Status) {
-	t, _ := m.ReadTournament(id)
-	t.Status = status
-}
-
-func (m *MemDB) UpdateTournamentSummary(id models.Id, summary models.Summary) {
-	t, _ := m.ReadTournament(id)
-	t.Summary = summary
+func (m *MemDB) UpdateTournament(t *models.Tournament) {
+	m.lock(t.Id)
+	defer m.unlock(t.Id)
+	old, err := m.readTournament(t.Id)
+	if err != nil {
+		log.Error("Could not read tournament ", t.Id, ": ", err)
+	}
+	*old = *t
 }
