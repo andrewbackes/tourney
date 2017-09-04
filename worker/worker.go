@@ -27,15 +27,6 @@ func (w *Worker) Start() {
 		panic(err)
 	}
 	log.Debug("Recieved game: ", g)
-	g.Status = models.Running
-	err = w.master.UpdateGame(g)
-	if err != nil {
-		panic(err)
-	}
-	g2, err := w.master.GetGame(g.TournamentId, g.Id)
-	if err != nil {
-		panic(err)
-	}
-	log.Debug("Re-Received Game: ", g2)
+	w.claim(g)
 	w.play(g)
 }

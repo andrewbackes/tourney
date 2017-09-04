@@ -4,7 +4,7 @@ import { Switch, Route, Redirect } from 'react-router-dom'
 import TournamentsDashboard from 'components/tournaments';
 import TournamentDashboard from 'components/tournament';
 import GameList from 'components/games';
-import Game from 'components/game';
+import GameDashboard from 'components/game';
 
 import WorkersDashboard from 'components/workers';
 import EnginesDashboard from 'components/engines';
@@ -21,7 +21,7 @@ export default class Main extends Component {
       <main>
         <Switch>
           <Redirect exact from="/" to="/tournaments"/>
-          <Route exact path='/tournaments/:tournamentId/games/:gameId' component={Game}/>
+          <Route exact path='/tournaments/:tournamentId/games/:gameId' component={GameDashboard}/>
           <Route exact path='/tournaments/:tournamentId/games' component={GameList}/>
           <Route exact path='/tournaments/:tournamentId' component={TournamentDashboard}/>
           <Route exact path='/tournaments' component={TournamentsDashboard}/>

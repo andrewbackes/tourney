@@ -23,6 +23,6 @@ func NewGame(tid Id, c game.TimeControl, w, b Engine) *Game {
 			piece.White: w,
 			piece.Black: b,
 		},
-		Positions: make([]Position, 0),
+		Positions: []Position{StartPosition(c)},
 	}
 }
