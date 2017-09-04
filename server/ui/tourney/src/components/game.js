@@ -1,11 +1,7 @@
 import React, { Component } from 'react';
 import Panel from 'components/panel';
 import TournamentService from 'services/tournament';
-import Chess from 'chessboardjs';
-import $ from 'jquery';
-
-window.$ = $
-window.jQuery = $
+import Board from 'components/chessboard';
 
 export default class GameDashboard extends Component {
   constructor(props) {
@@ -46,7 +42,7 @@ export default class GameDashboard extends Component {
       <div>
         <div className="row">
           <div className="col-xs-8">
-            <Panel title="Board" mode="default" content={<Board/>}/>
+            <Panel title="Board" mode="default" content={<Board fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"/>}/>
           </div>
           <div className="col-xs-4">
             <Panel title="Moves" mode="default" content={<MoveTable game={this.state.game}/>}/>
@@ -57,19 +53,7 @@ export default class GameDashboard extends Component {
   }
 }
 
-class Board extends Component {
-  render() {
-    return (
-        <div>
-            <div id="chessboard" style={{"width": "400px"}}></div>
-        </div>
-    );
-  }
 
-  componentDidMount() {
-    //var board = Chess('chessboard');
-  }
-}
 
 
 
