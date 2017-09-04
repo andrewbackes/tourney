@@ -20,7 +20,7 @@ class TournamentsDashboard extends Component {
   componentDidMount() {
     this.timerID = setInterval(
       () => this.refreshList(),
-      10000
+      500
     );
   }
 
@@ -29,15 +29,21 @@ class TournamentsDashboard extends Component {
   }
 
   setRunningTournaments(tournaments) {
-    this.setState({ running: tournaments });
+    if (this.timerID) {
+      this.setState({ running: tournaments });
+    }
   }
 
   setPendingTournaments(tournaments) {
-    this.setState({ pending: tournaments });
+    if (this.timerID) {
+      this.setState({ pending: tournaments });
+    }
   }
 
   setCompleteTournaments(tournaments) {
-    this.setState({ complete: tournaments });
+    if (this.timerID) {
+      this.setState({ complete: tournaments });
+    }
   }
 
   refreshList() {

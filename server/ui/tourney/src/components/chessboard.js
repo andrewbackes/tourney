@@ -43,13 +43,22 @@ export default class Board extends Component {
       }
     }
     let squareDivs = [];
-    const colors = ['white', 'black'];
+    const colors = ['white', 'gray'];
     let color = 0;
     let index = 0;
     for (let i=0; i <8; i++) {
       for (let j=0; j <8; j++) {
         squareDivs.push(
-          <div id={index} key={i.toString() + j.toString()} style={{ "position":"absolute", "left": "px", "top": "0px", "border":"1px black solid", "display": "inline-block", "width": "100px", "height": "100px", "backgroundColor": colors[color]}}>
+          <div id={index} key={i.toString() + j.toString()} style={{ 
+            "border":"1px black solid",
+            "display": "inline-block",
+            "width": "100px",
+            "height": "100px",
+            "position": "absolute",
+            "top": i * 100 + "px",
+            "left": j * 100 + "px",
+            "backgroundColor": colors[color]
+          }}>
             {images[squares[index]]}
           </div>);
         color = (color + 1) % 2;
@@ -58,7 +67,7 @@ export default class Board extends Component {
       color = (color + 1) % 2;
     }
     return (
-      <div id="board" style={{'width': '800px', 'height': '800px'}}>
+      <div id="board" style={{ 'position':'relative', 'width': '800px', 'height': '800px'}}>
         { squareDivs }
       </div>
     );

@@ -20,7 +20,7 @@ export default class GameList extends Component {
     if (this.state.tournament.status !== "Complete") {
       this.timerID = setInterval(
         () => this.refreshState(),
-        10000
+        500
       );
     }
   }
@@ -36,14 +36,18 @@ export default class GameList extends Component {
   }
   
   setTournament(tournament) {
-    this.setState({ tournament: tournament });
-    if (this.state.tournament.status === "Complete") {
-      clearInterval(this.timerID);
+    if (this.timerID) {
+      this.setState({ tournament: tournament });
+      if (this.state.tournament.status === "Complete") {
+        clearInterval(this.timerID);
+      }
     }
   }
 
   setGameList(gameList) {
-    this.setState({ gameList: gameList });
+    if (this.timerID) {
+      this.setState({ gameList: gameList });
+    }
   }
 
   refreshState() {
