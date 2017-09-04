@@ -5,13 +5,13 @@
                 "name": "Stockfish",
                 "version": "8",
                 "protocol": "uci",
-                "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.39/DirtyBit.0.39.5.t5.exe"
+                "url": "https://github.com/stockfish/stockfish"
             },
             {
                 "name": "Stockfish",
                 "version": "8",
                 "protocol": "uci",
-                "url": "https://github.com/andrewbackes/dirty-bit/releases/download/v0.20/DirtyBit.0.2.exe"
+                "url": "https://github.com/stockfish/stockfish"
             }
         ],
         "testSeats": 2,

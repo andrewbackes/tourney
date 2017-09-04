@@ -103,13 +103,8 @@ class StandingsTable extends Component {
         </thead>
         <tbody>
           <tr>
-            <td>1</td>
-            <td>Dirty-Bit 09ba34ef</td> 
-            <td>-</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>Dirty-Bit 1ab34ef</td> 
+            <td></td>
+            <td></td> 
             <td>-</td>
           </tr>
         </tbody>
@@ -131,14 +126,9 @@ class MathupsTable extends Component {
         </thead>
         <tbody>
           <tr>
-            <td>Dirty-Bit 09ba34ef</td> 
-            <td>Dirty-Bit 1ab34ef</td>
-            <td>6-3-1</td>
-          </tr>
-          <tr>
-            <td>Dirty-Bit 1ab34ef</td>
-            <td>Dirty-Bit 09ba34ef</td>
-            <td>3-6-1</td>
+            <td></td> 
+            <td></td>
+            <td></td>
           </tr>
         </tbody>
       </table>
