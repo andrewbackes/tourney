@@ -42,7 +42,7 @@ export default class GameDashboard extends Component {
       <div>
         <div className="row">
           <div className="col-xs-8">
-            <Panel title="Board" mode="default" content={<Board fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"/>}/>
+            <Panel title="Board" mode="default" content={<Board fen="rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"/>}/>
           </div>
           <div className="col-xs-4">
             <Panel title="Moves" mode="default" content={<MoveTable game={this.state.game}/>}/>
