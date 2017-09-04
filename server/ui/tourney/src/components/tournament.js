@@ -53,17 +53,6 @@ export default class TournamentDashboard extends Component {
     return (
       <div>
         <div className="row">
-          <div className="col-xs-12">
-            <div className="panel-group">
-              <div className="panel panel-default">
-                <div className="panel-body text-right">
-                  <Link to={'/tournaments/' + this.props.match.params.tournamentId + '/games'}>Games<span className="glyphicon glyphicon-menu-right"></span></Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row">
           <div className="col-xs-6">
             <Panel title="Standings" mode="default" content={<StandingsTable tournament={this.props.tournament}/>}/>
           </div>

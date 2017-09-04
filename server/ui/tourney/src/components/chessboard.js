@@ -30,13 +30,13 @@ export default class Board extends Component {
       'k': <img alt="R" src={BlackKing} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
       'p': <img alt="R" src={BlackPawn} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>
     };
-    for (let i = 0; i < this.props.fen.length && this.props.fen[i] !== ' '; i++) {
-      if (allowedLetters.includes(this.props.fen[i].toLowerCase())) {
-        squares.push(this.props.fen.charAt(i));
+    for (let i = 0; i < this.props.position.fen.length && this.props.position.fen[i] !== ' '; i++) {
+      if (allowedLetters.includes(this.props.position.fen[i].toLowerCase())) {
+        squares.push(this.props.position.fen.charAt(i));
       } else {
-        if (this.props.fen.charAt(i) !== '/') {
+        if (this.props.position.fen.charAt(i) !== '/') {
           // its a number
-          for(let j = 0; j < parseInt(this.props.fen[i], 10); j++) {
+          for(let j = 0; j < parseInt(this.props.position.fen[i], 10); j++) {
             squares.push('');
           }
         }
@@ -48,9 +48,15 @@ export default class Board extends Component {
     let index = 0;
     for (let i=0; i <8; i++) {
       for (let j=0; j <8; j++) {
+        let border = '1px black solid';
+        if (this.props.position && this.props.position.lastMove) {
+          if ((63 - index) === this.props.position.lastMove.source || (63 - index) === this.props.position.lastMove.destination) {
+            border = '2px yellow solid';
+          }
+        }
         squareDivs.push(
           <div id={index} key={i.toString() + j.toString()} style={{ 
-            "border":"1px black solid",
+            "border": border,
             "display": "inline-block",
             "width": "100px",
             "height": "100px",
