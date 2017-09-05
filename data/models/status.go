@@ -11,6 +11,7 @@ const (
 	Pending Status = iota
 	Running
 	Complete
+	Failed
 	Unknown
 )
 
@@ -22,6 +23,8 @@ func (s Status) String() string {
 		return "Running"
 	case Complete:
 		return "Complete"
+	case Failed:
+		return "Failed"
 	}
 	return "None"
 }
@@ -39,6 +42,8 @@ func (s *Status) UnmarshalJSON(b []byte) error {
 		*s = Complete
 	case "pending":
 		*s = Pending
+	case "failed":
+		*s = Failed
 	}
 	return nil
 }

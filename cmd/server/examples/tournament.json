@@ -3,15 +3,17 @@
         "engines": [
             {
                 "name": "Stockfish",
-                "version": "8",
+                "version": "8-Mac-popcnt",
                 "protocol": "uci",
-                "url": "https://github.com/stockfish/stockfish"
+                "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
+                "executable": "Mac/stockfish-8-popcnt"
             },
             {
                 "name": "Stockfish",
-                "version": "8",
+                "version": "8-Mac-popcnt",
                 "protocol": "uci",
-                "url": "https://github.com/stockfish/stockfish"
+                "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
+                "executable": "Mac/stockfish-8-popcnt"
             }
         ],
         "testSeats": 2,

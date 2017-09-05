@@ -28,5 +28,6 @@ func (w *Worker) Start() {
 	}
 	log.Debug("Recieved game: ", g)
 	w.claim(g)
+	w.getEngines(g)
 	w.play(g)
 }
