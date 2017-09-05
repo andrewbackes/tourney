@@ -13,6 +13,7 @@ func (s *Service) CreateTournament(t *models.Tournament) (models.Id, error) {
 	}
 	t.Id = models.NewId()
 	t.Games = models.NewGameList(t.Id, t.Settings)
+	setGameOpenings(t)
 	s.store.CreateTournament(t)
 	for _, g := range t.Games {
 		s.store.CreateGame(g)
