@@ -1,16 +1,16 @@
 package api
 
 import (
-	"github.com/andrewbackes/tourney/data"
+	"github.com/andrewbackes/tourney/data/services"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 // Bind sets the routes in the router.
-func Bind(s data.Service, r *mux.Router) {
+func Bind(s services.Tournament, r *mux.Router) {
 	sub := r.PathPrefix("/api/v2").Subrouter()
-	register := func(method, path string, f func(data.Service) func(http.ResponseWriter, *http.Request)) {
+	register := func(method, path string, f func(services.Tournament) func(http.ResponseWriter, *http.Request)) {
 		wrapper := func() func(http.ResponseWriter, *http.Request) {
 			return func(w http.ResponseWriter, req *http.Request) {
 				log.Debug("[", req.RemoteAddr, "] ", req.Method, " ", req.RequestURI)

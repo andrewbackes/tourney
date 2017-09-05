@@ -1,15 +1,15 @@
 package api
 
 import (
-	"github.com/andrewbackes/tourney/data"
 	"github.com/andrewbackes/tourney/data/models"
-	"github.com/andrewbackes/tourney/data/service"
+	"github.com/andrewbackes/tourney/data/services"
+	"github.com/andrewbackes/tourney/data/services/tournament"
 	"github.com/andrewbackes/tourney/util"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
-func getGames(s data.Service) func(w http.ResponseWriter, req *http.Request) {
+func getGames(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		id := models.Id(vars["id"])
@@ -30,13 +30,13 @@ func getGames(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func getGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
+func getGame(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		tid := models.Id(vars["tid"])
 		gid := models.Id(vars["gid"])
 		g, err := s.ReadGame(tid, gid)
-		if err == service.ErrNotFound {
+		if err == tournament.ErrNotFound {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
 			util.WriteJSON(g, w)
@@ -44,7 +44,7 @@ func getGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func putGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
+func putGame(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		g := &models.Game{}
 		util.ReadJSON(req.Body, g)
@@ -54,7 +54,7 @@ func putGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
 
 /*
 
-func postPosition(s data.Service) func(w http.ResponseWriter, req *http.Request) {
+func postPosition(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		tid := models.Id(vars["tid"])
@@ -67,7 +67,7 @@ func postPosition(s data.Service) func(w http.ResponseWriter, req *http.Request)
 	}
 }
 
-func patchGame(s data.Service) func(w http.ResponseWriter, req *http.Request) {
+func patchGame(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		tid := models.Id(vars["tid"])

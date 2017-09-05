@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/andrewbackes/tourney/data"
+	"github.com/andrewbackes/tourney/data/services"
 	"github.com/andrewbackes/tourney/server/api/v2"
 	"github.com/andrewbackes/tourney/server/ui"
 	"github.com/gorilla/handlers"
@@ -14,7 +14,7 @@ type Server struct {
 	port   string
 }
 
-func New(port string, s data.Service) *Server {
+func New(port string, s services.Tournament) *Server {
 	r := mux.NewRouter()
 	api.Bind(s, r)
 	ui.Bind(r)

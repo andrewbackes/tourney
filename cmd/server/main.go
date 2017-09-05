@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/andrewbackes/tourney/data/service"
+	"github.com/andrewbackes/tourney/data/services/tournament"
 	"github.com/andrewbackes/tourney/data/stores/memdb"
 	"github.com/andrewbackes/tourney/server"
 	log "github.com/sirupsen/logrus"
@@ -15,7 +15,7 @@ func main() {
 
 	fmt.Println("Server")
 	datastore := memdb.NewMemDB()
-	service := service.New(datastore)
+	service := tournament.NewService(datastore)
 	s := server.New(":9090", service)
 	s.Start()
 }

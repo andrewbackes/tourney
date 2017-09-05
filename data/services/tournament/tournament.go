@@ -1,4 +1,4 @@
-package service
+package tournament
 
 import (
 	"github.com/andrewbackes/tourney/data/models"
