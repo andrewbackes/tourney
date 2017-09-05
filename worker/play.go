@@ -15,7 +15,7 @@ import (
 
 func (w *Worker) play(m *models.Game) {
 	fmt.Println(m)
-	engines, err := startEngines()
+	engines, err := startEngines(m.Contestants)
 	if err != nil {
 		panic(err)
 	}
@@ -48,13 +48,15 @@ func (w *Worker) play(m *models.Game) {
 	w.master.UpdateGame(m)
 }
 
-func startEngines() (map[piece.Color]*engines.UCIEngine, error) {
-	path := "/Users/Andrew/Downloads/stockfish-8-mac/Mac/stockfish-8-popcnt"
-	w, err := engines.NewUCIEngine(path)
+func startEngines(e map[piece.Color]models.Engine) (map[piece.Color]*engines.UCIEngine, error) {
+	if e[piece.White].FilePath == "" || e[piece.Black].FilePath == "" {
+		panic("engine file path not set")
+	}
+	w, err := engines.NewUCIEngine(e[piece.White].FilePath)
 	if err != nil {
 		return nil, err
 	}
-	b, err := engines.NewUCIEngine(path)
+	b, err := engines.NewUCIEngine(e[piece.Black].FilePath)
 	if err != nil {
 		return nil, err
 	}
