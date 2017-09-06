@@ -1,5 +1,13 @@
 {
     "settings": {
+        "opening": {
+            "moves": 8,
+            "randomize": false,
+            "book": {
+                "filePath": "/Users/Andrew/tourney_books/2700draw.bin",
+                "maxDepth": 14
+            }
+        },
         "engines": [
             {
                 "name": "Stockfish",

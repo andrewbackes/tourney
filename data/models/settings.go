@@ -17,6 +17,6 @@ type Settings struct {
 // Opening dictates how an opening book is used in a tournament.
 type Opening struct {
 	Book      Book `json:"book"`
-	Moves     int  `json:"moves"`
+	Depth     int  `json:"depth"`
 	Randomize bool `json:"randomize"`
 }
