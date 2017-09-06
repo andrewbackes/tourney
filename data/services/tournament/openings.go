@@ -14,18 +14,39 @@ import (
 
 // setGameOpenings will set the state of all games in the tournament. It chooses the state based on the opening book selected.
 // TODO(andrewbackes): increment
+// TODO(andrewbackes): panic handling
 func setGameOpenings(t *models.Tournament) {
-	// for pos in book
-	// play 2 games mirrored
-}
-
-// Assumption: book moves < moves per time control
-func goDepth(tc game.TimeControl, bm models.Book, d int) {
-	if tc.Moves < d {
+	if t.Settings.TimeControl.Moves < t.Settings.Opening.Depth {
 		panic("book moves >= moves per time control")
 	}
+	if t.Settings.Opening.Depth > t.Settings.Opening.Book.MaxDepth {
+		panic("book depth is less than what is specified in the tournament")
+	}
 	b := openBook("/Users/Andrew/tourney_books/2700draw.bin")
+	o := openingPos(t.Settings.TimeControl)
+	pl := []*models.Position{posToPos(o)}
+	deepen(t.Settings.Opening.Depth, o, pl, b, func(pl []*models.Position) {
+		fmt.Println(pl)
+	})
+}
+
+func openBook(path string) *book.Book {
+	f, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	b, err := book.Read(f)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+func openingPos(tc game.TimeControl) *position.Position {
 	o, err := fen.Decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+	if err != nil {
+		panic(err)
+	}
 	o.Clocks = map[piece.Color]time.Duration{
 		piece.White: tc.Time,
 		piece.Black: tc.Time,
@@ -34,13 +55,7 @@ func goDepth(tc game.TimeControl, bm models.Book, d int) {
 		piece.White: tc.Moves,
 		piece.Black: tc.Moves,
 	}
-	if err != nil {
-		panic(err)
-	}
-	pl := []*models.Position{posToPos(o)}
-	deepen(d, o, pl, b, func(pl []*models.Position) {
-		fmt.Println(pl)
-	})
+	return o
 }
 
 func deepen(d int, orig *position.Position, pl []*models.Position, b *book.Book, callback func([]*models.Position)) {
@@ -57,18 +72,6 @@ func deepen(d int, orig *position.Position, pl []*models.Position, b *book.Book,
 			deepen(d-1, next, nextSlice, b, callback)
 		}
 	}
-}
-
-func openBook(path string) *book.Book {
-	f, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	b, err := book.Read(f)
-	if err != nil {
-		panic(err)
-	}
-	return b
 }
 
 func posToPos(orig *position.Position) *models.Position {

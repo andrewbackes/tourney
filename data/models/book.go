@@ -4,5 +4,5 @@ package models
 type Book struct {
 	Id       Id     `json:"id"`
 	FilePath string `json:"filePath"`
-	MaxDepth string `json:"maxDepth"`
+	MaxDepth int    `json:"maxDepth"`
 }
