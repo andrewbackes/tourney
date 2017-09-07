@@ -1,4 +1,4 @@
-package tournament
+package models
 
 import (
 	"github.com/andrewbackes/chess/book"
@@ -6,33 +6,30 @@ import (
 	"github.com/andrewbackes/chess/game"
 	"github.com/andrewbackes/chess/piece"
 	"github.com/andrewbackes/chess/position"
-	"github.com/andrewbackes/tourney/data/models"
 	"os"
 	"time"
 )
 
 // setGameOpenings will set the state of all games in the tournament. It chooses the state based on the opening book selected.
 // Assumes that games come in matchup pairs.
-// TODO(andrewbackes): increment
-// TODO(andrewbackes): panic handling
-func setGameOpenings(t *models.Tournament) {
-	if t.Settings.TimeControl.Moves < t.Settings.Opening.Depth {
+func setGameOpenings(list []*Game, settings Settings) {
+	if settings.TimeControl.Moves < settings.Opening.Depth {
 		panic("book moves >= moves per time control")
 	}
-	if t.Settings.Opening.Depth > t.Settings.Opening.Book.MaxDepth {
+	if settings.Opening.Depth > settings.Opening.Book.MaxDepth {
 		panic("book depth is less than what is specified in the tournament")
 	}
-	b := openBook(t.Settings.Opening.Book.FilePath)
-	o := openingPos(t.Settings.TimeControl)
-	pl := []*models.Position{posToPos(o)}
+	b := openBook(settings.Opening.Book.FilePath)
+	o := openingPos(settings.TimeControl)
+	pl := []*Position{posToPos(o)}
 	index := 0
 	complete := false
-	deepen(t.Settings.Opening.Depth, o, pl, b, complete, func(l []*models.Position) {
+	deepen(settings.Opening.Depth, o, pl, b, complete, func(l []*Position) {
 		if !complete {
 			for j := 0; j < 2; j++ {
-				t.Games[index].Positions = posPtrsToVals(l)
+				list[index].Positions = posPtrsToVals(l)
 				index++
-				if index >= len(t.Games)-1 {
+				if index >= len(list) {
 					complete = true
 					break
 				}
@@ -69,7 +66,7 @@ func openingPos(tc game.TimeControl) *position.Position {
 	return o
 }
 
-func deepen(d int, orig *position.Position, pl []*models.Position, b *book.Book, complete bool, callback func([]*models.Position)) {
+func deepen(d int, orig *position.Position, pl []*Position, b *book.Book, complete bool, callback func([]*Position)) {
 	if d == 0 {
 		callback(pl)
 		return
@@ -77,7 +74,7 @@ func deepen(d int, orig *position.Position, pl []*models.Position, b *book.Book,
 	if entries, exists := b.Positions[orig.Polyglot()]; exists {
 		for _, entry := range entries {
 			next := orig.MakeMove(entry.Move)
-			nextSlice := make([]*models.Position, len(pl))
+			nextSlice := make([]*Position, len(pl))
 			copy(nextSlice, pl)
 			nextSlice = append(nextSlice, posToPos(next))
 			deepen(d-1, next, nextSlice, b, complete, callback)
@@ -88,12 +85,12 @@ func deepen(d int, orig *position.Position, pl []*models.Position, b *book.Book,
 	}
 }
 
-func posToPos(orig *position.Position) *models.Position {
+func posToPos(orig *position.Position) *Position {
 	f, err := fen.Encode(orig)
 	if err != nil {
 		panic(err)
 	}
-	return &models.Position{
+	return &Position{
 		FEN: f,
 		MovesLeft: map[piece.Color]int{
 			piece.White: orig.MovesLeft[piece.White],
@@ -107,10 +104,10 @@ func posToPos(orig *position.Position) *models.Position {
 	}
 }
 
-func posPtrsToVals(ptrs []*models.Position) []models.Position {
-	n := make([]models.Position, len(ptrs))
+func posPtrsToVals(ptrs []*Position) []Position {
+	n := make([]Position, len(ptrs))
 	for i, p := range ptrs {
-		n[i] = models.Position{
+		n[i] = Position{
 			FEN:      p.FEN,
 			LastMove: p.LastMove,
 			MovesLeft: map[piece.Color]int{

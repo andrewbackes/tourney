@@ -1,30 +1,30 @@
-package tournament
+package models
 
 import (
 	"fmt"
 	"github.com/andrewbackes/chess/game"
-	"github.com/andrewbackes/tourney/data/models"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestSetOpenings(t *testing.T) {
 	trnmt := newTournament()
-	trnmt.Games = models.NewGameList("tId", trnmt.Settings) // TODO: mock this
-	setGameOpenings(trnmt)
+	trnmt.Games = NewGameList("tId", trnmt.Settings) // TODO: mock this
 	fmt.Println(trnmt.Games)
+	assert.Equal(t, 20, len(trnmt.Games))
 }
 
-func newTournament() *models.Tournament {
-	return &models.Tournament{
-		Settings: models.Settings{
+func newTournament() *Tournament {
+	return &Tournament{
+		Settings: Settings{
 			TestSeats: 1,
 			Carousel:  false,
 			Rounds:    10,
-			Engines: []models.Engine{
-				models.Engine{
+			Engines: []Engine{
+				Engine{
 					Name: "tester1",
 				},
-				models.Engine{
+				Engine{
 					Name: "tester2",
 				},
 			},
@@ -33,10 +33,10 @@ func newTournament() *models.Tournament {
 				Time:      1000000000,
 				Repeating: true,
 			},
-			Opening: models.Opening{
+			Opening: Opening{
 				Depth:     8,
 				Randomize: true,
-				Book: models.Book{
+				Book: Book{
 					FilePath: "/Users/Andrew/tourney_books/2700draw.bin",
 					MaxDepth: 14,
 				},
