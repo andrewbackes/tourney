@@ -3,6 +3,7 @@ package memdb
 
 import (
 	"github.com/andrewbackes/tourney/data/models"
+	log "github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -12,16 +13,27 @@ type MemDB struct {
 	games       sync.Map
 	locks       sync.Map
 	workers     sync.Map
+	backupDir   string
 }
 
 // NewMemDB creates a new in memory database.
-func NewMemDB() *MemDB {
+func NewMemDB(backupDir string) *MemDB {
+	log.Info("Using in memory DB.")
+	if backupDir != "" {
+		log.Info("Persisting data to ", backupDir)
+		//return restoreBackup(backupDir)
+	}
 	return &MemDB{
 		tournaments: sync.Map{},
 		locks:       sync.Map{},
 		games:       sync.Map{},
 		workers:     sync.Map{},
+		backupDir:   backupDir,
 	}
+}
+
+func (m *MemDB) persisted() bool {
+	return m.backupDir != ""
 }
 
 func (m *MemDB) lock(id models.Id) {

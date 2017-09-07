@@ -1,15 +1,21 @@
 package memdb
 
 import (
+	"encoding/json"
 	"github.com/andrewbackes/tourney/data/models"
 	"github.com/andrewbackes/tourney/data/stores"
 	log "github.com/sirupsen/logrus"
+	"os"
+	"path/filepath"
 	"sync"
 )
 
 func (m *MemDB) CreateGame(g *models.Game) {
 	m.games.Store(g.Id, g)
 	m.locks.Store(g.Id, &sync.Mutex{})
+	m.lock(g.Id)
+	defer m.unlock(g.Id)
+	m.persistGame(g)
 }
 
 func (m *MemDB) UpdateGame(g *models.Game) {
@@ -20,6 +26,7 @@ func (m *MemDB) UpdateGame(g *models.Game) {
 	m.lock(g.Id)
 	defer m.unlock(g.Id)
 	*old = *g
+	m.persistGame(g)
 }
 
 func (m *MemDB) ReadGame(tid, gid models.Id) (*models.Game, error) {
@@ -52,6 +59,27 @@ func (m *MemDB) ReadGames(tid models.Id, filter func(*models.Game) bool) []*mode
 		}
 	}
 	return result
+}
+
+func (m *MemDB) persistGame(g *models.Game) {
+	if !m.persisted() || g.Status == models.Running {
+		return
+	}
+	tournamentDir := filepath.Join(m.backupDir, "tournaments", g.TournamentId.String())
+	err := os.MkdirAll(tournamentDir, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+	gameJSON := filepath.Join(tournamentDir, g.Id.String()+".json")
+	f, err := os.Create(gameJSON)
+	if err != nil {
+		panic(err)
+	}
+	log.Info("Persisting game ", gameJSON)
+	err = json.NewEncoder(f).Encode(g)
+	if err != nil {
+		panic(err)
+	}
 }
 
 /*
