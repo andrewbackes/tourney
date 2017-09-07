@@ -8,7 +8,7 @@
                 "maxDepth": 14
             }
         },
-        "engines": [
+        "contestants": [
             {
                 "name": "Stockfish",
                 "version": "8-Mac-popcnt",

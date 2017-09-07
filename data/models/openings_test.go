@@ -20,7 +20,7 @@ func newTournament() *Tournament {
 			TestSeats: 1,
 			Carousel:  false,
 			Rounds:    10,
-			Engines: []Engine{
+			Contestants: []Engine{
 				Engine{
 					Name: "tester1",
 				},

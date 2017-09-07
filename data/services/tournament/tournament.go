@@ -8,7 +8,7 @@ import (
 
 func (s *Service) CreateTournament(t *models.Tournament) (models.Id, error) {
 	log.Debug("Creating Tournament ", *t)
-	if len(t.Settings.Engines) < 2 {
+	if len(append(t.Settings.Contestants, t.Settings.Opponents...)) < 2 {
 		return "", ErrMalformed
 	}
 	t.Id = models.NewId()

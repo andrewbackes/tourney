@@ -5,11 +5,12 @@ package models
 func NewGameList(tournamentID Id, s Settings) []*Game {
 	// TODO: Carousel
 	l := make([]*Game, 0)
-	for seat := 0; seat < s.TestSeats; seat++ {
-		for opponent := seat + 1; opponent < len(s.Engines); opponent++ {
+	players := append(s.Contestants, s.Opponents...)
+	for seat := 0; seat < len(s.Contestants); seat++ {
+		for opponent := seat + 1; opponent < len(players); opponent++ {
 			for round := 0; round < s.Rounds; round++ {
-				m1 := NewGame(tournamentID, s.TimeControl, s.Engines[seat], s.Engines[opponent])
-				m2 := NewGame(tournamentID, s.TimeControl, s.Engines[opponent], s.Engines[seat])
+				m1 := NewGame(tournamentID, s.TimeControl, s.Contestants[seat], players[opponent])
+				m2 := NewGame(tournamentID, s.TimeControl, players[opponent], s.Contestants[seat])
 				l = append(l, []*Game{m1, m2}...)
 			}
 		}
