@@ -53,6 +53,18 @@ export default class TournamentDashboard extends Component {
     return (
       <div>
         <div className="row">
+          <div className="col-xs-12">
+            <Panel title="Running Games" mode="success" content={
+              <div>
+                <GameTable runningGames={this.state.runningGames} history={this.props.history}/>
+                <div className="panel-body text-right">
+                  <Link to={'/tournaments/' + this.props.match.params.tournamentId + '/games'}>All Games<span className="glyphicon glyphicon-menu-right"></span></Link>
+                </div>
+              </div>
+            }/>
+          </div>
+        </div>
+        <div className="row">
           <div className="col-xs-6">
             <Panel title="Standings" mode="default" content={<StandingsTable tournament={this.props.tournament}/>}/>
           </div>
@@ -73,18 +85,6 @@ export default class TournamentDashboard extends Component {
           </div>
         </div>
         }
-        <div className="row">
-          <div className="col-xs-12">
-            <Panel title="Running Games" mode="success" content={
-              <div>
-                <GameTable runningGames={this.state.runningGames} history={this.props.history}/>
-                <div className="panel-body text-right">
-                  <Link to={'/tournaments/' + this.props.match.params.tournamentId + '/games'}>All Games<span className="glyphicon glyphicon-menu-right"></span></Link>
-                </div>
-              </div>
-            }/>
-          </div>
-        </div>
       </div>
     );
   }

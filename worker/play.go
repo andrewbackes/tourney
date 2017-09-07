@@ -79,6 +79,17 @@ func newGame(g *models.Game) *game.Game {
 		piece.White: g.TimeControl,
 		piece.Black: g.TimeControl,
 	})
+	for _, p := range g.Positions {
+		if p.LastMove != move.Null {
+			status, err := new.MakeMove(p.LastMove)
+			if err != nil {
+				panic(err)
+			}
+			if status != game.InProgress {
+				panic("game should not terminate during opening book")
+			}
+		}
+	}
 	return new
 }
 
