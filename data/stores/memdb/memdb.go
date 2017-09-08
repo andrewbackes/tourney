@@ -19,17 +19,17 @@ type MemDB struct {
 // NewMemDB creates a new in memory database.
 func NewMemDB(backupDir string) *MemDB {
 	log.Info("Using in memory DB.")
-	if backupDir != "" {
-		log.Info("Persisting data to ", backupDir)
-		//return restoreBackup(backupDir)
-	}
-	return &MemDB{
+	db := &MemDB{
 		tournaments: sync.Map{},
 		locks:       sync.Map{},
 		games:       sync.Map{},
 		workers:     sync.Map{},
 		backupDir:   backupDir,
 	}
+	if db.persisted() {
+		db.restore()
+	}
+	return db
 }
 
 func (m *MemDB) persisted() bool {
