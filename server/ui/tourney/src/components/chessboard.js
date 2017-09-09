@@ -17,18 +17,18 @@ export default class Board extends Component {
     let squares = [];
     const allowedLetters = ['r', 'n', 'b', 'k', 'q', 'p'];
     const images = {
-      'R': <img alt="R" src={WhiteRook} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'N': <img alt="R" src={WhiteKnight} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'B': <img alt="R" src={WhiteBishop} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'Q': <img alt="R" src={WhiteQueen} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'K': <img alt="R" src={WhiteKing} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'P': <img alt="R" src={WhitePawn} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'r': <img alt="R" src={BlackRook} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'n': <img alt="R" src={BlackKnight} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'b': <img alt="R" src={BlackBishop} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'q': <img alt="R" src={BlackQueen} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'k': <img alt="R" src={BlackKing} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>,
-      'p': <img alt="R" src={BlackPawn} style={{ "width": "60px", "height": "60px", "marginLeft": "20px", "marginTop": "20px" }}/>
+      'R': <img alt="R" src={WhiteRook} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'N': <img alt="R" src={WhiteKnight} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'B': <img alt="R" src={WhiteBishop} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'Q': <img alt="R" src={WhiteQueen} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'K': <img alt="R" src={WhiteKing} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'P': <img alt="R" src={WhitePawn} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'r': <img alt="R" src={BlackRook} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'n': <img alt="R" src={BlackKnight} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'b': <img alt="R" src={BlackBishop} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'q': <img alt="R" src={BlackQueen} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'k': <img alt="R" src={BlackKing} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>,
+      'p': <img alt="R" src={BlackPawn} style={{ "width": "30px", "height": "30px", "marginLeft": "10px", "marginTop": "10px" }}/>
     };
     for (let i = 0; i < this.props.position.fen.length && this.props.position.fen[i] !== ' '; i++) {
       if (allowedLetters.includes(this.props.position.fen[i].toLowerCase())) {
@@ -58,11 +58,11 @@ export default class Board extends Component {
           <div id={index} key={i.toString() + j.toString()} style={{ 
             "border": border,
             "display": "inline-block",
-            "width": "100px",
-            "height": "100px",
+            "width": "50px",
+            "height": "50px",
             "position": "absolute",
-            "top": i * 100 + "px",
-            "left": j * 100 + "px",
+            "top": i * 50 + "px",
+            "left": j * 50 + "px",
             "backgroundColor": colors[color]
           }}>
             {images[squares[index]]}
@@ -73,7 +73,7 @@ export default class Board extends Component {
       color = (color + 1) % 2;
     }
     return (
-      <div id="board" style={{ 'position':'relative', 'width': '800px', 'height': '800px'}}>
+      <div id="board" style={{ 'position':'relative', 'width': '400px', 'height': '400px'}}>
         { squareDivs }
       </div>
     );

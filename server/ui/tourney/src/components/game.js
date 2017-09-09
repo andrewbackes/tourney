@@ -79,11 +79,14 @@ export default class GameDashboard extends Component {
     return (
       <div>
         <div className="row">
-          <div className="col-xs-8">
+          <div className="col-xs-4">
             <Panel title="Board" mode={ mode } content={<Board position={this.state.position}/>}/>
           </div>
-          <div className="col-xs-4">
+          <div className="col-xs-2">
             <Panel title="Moves" mode="default" content={ <MoveTable game={this.state.game} setPosition={this.setPosition} currentPosition={this.state.position} /> }/>
+          </div>
+          <div className="col-xs-6">
+            <Panel title="Analysis" mode="default"/>
           </div>
         </div>
         <div className="row">
@@ -137,7 +140,7 @@ class MoveTable extends Component {
               <th className="col-xs-4">Duration</th>
             </tr>
           </thead>
-          <tbody ref={(el) => { this.tbody = el; }}>
+          <tbody style={{ 'height' : '348px' }} ref={(el) => { this.tbody = el; }}>
             { rows }
           </tbody>
         </table>
@@ -166,15 +169,24 @@ class EngineAnalysisTable extends Component {
   render() {
     let rows = [];
     if (this.props.analysis) {
-      this.props.analysis.forEach( (analysis) => {
+      this.props.analysis.forEach( (analysis, i) => {
         if (analysis.pv) {
-          rows.push(<EngineAnalysisTableRow depth={analysis.depth} score={analysis.score} pv={analysis.pv} time={analysis.time} selDepth={analysis.selDepth} nodes={analysis.nodes} nps={analysis.nps} />);
+          rows.push(<EngineAnalysisTableRow 
+            key={i}
+            depth={analysis.depth}
+            score={analysis.score}
+            pv={analysis.pv}
+            time={analysis.time}
+            selDepth={analysis.selDepth}
+            nodes={analysis.nodes}
+            nps={analysis.nps}
+          />);
         }
       });
     }
     return (
       <div>
-        <table className="table table-condensed">
+        <table className="table table-condensed table-fixed">
           <thead>
             <tr>
               <th className="col-xs-1">Depth</th>
@@ -185,7 +197,7 @@ class EngineAnalysisTable extends Component {
               <th className="col-xs-7">PV</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody style={{ 'maxHeight' : '275px' }}>
             { rows }
           </tbody>
         </table>
