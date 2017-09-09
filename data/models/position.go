@@ -10,18 +10,20 @@ import (
 )
 
 type Position struct {
-	FEN       string                        `json:"fen"`
-	LastMove  move.Move                     `json:"lastMove"`
-	MovesLeft map[piece.Color]int           `json:"movesLeft"`
-	Clocks    map[piece.Color]time.Duration `json:"clock"`
+	FEN          string                        `json:"fen"`
+	LastMove     move.Move                     `json:"lastMove"`
+	LastAnalysis []map[string]string           `json:"lastAnalysis"`
+	MovesLeft    map[piece.Color]int           `json:"movesLeft"`
+	Clocks       map[piece.Color]time.Duration `json:"clock"`
 }
 
 func StartPosition(c game.TimeControl) Position {
 	return Position{
-		FEN:       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-		LastMove:  move.Null,
-		MovesLeft: map[piece.Color]int{piece.White: c.Moves, piece.Black: c.Moves},
-		Clocks:    map[piece.Color]time.Duration{piece.White: c.Time, piece.Black: c.Time},
+		FEN:          "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+		LastMove:     move.Null,
+		LastAnalysis: newEmptyAnalysis(),
+		MovesLeft:    map[piece.Color]int{piece.White: c.Moves, piece.Black: c.Moves},
+		Clocks:       map[piece.Color]time.Duration{piece.White: c.Time, piece.Black: c.Time},
 	}
 }
 
@@ -41,4 +43,10 @@ func (p *Position) ActiveColor() piece.Color {
 		c = piece.Black
 	}
 	return c
+}
+
+func newEmptyAnalysis() []map[string]string {
+	s := make([]map[string]string, 1)
+	s[0] = map[string]string{}
+	return s
 }

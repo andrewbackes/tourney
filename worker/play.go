@@ -38,7 +38,7 @@ func (w *Worker) play(m *models.Game) {
 		if err != nil {
 			panic(err)
 		}
-		m.Positions = append(m.Positions, modelPosition(g.Position()))
+		m.Positions = append(m.Positions, modelPosition(g.Position(), info.Analysis))
 		go func() {
 			w.master.UpdateGame(m)
 		}()
@@ -101,7 +101,7 @@ func (w *Worker) claim(g *models.Game) {
 	}
 }
 
-func modelPosition(p *position.Position) models.Position {
+func modelPosition(p *position.Position, analysis []map[string]string) models.Position {
 	f, err := fen.Encode(p)
 	if err != nil {
 		log.Error(err)
@@ -117,6 +117,7 @@ func modelPosition(p *position.Position) models.Position {
 			piece.White: p.MovesLeft[piece.White],
 			piece.Black: p.MovesLeft[piece.Black],
 		},
-		LastMove: p.LastMove,
+		LastMove:     p.LastMove,
+		LastAnalysis: analysis,
 	}
 }

@@ -18,6 +18,10 @@ func (m *MemDB) restore() {
 
 func (m *MemDB) restoreTournaments() {
 	root := filepath.Join(m.backupDir, "tournaments")
+	if _, err := os.Stat(root); os.IsNotExist(err) {
+		log.Info("No tournaments found in ", root)
+		return
+	}
 	files, err := ioutil.ReadDir(root)
 	if err != nil {
 		log.Fatal(err)
