@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+const (
+	channelBufferSize = 256
+)
+
 func (w *Worker) play(m *models.Game) {
 	fmt.Println(m)
 	engines, err := startEngines(m.Contestants)
@@ -21,11 +25,15 @@ func (w *Worker) play(m *models.Game) {
 	}
 	defer closeEngines(engines)
 	g := newGame(m)
+	engineOutput := make(chan []byte, channelBufferSize)
+	positionFeed := make(chan *position.Position, channelBufferSize)
+	done := make(chan struct{})
+	go w.positionUpdater(m, engineOutput, positionFeed, done)
 	status := game.InProgress
 	for color := piece.White; status == game.InProgress; color = piece.Color((color + 1) % 2) {
 		e := engines[color]
 		start := time.Now()
-		info, err := e.BestMove(g)
+		info, err := e.BestMove(g, engineOutput)
 		dur := time.Now().Sub(start)
 		if err != nil {
 			panic(err)
@@ -38,14 +46,30 @@ func (w *Worker) play(m *models.Game) {
 		if err != nil {
 			panic(err)
 		}
-		m.Positions = append(m.Positions, modelPosition(g.Position(), info.Analysis))
-		go func() {
-			w.master.UpdateGame(m)
-		}()
+		positionFeed <- g.Position()
 	}
 	log.Info(status)
 	m.Status = models.Complete
 	w.master.UpdateGame(m)
+}
+
+func (w *Worker) positionUpdater(m *models.Game, engineOutput chan []byte, positionFeed chan *position.Position, done chan struct{}) {
+	for {
+		select {
+		case output := <-engineOutput:
+			log.Info(string(output))
+			m.Positions[len(m.Positions)-1].Analysis = append(m.Positions[len(m.Positions)-1].Analysis, string(output))
+			w.master.UpdateGame(m)
+		case pos := <-positionFeed:
+			//m.Positions[len(m.Positions)-1].LastAnalysis = info.Analysis
+			m.Positions = append(m.Positions, modelPosition(pos))
+			w.master.UpdateGame(m)
+		case <-done:
+			if len(engineOutput) == 0 && len(positionFeed) == 0 {
+				return
+			}
+		}
+	}
 }
 
 func startEngines(e map[piece.Color]models.Engine) (map[piece.Color]*engines.UCIEngine, error) {
@@ -101,7 +125,7 @@ func (w *Worker) claim(g *models.Game) {
 	}
 }
 
-func modelPosition(p *position.Position, analysis []map[string]string) models.Position {
+func modelPosition(p *position.Position) models.Position {
 	f, err := fen.Encode(p)
 	if err != nil {
 		log.Error(err)
@@ -117,7 +141,6 @@ func modelPosition(p *position.Position, analysis []map[string]string) models.Po
 			piece.White: p.MovesLeft[piece.White],
 			piece.Black: p.MovesLeft[piece.Black],
 		},
-		LastMove:     p.LastMove,
-		LastAnalysis: analysis,
+		LastMove: p.LastMove,
 	}
 }

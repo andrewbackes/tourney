@@ -82,16 +82,16 @@ export default class GameDashboard extends Component {
           <div className="col-xs-4">
             <Panel title="Board" mode={ mode } content={<Board position={this.state.position}/>}/>
           </div>
-          <div className="col-xs-2">
+          <div className="col-xs-3">
             <Panel title="Moves" mode="default" content={ <MoveTable game={this.state.game} setPosition={this.setPosition} currentPosition={this.state.position} /> }/>
           </div>
-          <div className="col-xs-6">
+          <div className="col-xs-5">
             <Panel title="Analysis" mode="default"/>
           </div>
         </div>
         <div className="row">
           <div className="col-xs-12">
-            <Panel title="Engine Output" mode='default' content={<EngineAnalysisTable analysis={this.state.position.lastAnalysis}/>}/>
+            <Panel title="Engine Output" mode='default' content={<EngineAnalysisTable analysis={this.state.position.analysis}/>}/>
           </div>
         </div>
       </div>
@@ -170,18 +170,10 @@ class EngineAnalysisTable extends Component {
     let rows = [];
     if (this.props.analysis) {
       this.props.analysis.forEach( (analysis, i) => {
-        if (analysis.pv) {
-          rows.push(<EngineAnalysisTableRow 
-            key={i}
-            depth={analysis.depth}
-            score={analysis.score}
-            pv={analysis.pv}
-            time={analysis.time}
-            selDepth={analysis.selDepth}
-            nodes={analysis.nodes}
-            nps={analysis.nps}
-          />);
-        }
+        rows.push(<EngineAnalysisTableRow 
+          key={i}
+          raw={analysis}
+        />);
       });
     }
     return (
@@ -189,12 +181,8 @@ class EngineAnalysisTable extends Component {
         <table className="table table-condensed table-fixed">
           <thead>
             <tr>
-              <th className="col-xs-1">Depth</th>
-              <th className="col-xs-1">Nodes</th>
-              <th className="col-xs-1">Time</th>
-              <th className="col-xs-1">NPS</th>
-              <th className="col-xs-1">Score</th>
-              <th className="col-xs-7">PV</th>
+              <th className="col-xs-12">Raw</th>
+              
             </tr>
           </thead>
           <tbody style={{ 'maxHeight' : '275px' }}>
@@ -210,13 +198,7 @@ class EngineAnalysisTableRow extends Component {
   render() {
     return (
       <tr>
-        <td className="col-xs-1">{this.props.depth}</td>
-        <td className="col-xs-1">{this.props.nodes}</td>
-        <td className="col-xs-1">{this.props.time}</td>
-        <td className="col-xs-1">{this.props.nps}</td>
-        <td className="col-xs-1">{this.props.score}</td>
-        <td className="col-xs-7">{this.props.pv}</td>
-
+        <td className="col-xs-12">{this.props.raw}</td>
       </tr>
     );
   }
