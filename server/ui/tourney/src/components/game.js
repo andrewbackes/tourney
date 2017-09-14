@@ -22,7 +22,7 @@ export default class GameDashboard extends Component {
   componentDidMount() {
     this.timerID = setInterval(
       () => this.refreshGame(),
-      500
+      1000
     );
   }
 
@@ -107,7 +107,7 @@ class MoveTable extends Component {
       if (node.children.length > 24) {
         if (node.lastElementChild.classList && node.lastElementChild.classList.contains('active')) {
           if (node.lastElementChild.lastElementChild) {
-            node.lastElementChild.lastElementChild.scrollIntoView({ behavior: "smooth" });
+            node.lastElementChild.firstElementChild.scrollIntoView({ behavior: "smooth" });
           }
         }
       }
@@ -170,7 +170,7 @@ class EngineAnalysisTable extends Component {
     let rows = [];
     if (this.props.analysis) {
       this.props.analysis.forEach( (analysis, i) => {
-        rows.push(<EngineAnalysisTableRow 
+        rows.unshift(<EngineAnalysisTableRow 
           key={i}
           raw={analysis}
         />);
