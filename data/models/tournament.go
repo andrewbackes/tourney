@@ -5,6 +5,6 @@ type Tournament struct {
 	Tags     map[string]string `json:"tags"`
 	Status   Status            `json:"status"`
 	Settings Settings          `json:"settings"`
-	Summary  Summary           `json:"summary"`
+	Summary  *Summary          `json:"summary"`
 	Games    []*Game           `json:"games"`
 }

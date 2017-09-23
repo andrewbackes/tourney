@@ -9,6 +9,7 @@ type Game struct {
 	Id           Id                     `json:"id"`
 	TournamentId Id                     `json:"tournamentId"`
 	Status       Status                 `json:"status"`
+	Result       Result                 `json:"result"`
 	Contestants  map[piece.Color]Engine `json:"contestants"`
 	TimeControl  game.TimeControl       `json:"timeControl"`
 	Positions    []Position             `json:"positions"`

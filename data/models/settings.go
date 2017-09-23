@@ -6,7 +6,6 @@ import (
 
 // Settings are for configurating a tournament.
 type Settings struct {
-	TestSeats   int              `json:"testSeats"`
 	Carousel    bool             `json:"carousel"`
 	Rounds      int              `json:"rounds"`
 	TimeControl game.TimeControl `json:"timeControl"`

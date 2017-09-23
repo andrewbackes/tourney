@@ -12,7 +12,18 @@ func (s *Service) CreateTournament(t *models.Tournament) (models.Id, error) {
 		return "", ErrMalformed
 	}
 	t.Id = models.NewId()
+	for i := range t.Settings.Contestants {
+		if t.Settings.Contestants[i].Id == "" {
+			t.Settings.Contestants[i].Id = models.NewId()
+		}
+	}
+	for i := range t.Settings.Opponents {
+		if t.Settings.Opponents[i].Id == "" {
+			t.Settings.Opponents[i].Id = models.NewId()
+		}
+	}
 	t.Games = models.NewGameList(t.Id, t.Settings)
+	t.Summary = models.NewSummary(t.Settings.Contestants, t.Games)
 	s.store.CreateTournament(t)
 	for _, g := range t.Games {
 		s.store.CreateGame(g)

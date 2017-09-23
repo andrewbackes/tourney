@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import Panel from 'components/panel';
 import TournamentService from 'services/tournament';
 import Board from 'components/chessboard';
+import Duration from 'util/duration';
+import Move from 'util/move';
 
 export default class GameDashboard extends Component {
   constructor(props) {
@@ -126,8 +128,8 @@ class MoveTable extends Component {
   render() {
     let rows = [];
     if (this.props.game.positions) {
-      this.props.game.positions.forEach( (pos) => {
-        rows.push(<MoveTableRow key={pos.fen} position={pos} lastMove={pos.lastMove} setPosition={this.props.setPosition} currentPosition={this.props.currentPosition}/>)
+      this.props.game.positions.forEach( (pos, i) => {
+        rows.push(<MoveTableRow index={i} key={pos.fen} position={pos} lastMove={pos.lastMove} setPosition={this.props.setPosition} currentPosition={this.props.currentPosition}/>)
       });
     }
     return (
@@ -150,16 +152,18 @@ class MoveTable extends Component {
 }
 
 class MoveTableRow extends Component {
+
   handleClick(e) {
     this.props.setPosition(this.props.position);
   }
+
   render() {
     let active = this.props.position.fen === this.props.currentPosition.fen;
     return (
       <tr className={'clickable ' + (active ? 'active' : '')} onClick={this.handleClick.bind(this)}>
-        <td className="col-xs-4">-</td>
-        <td className="col-xs-4">{this.props.lastMove.source}->{this.props.lastMove.destination}</td>
-        <td className="col-xs-4">{this.props.lastMove.duration ? this.props.lastMove.duration : "-"}</td>
+        <td className="col-xs-4">{ this.props.index %2 === 1 ? Math.floor(this.props.index /2) +1 : "-" }</td>
+        <td className="col-xs-4">{ this.props.index === 0 ? "-" : (this.props.index %2 === 0 ? "..." : "") + (Move.algebraic(this.props.lastMove)) }</td>
+        <td className="col-xs-4">{ this.props.lastMove.duration ? Duration.pretty(this.props.lastMove.duration) : "-" }</td>
       </tr>
     );
   }

@@ -41,6 +41,7 @@ func (s *Service) UpdateGame(g *models.Game) error {
 		}
 		if complete {
 			t.Status = models.Complete
+			t.Summary = models.NewSummary(t.Settings.Contestants, t.Games)
 			s.store.UpdateTournament(t)
 		}
 	}
