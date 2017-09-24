@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 import {withRouter} from 'react-router-dom';
-import NavBar from 'components/nav';
-import Main from 'components/main';
+import Header from 'layout/header';
+import Main from 'layout/main';
 import 'style/main.css';
 
 class App extends Component {
 
   render() {
-    const RoutedNavBar = withRouter(props => <NavBar {...props}/>);
+    const RoutedHeader = withRouter(props => <Header {...props}/>);
     return (
       <div className="col-xs-10 col-xs-offset-1">
-        <RoutedNavBar/>
+        <RoutedHeader/>
         <Main/>
       </div>
     );

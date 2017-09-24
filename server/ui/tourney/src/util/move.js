@@ -1,6 +1,5 @@
-
 export default class Move {
-	static algebraic(move) {
+	static format(move) {
 		if (move.source === 64) {
 				return "-";
 			}

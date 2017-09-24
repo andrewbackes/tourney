@@ -1,19 +1,19 @@
 import React, { Component } from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom'
 
-import TournamentsDashboard from 'components/tournaments';
-import TournamentDashboard from 'components/tournament';
-import GameList from 'components/games';
-import GameDashboard from 'components/game';
+import TournamentsDashboard from 'scenes/tournament-list';
+import TournamentDashboard from 'scenes/tournament-summary';
+import GameList from 'scenes/game-list';
+import GameDashboard from 'scenes/game';
 
-import WorkersDashboard from 'components/workers';
-import EnginesDashboard from 'components/engines';
-import BooksDashboard from 'components/books';
+import WorkersDashboard from 'scenes/workers';
+import EnginesDashboard from 'scenes/engines';
+import BooksDashboard from 'scenes/books';
 
-import SignupScreen from 'components/signup';
-import LoginScreen from 'components/login';
+import SignupScreen from 'scenes/signup';
+import LoginScreen from 'scenes/login';
 
-import NotFoundScreen from 'components/notfound';
+import NotFoundScreen from 'scenes/notfound';
 
 export default class Main extends Component {
   render() {

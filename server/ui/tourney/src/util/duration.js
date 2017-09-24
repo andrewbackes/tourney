@@ -1,6 +1,6 @@
 
 export default class Duration {
-  static pretty(duration) {
+  static format(duration) {
     //let hrUnit = 3600000000000; // nanoseconds
     //let minUnit = 60000000000; // nanoseconds
     //let secUnit = 1000000000; // nanoseconds

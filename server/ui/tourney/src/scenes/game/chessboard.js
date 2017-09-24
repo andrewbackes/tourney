@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
-import WhitePawn from 'pieces/piece11.png';
-import WhiteKnight from 'pieces/piece12.png';
-import WhiteBishop from'pieces/piece13.png';
-import WhiteRook from 'pieces/piece14.png';
-import WhiteQueen from 'pieces/piece15.png';
-import WhiteKing from 'pieces/piece16.png';
-import BlackPawn from 'pieces/piece01.png';
-import BlackKnight from 'pieces/piece02.png';
-import BlackBishop from 'pieces/piece03.png';
-import BlackRook from 'pieces/piece04.png';
-import BlackQueen from 'pieces/piece05.png';
-import BlackKing from 'pieces/piece06.png';
+import WhitePawn from 'images/pieces/piece11.png';
+import WhiteKnight from 'images/pieces/piece12.png';
+import WhiteBishop from'images/pieces/piece13.png';
+import WhiteRook from 'images/pieces/piece14.png';
+import WhiteQueen from 'images/pieces/piece15.png';
+import WhiteKing from 'images/pieces/piece16.png';
+import BlackPawn from 'images/pieces/piece01.png';
+import BlackKnight from 'images/pieces/piece02.png';
+import BlackBishop from 'images/pieces/piece03.png';
+import BlackRook from 'images/pieces/piece04.png';
+import BlackQueen from 'images/pieces/piece05.png';
+import BlackKing from 'images/pieces/piece06.png';
 
 export default class Board extends Component {
   render() {
