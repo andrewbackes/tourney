@@ -14,7 +14,6 @@ export default class Duration {
 
     let ms = parseInt(remainder / 1000000, 10);
     if (ms !== 0) { pretty += ms/1000 + "s"; }
-
-    return pretty;
+    return  pretty !== "" ? pretty : "-";
   }
 }

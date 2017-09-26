@@ -19,11 +19,11 @@ const (
 
 func (w *Worker) play(m *models.Game) {
 	fmt.Println(m)
-	engines, err := startEngines(m.Contestants)
+	engs, err := startEngines(m.Contestants)
 	if err != nil {
 		panic(err)
 	}
-	defer closeEngines(engines)
+	defer closeEngines(engs)
 	g := newGame(m)
 	engineOutput := make(chan []byte, channelBufferSize)
 	positionFeed := make(chan *position.Position, channelBufferSize)
@@ -31,25 +31,37 @@ func (w *Worker) play(m *models.Game) {
 	go w.positionUpdater(m, engineOutput, positionFeed, done)
 	status := game.InProgress
 	for color := piece.White; status == game.InProgress; color = piece.Color((color + 1) % 2) {
-		e := engines[color]
+		e := engs[color]
 		start := time.Now()
 		info, err := e.BestMove(g, engineOutput)
 		dur := time.Now().Sub(start)
-		if err != nil {
-			panic(err)
+		if err == engines.ErrTimedOut {
+			status = map[piece.Color]game.GameStatus{piece.White: game.WhiteTimedOut, piece.Black: game.BlackTimedOut}[color]
+		} else {
+			bm := move.Parse(info.BestMove)
+			bm.Duration = dur
+			log.Debug(info)
+			log.Info(bm)
+			if bm != move.Null {
+				status, err = g.MakeMove(bm)
+				if err != nil {
+					panic(err)
+				}
+				positionFeed <- g.Position()
+			} else {
+				status = map[piece.Color]game.GameStatus{piece.White: game.WhiteResigned, piece.Black: game.BlackResigned}[color]
+			}
 		}
-		bm := move.Parse(info.BestMove)
-		bm.Duration = dur
-		log.Debug(info)
-		log.Info(bm)
-		status, err = g.MakeMove(bm)
-		if err != nil {
-			panic(err)
-		}
-		positionFeed <- g.Position()
 	}
 	log.Info(status)
 	m.Status = models.Complete
+	if status&game.WhiteWon != 0 {
+		m.Result = models.White
+	} else if status&game.BlackWon != 0 {
+		m.Result = models.Black
+	} else {
+		m.Result = models.Draw
+	}
 	w.master.UpdateGame(m)
 }
 

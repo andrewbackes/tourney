@@ -17,9 +17,7 @@ func TestSetOpenings(t *testing.T) {
 func newTournament() *Tournament {
 	return &Tournament{
 		Settings: Settings{
-			TestSeats: 1,
-			Carousel:  false,
-			Rounds:    10,
+			Rounds: 10,
 			Contestants: []Engine{
 				Engine{
 					Name: "tester1",

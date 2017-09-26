@@ -59,24 +59,31 @@ export default class TournamentDashboard extends Component {
   render() {
     return (
       <div>
-        <div className="row">
-          <div className="col-xs-12">
-            <Panel title="Running Games" mode="success" content={
-              <div>
-                <GameTable runningGames={this.state.runningGames} history={this.props.history}/>
-                <div className="panel-body text-right">
-                  <Link to={'/tournaments/' + this.props.match.params.tournamentId + '/games'}>All Games<span className="glyphicon glyphicon-menu-right"></span></Link>
+        {this.state.tournament.status === "Running" && (
+          <div className="row">
+            <div className="col-xs-12">
+              <Panel title="Running Games" mode="success" content={
+                <div>
+                  <GameTable runningGames={this.state.runningGames} history={this.props.history}/>
+                  <div className="panel-body text-right">
+                    <Link to={'/tournaments/' + this.props.match.params.tournamentId + '/games'}>All Games<span className="glyphicon glyphicon-menu-right"></span></Link>
+                  </div>
                 </div>
-              </div>
-            }/>
+              }/>
+            </div>
           </div>
-        </div>
+        )}
         <div className="row">
           <div className="col-xs-6">
-            <Panel title="Standings" mode="default" content={<StandingsTable tournament={this.props.tournament}/>}/>
+            <Panel title="Standings" mode="default" content={
+              <StandingsTable 
+                contestants={this.state.tournament.settings ? this.state.tournament.settings.contestants : []}
+                stats={this.state.tournament.summary ? this.state.tournament.summary.stats : null}
+              />}
+            />
           </div>
           <div className="col-xs-6">
-            <Panel title="Matchups" mode="default" content={<MathupsTable tournament={this.props.tournament}/>}/>
+            <Panel title="Matchups" mode="default" content={<MathupsTable stats={this.state.tournament.summary ? this.state.tournament.summary.stats : null}/>}/>
           </div>
         </div>
         { this.state.tournament && this.state.tournament.settings &&

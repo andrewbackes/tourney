@@ -10,25 +10,37 @@
         },
         "contestants": [
             {
-                "name": "Stockfish",
+                "name": "Stockfish A",
                 "version": "8-Mac-popcnt",
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
                 "executable": "Mac/stockfish-8-popcnt"
             },
             {
-                "name": "Stockfish",
+                "name": "Stockfish B",
+                "version": "8-Mac-popcnt",
+                "protocol": "uci",
+                "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
+                "executable": "Mac/stockfish-8-popcnt"
+            },
+            {
+                "name": "Stockfish C",
+                "version": "8-Mac-popcnt",
+                "protocol": "uci",
+                "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
+                "executable": "Mac/stockfish-8-popcnt"
+            },
+            {
+                "name": "Stockfish D",
                 "version": "8-Mac-popcnt",
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
                 "executable": "Mac/stockfish-8-popcnt"
             }
         ],
-        "testSeats": 2,
-        "carousel": true,
-        "rounds": 1,
+        "rounds": 10,
         "timeControl": {
-            "time": 100000000000,
+            "time": 5000000000,
             "increment": 0,
             "moves": 40,
             "repeating": true
