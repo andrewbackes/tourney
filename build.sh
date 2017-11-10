@@ -24,8 +24,10 @@ docker run -v "$(pwd)/:/gopath/src/github.com/andrewbackes/tourney" tourney-buil
 
 cat <<EOF > build/Dockerfile
 FROM debian:stretch
-COPY build/server /server
-CMD ["/server"]
+COPY build/server /tourney/server
+COPY cmd/server/books/2700draw.bin /tourney/2700draw.bin
+WORKDIR /tourney/
+CMD ["/tourney/server"]
 EOF
 
 docker build -t andrewbackes/tourney -f build/Dockerfile .

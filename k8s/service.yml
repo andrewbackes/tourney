@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tourney
+  labels:
+    app: tourney
+spec:
+  ports:
+  - port: 9090
+    targetPort: 9090
+    protocol: TCP
+  type: LoadBalancer
+  selector:
+    app: tourney

@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-const apiURL = "http://localhost:9090/api/v2"
+const apiURL = "http://api.tourney.aback.es:9090/api/v2"
 const workerCount = 1
 
 func main() {

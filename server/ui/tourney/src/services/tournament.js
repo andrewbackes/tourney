@@ -2,7 +2,7 @@ import $ from 'jquery';
 
 export default class TournamentService {
   
-  static apiHost = 'http://localhost:9090/api/v2';
+  static apiHost = 'http://35.203.149.35:9090/api/v2';
 
   static getTournament(tournamentId, callback) {
     $.ajax({

@@ -4,7 +4,7 @@
             "depth": 8,
             "randomize": false,
             "book": {
-                "filePath": "/Users/Andrew/tourney_books/2700draw.bin",
+                "filePath": "/tourney/2700draw.bin",
                 "maxDepth": 14
             }
         },
