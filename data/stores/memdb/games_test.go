@@ -1,5 +1,6 @@
 package memdb
 
+/*
 import (
 	"github.com/andrewbackes/tourney/data/models"
 	"github.com/stretchr/testify/assert"
@@ -23,3 +24,4 @@ func TestAddPosition(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, opening, g.Positions[0].FEN)
 }
+*/
