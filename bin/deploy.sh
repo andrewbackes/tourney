@@ -28,7 +28,7 @@ EOF
 chmod +x build/gke-deploy.sh
 
 docker run \
-    -v "/Users/Andrew/.config/gcloud/travis-ci.credentials.json:/home/travis-ci.credentials.json" \
+    -v "$(pwd)/k8s/travis-ci.credentials.json:/home/travis-ci.credentials.json" \
     -v "$(pwd)/build:/home/build" \
         andrewbackes/gcloud \
         /home/build/gke-deploy.sh
