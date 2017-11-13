@@ -8,6 +8,7 @@ services:
 before_install:
   - openssl aes-256-cbc -K $encrypted_daf16889faa3_key -iv $encrypted_daf16889faa3_iv -in ./k8s/travis-ci.credentials.json.enc -out ./k8s/travis-ci.credentials.json -d
   - openssl aes-256-cbc -K $encrypted_6009120a1dad_key -iv $encrypted_6009120a1dad_iv -in ./k8s/travis-ci.docker.password.enc -out ./k8s/travis-ci.docker.password -d
+  - cat ./k8s/travis-ci.docker.password | docker login --username tourneytravisci --password-stdin
   - go get github.com/mattn/goveralls
 
 script:
