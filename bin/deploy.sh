@@ -13,7 +13,7 @@ cat <<EOF >build/gke-deploy.sh
 PROJECT_ID=ringed-furnace-185604
 ZONE=us-west1-a
 CLUSTER_NAME=g1-small
-GOOGLE_APPLICATION_CREDENTIALS=/home/travis-ci.credentials.json
+GOOGLE_APPLICATION_CREDENTIALS=/home/k8s/travis-ci.credentials.json
 
 gcloud auth activate-service-account --key-file "\${GOOGLE_APPLICATION_CREDENTIALS}"
 gcloud config set project \$PROJECT_ID
@@ -28,7 +28,7 @@ EOF
 chmod +x build/gke-deploy.sh
 
 docker run \
-    -v "$(pwd)/k8s/travis-ci.credentials.json:/home/travis-ci.credentials.json" \
+    -v "$(pwd)/k8s/:/home/k8s/" \
     -v "$(pwd)/build:/home/build" \
         andrewbackes/gcloud \
         /home/build/gke-deploy.sh
