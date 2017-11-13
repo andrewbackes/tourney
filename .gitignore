@@ -20,3 +20,4 @@ env.production.local
 **/debug.test
 
 k8s/travis-ci.credentials.json
+k8s/travis-ci.docker.password
