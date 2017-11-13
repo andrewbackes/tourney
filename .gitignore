@@ -18,3 +18,5 @@ env.production.local
 **yarn-error.log*
 
 **/debug.test
+
+k8s/travis-ci.credentials.json
