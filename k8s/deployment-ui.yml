@@ -12,8 +12,6 @@ spec:
       containers:
       - name: tourney-ui
         image: andrewbackes/tourney-ui:latest
-        securityContext:
-          privileged: true
         ports:
         - containerPort: 80
         livenessProbe:

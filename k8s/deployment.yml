@@ -4,6 +4,9 @@ metadata:
   name: tourney
 spec:
   replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -12,8 +15,6 @@ spec:
       containers:
       - name: tourney
         image: andrewbackes/tourney:latest
-        securityContext:
-          privileged: true
         ports:
         - containerPort: 9090
         livenessProbe:
