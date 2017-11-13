@@ -6,8 +6,6 @@ services:
   - docker
 
 before_install:
-  - openssl aes-256-cbc -K $encrypted_daf16889faa3_key -iv $encrypted_daf16889faa3_iv -in ./k8s/travis-ci.credentials.json.enc -out ./k8s/travis-ci.credentials.json -d
-  - docker login --username tourneytravisci --password $DOCKER_PASSWORD
   - go get github.com/mattn/goveralls
 
 script:
@@ -15,6 +13,6 @@ script:
 
 deploy:
   - provider: script
-    script: bin/build-image.sh && bin/push-image.sh && bin/deploy.sh
+    script: openssl aes-256-cbc -K $encrypted_daf16889faa3_key -iv $encrypted_daf16889faa3_iv -in ./k8s/travis-ci.credentials.json.enc -out ./k8s/travis-ci.credentials.json -d && docker login --username tourneytravisci --password $DOCKER_PASSWORD && bin/build-image.sh && bin/push-image.sh && bin/deploy.sh
     on:
       branch: master
