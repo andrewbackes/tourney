@@ -1,5 +1,6 @@
 package models
 
+/*
 import (
 	"fmt"
 	"github.com/andrewbackes/chess/game"
@@ -42,3 +43,4 @@ func newTournament() *Tournament {
 		},
 	}
 }
+*/
