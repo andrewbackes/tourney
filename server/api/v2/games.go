@@ -26,7 +26,11 @@ func getGames(s services.Tournament) func(w http.ResponseWriter, req *http.Reque
 			}
 		}
 		gs := s.ReadGames(id, filter)
-		util.WriteJSON(gs, w)
+		collapsedGs := make([]*models.CollapsedGame, len(gs), len(gs))
+		for i, g := range gs {
+			collapsedGs[i] = models.CollapseGame(g)
+		}
+		util.WriteJSON(collapsedGs, w)
 	}
 }
 

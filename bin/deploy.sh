@@ -15,9 +15,6 @@ ZONE=us-west1-a
 CLUSTER_NAME=g1-small
 GOOGLE_APPLICATION_CREDENTIALS=/home/k8s/travis-ci.credentials.json
 
-ls -ahl /home/k8s/
-ls -ahl /home/build/
-
 gcloud auth activate-service-account --key-file "\${GOOGLE_APPLICATION_CREDENTIALS}"
 gcloud config set project \$PROJECT_ID
 gcloud config set compute/zone \$ZONE
