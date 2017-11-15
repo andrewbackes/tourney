@@ -25,7 +25,11 @@ func getTournaments(s services.Tournament) func(w http.ResponseWriter, req *http
 			}
 		}
 		ts := s.ReadTournaments(filter)
-		util.WriteJSON(ts, w)
+		collapsedTs := make([]*models.CollapsedTournament, len(ts), len(ts))
+		for i, t := range ts {
+			collapsedTs[i] = models.CollapseTournament(t)
+		}
+		util.WriteJSON(collapsedTs, w)
 	}
 }
 
@@ -38,7 +42,7 @@ func getTournament(s services.Tournament) func(w http.ResponseWriter, req *http.
 			w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, err)))
 			w.WriteHeader(http.StatusNotFound)
 		} else {
-			util.WriteJSON(t, w)
+			util.WriteJSON(models.CollapseTournament(t), w)
 		}
 	}
 }
