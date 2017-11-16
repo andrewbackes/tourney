@@ -55,14 +55,49 @@ func (w *Worker) play(m *models.Game) {
 	}
 	log.Info(status)
 	m.Status = models.Complete
-	if status&game.WhiteWon != 0 {
-		m.Result = models.White
-	} else if status&game.BlackWon != 0 {
-		m.Result = models.Black
-	} else {
-		m.Result = models.Draw
-	}
+	m.Result = result(status)
+	m.EndingCondition = endingCondition(status)
 	w.master.UpdateGame(m)
+}
+
+func result(status game.GameStatus) models.Result {
+	if status&game.WhiteWon != 0 {
+		return models.White
+	} else if status&game.BlackWon != 0 {
+		return models.Black
+	}
+	return models.Draw
+}
+
+func endingCondition(status game.GameStatus) models.EndingCondition {
+	switch status {
+	case game.WhiteCheckmated:
+		return models.Checkmate
+	case game.BlackCheckmated:
+		return models.Checkmate
+	case game.BlackIllegalMove:
+		return models.IllegalMove
+	case game.WhiteIllegalMove:
+		return models.IllegalMove
+	case game.BlackResigned:
+		return models.Resignation
+	case game.WhiteResigned:
+		return models.Resignation
+	case game.BlackTimedOut:
+		return models.OutOfTime
+	case game.WhiteTimedOut:
+		return models.OutOfTime
+	case game.Stalemate:
+		return models.Stalemate
+	case game.InsufficientMaterial:
+		return models.InsufficientMaterial
+	case game.FiftyMoveRule:
+		return models.FiftyMoveRule
+	case game.Threefold:
+		return models.Threefold
+	default:
+		return models.Error
+	}
 }
 
 func (w *Worker) positionUpdater(m *models.Game, engineOutput chan []byte, positionFeed chan *position.Position, done chan struct{}) {
