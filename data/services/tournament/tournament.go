@@ -23,7 +23,6 @@ func (s *Service) CreateTournament(t *models.Tournament) (models.Id, error) {
 		}
 	}
 	t.Games = models.NewGameList(t.Id, t.Settings)
-	t.Summary = models.NewSummary(t.Settings.Contestants, t.Games)
 	s.store.CreateTournament(t)
 	for _, g := range t.Games {
 		s.store.CreateGame(g)
