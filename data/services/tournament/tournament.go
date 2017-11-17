@@ -4,6 +4,7 @@ import (
 	"github.com/andrewbackes/tourney/data/models"
 	"github.com/andrewbackes/tourney/data/stores"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 func (s *Service) CreateTournament(t *models.Tournament) (models.Id, error) {
@@ -12,6 +13,7 @@ func (s *Service) CreateTournament(t *models.Tournament) (models.Id, error) {
 		return "", ErrMalformed
 	}
 	t.Id = models.NewId()
+	t.CreationDate = time.Now()
 	for i := range t.Settings.Contestants {
 		if t.Settings.Contestants[i].Id == "" {
 			t.Settings.Contestants[i].Id = models.NewId()
