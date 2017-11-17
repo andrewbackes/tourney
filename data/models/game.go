@@ -22,6 +22,7 @@ const (
 type Game struct {
 	Id              Id                     `json:"id"`
 	TournamentId    Id                     `json:"tournamentId"`
+	Round           int                    `json:"round"`
 	Status          Status                 `json:"status"`
 	Result          Result                 `json:"result"`
 	EndingCondition EndingCondition        `json:"endingCondition"`
@@ -33,6 +34,7 @@ type Game struct {
 type CollapsedGame struct {
 	Id              Id                     `json:"id"`
 	TournamentId    Id                     `json:"tournamentId"`
+	Round           int                    `json:"round"`
 	Status          Status                 `json:"status"`
 	Result          Result                 `json:"result"`
 	EndingCondition EndingCondition        `json:"endingCondition"`
@@ -44,6 +46,7 @@ func CollapseGame(g *Game) *CollapsedGame {
 	return &CollapsedGame{
 		Id:              g.Id,
 		TournamentId:    g.TournamentId,
+		Round:           g.Round,
 		Status:          g.Status,
 		Result:          g.Result,
 		EndingCondition: g.EndingCondition,
