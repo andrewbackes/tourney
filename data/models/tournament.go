@@ -7,7 +7,7 @@ import (
 type Tournament struct {
 	Id           Id                `json:"id"`
 	Name         string            `json:"name"`
-	CreationDate time.Time         `json:creationDate`
+	CreationDate time.Time         `json:"creationDate"`
 	Tags         map[string]string `json:"tags"`
 	Status       Status            `json:"status"`
 	Settings     Settings          `json:"settings"`
@@ -17,7 +17,7 @@ type Tournament struct {
 type CollapsedTournament struct {
 	Id           Id                `json:"id"`
 	Name         string            `json:"name"`
-	CreationDate time.Time         `json:creationDate`
+	CreationDate time.Time         `json:"creationDate"`
 	Tags         map[string]string `json:"tags"`
 	Status       Status            `json:"status"`
 	Settings     Settings          `json:"settings"`
