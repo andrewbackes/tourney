@@ -1,5 +1,5 @@
-// Package master is a service that facilitates communication between workers and servers.
-package master
+// Package client facilitates communication between workers and servers.
+package client
 
 import (
 	"bytes"
@@ -17,15 +17,15 @@ var (
 	ErrNoTournaments error = errors.New("no tournaments found")
 )
 
-type MasterService struct {
+type ApiClient struct {
 	url string
 }
 
-func New(url string) *MasterService {
-	return &MasterService{url: url}
+func New(url string) *ApiClient {
+	return &ApiClient{url: url}
 }
 
-func (m *MasterService) NextGame() (*models.Game, error) {
+func (m *ApiClient) NextGame() (*models.Game, error) {
 	tid, err := m.nextTournament()
 	if err != nil {
 		return &models.Game{}, err
@@ -38,7 +38,7 @@ func (m *MasterService) NextGame() (*models.Game, error) {
 	return m.GetGame(tid, gid)
 }
 
-func (m *MasterService) UpdateGameWithRetry(g *models.Game) {
+func (m *ApiClient) UpdateGameWithRetry(g *models.Game) {
 	err := m.UpdateGame(g)
 	ms := 400 * time.Millisecond
 	if err != nil {
@@ -52,7 +52,7 @@ func (m *MasterService) UpdateGameWithRetry(g *models.Game) {
 	}
 }
 
-func (m *MasterService) UpdateGame(g *models.Game) error {
+func (m *ApiClient) UpdateGame(g *models.Game) error {
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(g)
 	if err != nil {
@@ -76,11 +76,11 @@ func (m *MasterService) UpdateGame(g *models.Game) error {
 	return nil
 }
 
-func (m *MasterService) UpdatePosition(tid, gid models.Id, p *models.Position) error {
+func (m *ApiClient) UpdatePosition(tid, gid models.Id, p *models.Position) error {
 	return nil
 }
 
-func (m *MasterService) nextTournament() (models.Id, error) {
+func (m *ApiClient) nextTournament() (models.Id, error) {
 	paths := []string{"/tournaments?status=running", "/tournaments?status=pending"}
 	for _, path := range paths {
 		var t []models.Tournament
@@ -95,7 +95,7 @@ func (m *MasterService) nextTournament() (models.Id, error) {
 	return "", ErrNoTournaments
 }
 
-func (m *MasterService) nextGame(tid models.Id) (models.Id, error) {
+func (m *ApiClient) nextGame(tid models.Id) (models.Id, error) {
 	path := "/tournaments/" + tid.String() + "/games?status=pending"
 	var g []models.Game
 	err := m.getJSON(path, &g)
@@ -108,7 +108,7 @@ func (m *MasterService) nextGame(tid models.Id) (models.Id, error) {
 	return "", ErrNoGames
 }
 
-func (m *MasterService) GetGame(tid, gid models.Id) (*models.Game, error) {
+func (m *ApiClient) GetGame(tid, gid models.Id) (*models.Game, error) {
 	r, err := http.Get(m.url + "/tournaments/" + tid.String() + "/games/" + gid.String())
 	log.Debug(r)
 	if err != nil {
@@ -120,7 +120,7 @@ func (m *MasterService) GetGame(tid, gid models.Id) (*models.Game, error) {
 	return g, err
 }
 
-func (m *MasterService) getJSON(path string, obj interface{}) error {
+func (m *ApiClient) getJSON(path string, obj interface{}) error {
 	r, err := http.Get(m.url + path)
 	log.Debug(r)
 	if err == nil {

@@ -4,25 +4,25 @@ package worker
 import (
 	"fmt"
 	"github.com/andrewbackes/tourney/data/models"
-	"github.com/andrewbackes/tourney/worker/services/master"
+	"github.com/andrewbackes/tourney/worker/client"
 	log "github.com/sirupsen/logrus"
 )
 
 type Worker struct {
 	id     models.Id
-	master *master.MasterService
+	client *client.ApiClient
 }
 
 func New(apiURL string) *Worker {
 	return &Worker{
 		id:     models.NewId(),
-		master: master.New(apiURL),
+		client: client.New(apiURL),
 	}
 }
 
 func (w *Worker) Start() {
 	fmt.Println("Starting worker.")
-	g, err := w.master.NextGame()
+	g, err := w.client.NextGame()
 	if err != nil {
 		panic(err)
 	}

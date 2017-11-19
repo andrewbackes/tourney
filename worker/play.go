@@ -57,7 +57,7 @@ func (w *Worker) play(m *models.Game) {
 	m.Status = models.Complete
 	m.Result = result(status)
 	m.EndingCondition = endingCondition(status)
-	w.master.UpdateGameWithRetry(m)
+	w.client.UpdateGameWithRetry(m)
 }
 
 func result(status game.GameStatus) models.Result {
@@ -106,11 +106,11 @@ func (w *Worker) positionUpdater(m *models.Game, engineOutput chan []byte, posit
 		case output := <-engineOutput:
 			log.Info(string(output))
 			m.Positions[len(m.Positions)-1].Analysis = append(m.Positions[len(m.Positions)-1].Analysis, string(output))
-			w.master.UpdateGame(m)
+			w.client.UpdateGame(m)
 		case pos := <-positionFeed:
 			//m.Positions[len(m.Positions)-1].LastAnalysis = info.Analysis
 			m.Positions = append(m.Positions, modelPosition(pos))
-			w.master.UpdateGame(m)
+			w.client.UpdateGame(m)
 		case <-done:
 			if len(engineOutput) == 0 && len(positionFeed) == 0 {
 				return
@@ -166,7 +166,7 @@ func newGame(g *models.Game) *game.Game {
 
 func (w *Worker) claim(g *models.Game) {
 	g.Status = models.Running
-	err := w.master.UpdateGame(g)
+	err := w.client.UpdateGame(g)
 	if err != nil {
 		panic(err)
 	}
