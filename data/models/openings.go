@@ -7,6 +7,7 @@ import (
 	"github.com/andrewbackes/chess/piece"
 	"github.com/andrewbackes/chess/position"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func setGameOpenings(list []*Game, settings Settings) {
 	if settings.Opening.Depth > settings.Opening.Book.MaxDepth {
 		panic("book depth is less than what is specified in the tournament")
 	}
-	b := openBook(settings.Opening.Book.FilePath)
+	b := openBook(locateBook(settings.Opening.Book.FilePath))
 	o := openingPos(settings.TimeControl)
 	pl := []*Position{posToPos(o)}
 	index := 0
@@ -36,6 +37,24 @@ func setGameOpenings(list []*Game, settings Settings) {
 			}
 		}
 	})
+}
+
+func locateBook(path string) string {
+	prefixes := []string{
+		"",
+		os.Getenv("BOOKS_DIR"),
+		"/tourney",
+		"cmd/server/books",
+		"tourney_storage",
+		"tourney_storage/books",
+	}
+	for _, prefix := range prefixes {
+		fullPath := filepath.Join(prefix, path)
+		if _, err := os.Stat(fullPath); !os.IsNotExist(err) {
+			return fullPath
+		}
+	}
+	return path
 }
 
 func openBook(path string) *book.Book {

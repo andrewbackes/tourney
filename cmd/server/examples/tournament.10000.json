@@ -1,10 +1,11 @@
 {
+    "name": "Stockfish 1v1 - 10000 Rounds",
     "settings": {
         "opening": {
             "depth": 8,
             "randomize": false,
             "book": {
-                "filePath": "cmd/server/books/2700draw.bin",
+                "filePath": "2700draw.bin",
                 "maxDepth": 14
             }
         },
@@ -22,23 +23,9 @@
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
                 "executable": "Mac/stockfish-8-popcnt"
-            },
-            {
-                "name": "Stockfish C",
-                "version": "8-Mac-popcnt",
-                "protocol": "uci",
-                "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
-                "executable": "Mac/stockfish-8-popcnt"
-            },
-            {
-                "name": "Stockfish D",
-                "version": "8-Mac-popcnt",
-                "protocol": "uci",
-                "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
-                "executable": "Mac/stockfish-8-popcnt"
             }
         ],
-        "rounds": 10,
+        "rounds": 5000,
         "timeControl": {
             "time": 5000000000,
             "increment": 0,

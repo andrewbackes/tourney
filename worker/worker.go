@@ -2,7 +2,6 @@
 package worker
 
 import (
-	"fmt"
 	"github.com/andrewbackes/tourney/data/models"
 	"github.com/andrewbackes/tourney/worker/client"
 	log "github.com/sirupsen/logrus"
@@ -21,8 +20,8 @@ func New(apiURL string) *Worker {
 }
 
 func (w *Worker) Start() {
-	fmt.Println("Starting worker.")
-	g, err := w.client.NextGame()
+	log.Info("Starting worker.")
+	g, err := w.client.NextPendingGame()
 	if err != nil {
 		panic(err)
 	}

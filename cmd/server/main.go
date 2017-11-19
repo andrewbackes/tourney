@@ -14,7 +14,7 @@ func main() {
 	log.SetLevel(log.DebugLevel)
 
 	fmt.Println("Server")
-	datastore := memdb.NewMemDB("/Users/Andrew/tourney_storage")
+	datastore := memdb.NewMemDB("tourney_storage")
 	service := tournament.NewService(datastore)
 	s := server.New(":9090", service)
 	s.Start()

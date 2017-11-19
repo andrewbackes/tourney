@@ -1,6 +1,6 @@
 build/*
 **/node_modules/*
-
+tourney_storage/*
 
 # testing
 **/coverage*

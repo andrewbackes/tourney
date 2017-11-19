@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"fmt"
 	"github.com/andrewbackes/chess/engines"
 	"github.com/andrewbackes/chess/fen"
 	"github.com/andrewbackes/chess/game"
@@ -18,7 +17,7 @@ const (
 )
 
 func (w *Worker) play(m *models.Game) {
-	fmt.Println(m)
+	log.Info("Playing ", m.TournamentId, "/", m.Id, " - Round ", m.Round)
 	engs, err := startEngines(m.Contestants)
 	if err != nil {
 		panic(err)
@@ -26,15 +25,14 @@ func (w *Worker) play(m *models.Game) {
 	defer closeEngines(engs)
 	g := newGame(m)
 	engineOutput := make(chan []byte, channelBufferSize)
-	positionFeed := make(chan *position.Position, channelBufferSize)
-	done := make(chan struct{})
-	go w.positionUpdater(m, engineOutput, positionFeed, done)
 	status := game.InProgress
 	for color := piece.White; status == game.InProgress; color = piece.Color((color + 1) % 2) {
 		e := engs[color]
 		start := time.Now()
 		info, err := e.BestMove(g, engineOutput)
 		dur := time.Now().Sub(start)
+
+		w.client.UpdateGame(m)
 		if err == engines.ErrTimedOut {
 			status = map[piece.Color]game.GameStatus{piece.White: game.WhiteTimedOut, piece.Black: game.BlackTimedOut}[color]
 		} else {
@@ -47,7 +45,9 @@ func (w *Worker) play(m *models.Game) {
 				if err != nil {
 					panic(err)
 				}
-				positionFeed <- g.Position()
+				m.Positions = append(m.Positions, modelPosition(g.Position()))
+				m.Positions[len(m.Positions)-1].Analysis = toArray(engineOutput)
+				w.client.UpdateGame(m)
 			} else {
 				status = map[piece.Color]game.GameStatus{piece.White: game.WhiteResigned, piece.Black: game.BlackResigned}[color]
 			}
@@ -58,6 +58,22 @@ func (w *Worker) play(m *models.Game) {
 	m.Result = result(status)
 	m.EndingCondition = endingCondition(status)
 	w.client.UpdateGameWithRetry(m)
+	log.Info("Completed game ", m.TournamentId, "/", m.Id, " - Round ", m.Round)
+}
+
+func toArray(engineOutput chan []byte) []string {
+	analysis := []string{}
+	for {
+		select {
+		case output := <-engineOutput:
+			log.Info(string(output))
+			analysis = append(analysis, string(output))
+		default:
+			if len(engineOutput) == 0 {
+				return analysis
+			}
+		}
+	}
 }
 
 func result(status game.GameStatus) models.Result {
@@ -70,53 +86,20 @@ func result(status game.GameStatus) models.Result {
 }
 
 func endingCondition(status game.GameStatus) models.EndingCondition {
-	switch status {
-	case game.WhiteCheckmated:
-		return models.Checkmate
-	case game.BlackCheckmated:
-		return models.Checkmate
-	case game.BlackIllegalMove:
-		return models.IllegalMove
-	case game.WhiteIllegalMove:
-		return models.IllegalMove
-	case game.BlackResigned:
-		return models.Resignation
-	case game.WhiteResigned:
-		return models.Resignation
-	case game.BlackTimedOut:
-		return models.OutOfTime
-	case game.WhiteTimedOut:
-		return models.OutOfTime
-	case game.Stalemate:
-		return models.Stalemate
-	case game.InsufficientMaterial:
-		return models.InsufficientMaterial
-	case game.FiftyMoveRule:
-		return models.FiftyMoveRule
-	case game.Threefold:
-		return models.Threefold
-	default:
-		return models.Error
-	}
-}
-
-func (w *Worker) positionUpdater(m *models.Game, engineOutput chan []byte, positionFeed chan *position.Position, done chan struct{}) {
-	for {
-		select {
-		case output := <-engineOutput:
-			log.Info(string(output))
-			m.Positions[len(m.Positions)-1].Analysis = append(m.Positions[len(m.Positions)-1].Analysis, string(output))
-			w.client.UpdateGame(m)
-		case pos := <-positionFeed:
-			//m.Positions[len(m.Positions)-1].LastAnalysis = info.Analysis
-			m.Positions = append(m.Positions, modelPosition(pos))
-			w.client.UpdateGame(m)
-		case <-done:
-			if len(engineOutput) == 0 && len(positionFeed) == 0 {
-				return
-			}
-		}
-	}
+	return map[game.GameStatus]models.EndingCondition{
+		game.WhiteCheckmated:      models.Checkmate,
+		game.BlackCheckmated:      models.Checkmate,
+		game.BlackIllegalMove:     models.IllegalMove,
+		game.WhiteIllegalMove:     models.IllegalMove,
+		game.BlackResigned:        models.Resignation,
+		game.WhiteResigned:        models.Resignation,
+		game.BlackTimedOut:        models.OutOfTime,
+		game.WhiteTimedOut:        models.OutOfTime,
+		game.Stalemate:            models.Stalemate,
+		game.InsufficientMaterial: models.InsufficientMaterial,
+		game.FiftyMoveRule:        models.FiftyMoveRule,
+		game.Threefold:            models.Threefold,
+	}[status]
 }
 
 func startEngines(e map[piece.Color]models.Engine) (map[piece.Color]*engines.UCIEngine, error) {

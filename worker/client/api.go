@@ -25,19 +25,6 @@ func New(url string) *ApiClient {
 	return &ApiClient{url: url}
 }
 
-func (m *ApiClient) NextGame() (*models.Game, error) {
-	tid, err := m.nextTournament()
-	if err != nil {
-		return &models.Game{}, err
-	}
-	log.Debug("Tournament: ", tid)
-	gid, err := m.nextGame(tid)
-	if err != nil {
-		return &models.Game{}, err
-	}
-	return m.GetGame(tid, gid)
-}
-
 func (m *ApiClient) UpdateGameWithRetry(g *models.Game) {
 	err := m.UpdateGame(g)
 	ms := 400 * time.Millisecond
@@ -69,15 +56,55 @@ func (m *ApiClient) UpdateGame(g *models.Game) error {
 	}
 	defer r.Body.Close()
 	if r.StatusCode > 299 {
-		log.Debug(r.StatusCode)
+		log.Error(r.StatusCode)
 		return ErrBadStatus
 	}
-
+	log.Info("Uploaded game - ", g.TournamentId, "/", g.Id, " - Round ", g.Round, " - ", len(g.Positions), " positions")
 	return nil
 }
 
 func (m *ApiClient) UpdatePosition(tid, gid models.Id, p *models.Position) error {
 	return nil
+}
+
+func (m *ApiClient) NextGame() (*models.Game, error) {
+	tid, err := m.nextTournament()
+	if err != nil {
+		return &models.Game{}, err
+	}
+	log.Debug("Tournament: ", tid)
+	gid, err := m.nextGame(tid)
+	if err != nil {
+		return &models.Game{}, err
+	}
+	return m.GetGame(tid, gid)
+}
+
+func (m *ApiClient) NextPendingGame() (*models.Game, error) {
+	paths := []string{"/tournaments?status=running", "/tournaments?status=pending"}
+	for _, path := range paths {
+		var ts []models.Tournament
+		err := m.getJSON(path, &ts)
+		if err == nil {
+			for i := range ts {
+				log.Info("Checking tournament ", ts[i].Id)
+				gid, err := m.nextGame(ts[i].Id)
+				if err == nil {
+					g, err := m.GetGame(ts[i].Id, gid)
+					if err == nil {
+						return g, nil
+					}
+					log.Error(err)
+				} else {
+					log.Info(err)
+				}
+			}
+		} else {
+			log.Error(err)
+		}
+		time.Sleep(1 * time.Second)
+	}
+	return nil, ErrNoTournaments
 }
 
 func (m *ApiClient) nextTournament() (models.Id, error) {
@@ -110,7 +137,7 @@ func (m *ApiClient) nextGame(tid models.Id) (models.Id, error) {
 
 func (m *ApiClient) GetGame(tid, gid models.Id) (*models.Game, error) {
 	r, err := http.Get(m.url + "/tournaments/" + tid.String() + "/games/" + gid.String())
-	log.Debug(r)
+	log.Debug("Recieved: ", r)
 	if err != nil {
 		return &models.Game{}, err
 	}
@@ -122,7 +149,7 @@ func (m *ApiClient) GetGame(tid, gid models.Id) (*models.Game, error) {
 
 func (m *ApiClient) getJSON(path string, obj interface{}) error {
 	r, err := http.Get(m.url + path)
-	log.Debug(r)
+	log.Debug("Recieved: ", r)
 	if err == nil {
 		defer r.Body.Close()
 		if r.StatusCode != http.StatusOK {
