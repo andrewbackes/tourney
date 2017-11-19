@@ -57,7 +57,7 @@ func (w *Worker) play(m *models.Game) {
 	m.Status = models.Complete
 	m.Result = result(status)
 	m.EndingCondition = endingCondition(status)
-	w.master.UpdateGame(m)
+	w.master.UpdateGameWithRetry(m)
 }
 
 func result(status game.GameStatus) models.Result {

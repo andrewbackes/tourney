@@ -8,6 +8,7 @@ import (
 	"github.com/andrewbackes/tourney/data/models"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
 
 var (
@@ -35,6 +36,20 @@ func (m *MasterService) NextGame() (*models.Game, error) {
 		return &models.Game{}, err
 	}
 	return m.GetGame(tid, gid)
+}
+
+func (m *MasterService) UpdateGameWithRetry(g *models.Game) {
+	err := m.UpdateGame(g)
+	ms := 400 * time.Millisecond
+	if err != nil {
+		log.Error(err, " - retrying in ", ms.Seconds(), " seconds")
+		time.Sleep(ms)
+		ms = ms * 2
+		if ms > 20*time.Second {
+			ms = 20 * time.Second
+		}
+		err = m.UpdateGame(g)
+	}
 }
 
 func (m *MasterService) UpdateGame(g *models.Game) error {
