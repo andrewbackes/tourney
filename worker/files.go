@@ -12,11 +12,11 @@ import (
 	"strings"
 )
 
-const storageLocation = "/Users/Andrew/tourney_engines/"
+const storageLocation = "/Users/Andrew/tourney_storage/downloadedEngineFiles"
 
 func (w *Worker) getEngines(g *models.Game) {
 	for color, engine := range g.Contestants {
-		dl, err := downloadFromURL(engine.URL)
+		dl, err := download(engine)
 		if err != nil {
 			panic(err)
 		}
@@ -42,6 +42,10 @@ func (w *Worker) getEngines(g *models.Game) {
 			engine.FilePath = filepath.Join(path, engine.Executable)
 		}
 		if _, err := os.Stat(engine.FilePath); err == nil {
+			err = os.Chmod(engine.FilePath, 755)
+			if err != nil {
+				panic("Could not set permissions on " + engine.FilePath + " executable")
+			}
 			log.Info("Found executable ", engine.FilePath)
 		} else if os.IsNotExist(err) {
 			panic(engine.FilePath + " does not exist")
@@ -50,9 +54,13 @@ func (w *Worker) getEngines(g *models.Game) {
 	}
 }
 
-func downloadFromURL(url string) (string, error) {
-	tokens := strings.Split(url, "/")
-	absPath := filepath.Join(storageLocation, tokens[len(tokens)-1])
+func download(engine models.Engine) (string, error) {
+	url := urlOf(engine)
+	absPath := filepath.Join(storageLocation, filenameOf(engine))
+	err := os.MkdirAll(storageLocation, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
 	log.Info("Downloading ", url, " to ", absPath)
 
 	if _, err := os.Stat(absPath); !os.IsNotExist(err) {
@@ -68,8 +76,8 @@ func downloadFromURL(url string) (string, error) {
 	defer output.Close()
 
 	response, err := http.Get(url)
-	if err != nil {
-		log.Error("Error while downloading ", url, " - ", err)
+	if err != nil || response.StatusCode > 399 {
+		log.Error("Error while downloading ", url, " - ", response.StatusCode, " - ", err)
 		return "", err
 	}
 	defer response.Body.Close()
@@ -82,6 +90,24 @@ func downloadFromURL(url string) (string, error) {
 
 	log.Info(n, " bytes downloaded.")
 	return absPath, nil
+}
+
+func urlOf(engine models.Engine) string {
+	if engine.URL != "" {
+		return engine.URL
+	}
+	return getAPIURL() + "/engineFiles/" + engine.Name + "/" + engine.Version + "/" + engine.Os
+}
+
+func filenameOf(engine models.Engine) string {
+	return engine.Name + "-" + engine.Version + "-" + engine.Os
+}
+
+func getAPIURL() string {
+	if os.Getenv("API_URL") != "" {
+		return os.Getenv("API_URL")
+	}
+	return "http://api.tourney.aback.es:9090/api/v2"
 }
 
 func unzip(src string) (string, error) {
