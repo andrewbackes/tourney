@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-const storageLocation = "/Users/Andrew/tourney_storage/downloadedEngineFiles"
+const storageLocation = "tourney_storage/downloadedEngineFiles"
 
 func (w *Worker) getEngines(g *models.Game) {
 	for color, engine := range g.Contestants {
