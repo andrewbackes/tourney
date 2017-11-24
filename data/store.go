@@ -16,8 +16,4 @@ type Store interface {
 
 	UpdateGame(*models.Game)
 	UpdateTournament(*models.Tournament)
-
-	CreateWorker(w models.Worker)
-	ReadWorker(id models.Id) (models.Worker, error)
-	DeleteWorker(id models.Id)
 }

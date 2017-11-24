@@ -25,6 +25,9 @@ func Bind(s services.Tournament, r *mux.Router) {
 	register("GET", "/tournaments/{id}/games", getGames)
 	register("GET", "/tournaments/{tid}/games/{gid}", getGame)
 	register("PUT", "/tournaments/{tid}/games/{gid}", putGame)
-	//register("PATCH", "/tournaments/{tid}/games/{gid}", patchGame)
-	//register("POST", "/tournaments/{tid}/games/{gid}/positions", postPosition)
+	//register("GET", "/engines}" getEngines)
+	//register("GET", "/engines/{name}/{version}/{os}" getEngine)
+	//register("PUT", "/engines/{name}/{version}/{os}" putEngine)
+	register("POST", "/engineFiles/{name}/{version}/{os}", postEngineFile)
+	register("GET", "/engineFiles/{name}/{version}/{os}", getEngineFile)
 }

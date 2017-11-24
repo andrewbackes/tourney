@@ -18,8 +18,10 @@ func main() {
 	fmt.Println("Worker.")
 	workers := make([]*worker.Worker, 0)
 	var wg sync.WaitGroup
+	APIURL := getAPIURL()
+	log.Info("Using API URL: ", APIURL)
 	for i := 0; i < workerCount; i++ {
-		w := worker.New(apiURL())
+		w := worker.New(APIURL)
 		workers = append(workers, w)
 		wg.Add(1)
 		go func() {
@@ -30,7 +32,7 @@ func main() {
 	wg.Wait()
 }
 
-func apiURL() string {
+func getAPIURL() string {
 	if os.Getenv("API_URL") != "" {
 		return os.Getenv("API_URL")
 	}
