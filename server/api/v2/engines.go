@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func getEngineFile(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
@@ -56,6 +57,12 @@ func postEngineFile(s services.Tournament) func(w http.ResponseWriter, req *http
 		}
 		defer f.Close()
 		io.Copy(f, file)
+		e := &models.Engine{
+			Name:    name,
+			Version: version,
+			Os:      osName,
+		}
+		s.CreateEngine(e)
 	}
 }
 
@@ -76,7 +83,22 @@ func postEngine(s services.Tournament) func(w http.ResponseWriter, req *http.Req
 
 func getEngines(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		es := s.ReadEngines()
+		es := s.ReadEngines(nil)
+		util.WriteJSON(es, w)
+	}
+}
+
+func getEngineVersions(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		name := vars["name"]
+		filter := func(e *models.Engine) bool {
+			if strings.ToLower(e.Name) == strings.ToLower(name) {
+				return true
+			}
+			return false
+		}
+		es := s.ReadEngines(filter)
 		util.WriteJSON(es, w)
 	}
 }

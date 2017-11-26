@@ -16,6 +16,6 @@ type Store interface {
 	ReadGames(tid models.Id, filter func(*models.Game) bool) []*models.Game
 	UpdateGame(*models.Game)
 
-	ReadEngines() []*models.Engine
+	ReadEngines(filter func(*models.Engine) bool) []*models.Engine
 	CreateEngine(*models.Engine)
 }

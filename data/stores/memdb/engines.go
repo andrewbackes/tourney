@@ -10,10 +10,12 @@ import (
 	"strings"
 )
 
-func (m *MemDB) ReadEngines() []*models.Engine {
+func (m *MemDB) ReadEngines(filter func(*models.Engine) bool) []*models.Engine {
 	result := make([]*models.Engine, 0)
 	m.engines.Range(func(id, engine interface{}) bool {
-		result = append(result, engine.(*models.Engine))
+		if filter == nil || filter(engine.(*models.Engine)) {
+			result = append(result, engine.(*models.Engine))
+		}
 		return true
 	})
 	return result
