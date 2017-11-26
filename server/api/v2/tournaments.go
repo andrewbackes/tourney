@@ -7,6 +7,7 @@ import (
 	"github.com/andrewbackes/tourney/data/services/tournament"
 	"github.com/andrewbackes/tourney/util"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 )
@@ -15,13 +16,17 @@ func getTournaments(s services.Tournament) func(w http.ResponseWriter, req *http
 	return func(w http.ResponseWriter, req *http.Request) {
 		statusVal := req.URL.Query().Get("status")
 		engineVal := req.URL.Query().Get("engine")
-		var status models.Status
-		if statusVal != "" {
-			(&status).UnmarshalJSON([]byte(`"` + statusVal + `"`))
-		}
+		/*
+			var status models.Status
+				if statusVal != "" {
+					(&status).UnmarshalJSON([]byte(`"` + statusVal + `"`))
+				}
+		*/
 		filter := func(t *models.Tournament) bool {
 			r := true
-			if statusVal != "" && t.Status != status {
+			log.Debug(t)
+			log.Debug(t.Status, "-", models.Status(statusVal))
+			if statusVal != "" && t.Status != models.Status(statusVal) {
 				r = false
 			}
 			if engineVal != "" {

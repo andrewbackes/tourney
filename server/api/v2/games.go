@@ -16,10 +16,10 @@ func getGames(s services.Tournament) func(w http.ResponseWriter, req *http.Reque
 		var filter func(*models.Game) bool
 		val := req.URL.Query().Get("status")
 		if val != "" {
-			var status models.Status
-			(&status).UnmarshalJSON([]byte(`"` + val + `"`))
+			//var status models.Status
+			//(&status).UnmarshalJSON([]byte(`"` + val + `"`))
 			filter = func(t *models.Game) bool {
-				if t.Status == status {
+				if t.Status == models.Status(val) {
 					return true
 				}
 				return false

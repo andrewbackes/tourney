@@ -1,0 +1,8 @@
+{
+    "name": "Stockfish_A",
+    "version": "8",
+    "os": "linux",
+    "protocol": "uci",
+    "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
+    "executable": "Mac/stockfish-8-popcnt"
+}

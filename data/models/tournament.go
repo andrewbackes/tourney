@@ -8,17 +8,17 @@ type Tournament struct {
 	Id           Id                `json:"id"`
 	Name         string            `json:"name"`
 	CreationDate time.Time         `json:"creationDate"`
-	Tags         map[string]string `json:"tags"`
+	Tags         map[string]string `json:"tags,omitempty"`
 	Status       Status            `json:"status"`
 	Settings     Settings          `json:"settings"`
-	Games        []*Game           `json:"games"`
+	Games        []*Game           `json:"games,omitempty"`
 }
 
 type CollapsedTournament struct {
 	Id           Id                `json:"id"`
 	Name         string            `json:"name"`
 	CreationDate time.Time         `json:"creationDate"`
-	Tags         map[string]string `json:"tags"`
+	Tags         map[string]string `json:"tags,omitempty"`
 	Status       Status            `json:"status"`
 	Settings     Settings          `json:"settings"`
 }

@@ -11,7 +11,7 @@ type Settings struct {
 	TimeControl game.TimeControl `json:"timeControl"`
 	Opening     Opening          `json:"opening"`
 	Contestants []Engine         `json:"contestants"`
-	Opponents   []Engine         `json:"opponents"`
+	Opponents   []Engine         `json:"opponents,omitempty"`
 }
 
 // Opening dictates how an opening book is used in a tournament.

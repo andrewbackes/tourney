@@ -14,6 +14,7 @@ func (s *Service) CreateTournament(t *models.Tournament) (models.Id, error) {
 	}
 	t.Id = models.NewId()
 	t.CreationDate = time.Now()
+	t.Status = models.Pending
 	for i := range t.Settings.Contestants {
 		s.CreateEngine(&t.Settings.Contestants[i])
 	}

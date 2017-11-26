@@ -72,7 +72,7 @@ func (m *MemDB) persistTournament(t *models.Tournament) {
 		panic(err)
 	}
 	log.Info("Persisting tournament", tournamentJSON)
-	err = json.NewEncoder(f).Encode(t)
+	err = json.NewEncoder(f).Encode(val)
 	if err != nil {
 		panic(err)
 	}
