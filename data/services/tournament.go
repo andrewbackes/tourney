@@ -13,4 +13,7 @@ type Tournament interface {
 	ReadGame(tid, gid models.Id) (*models.Game, error)
 	ReadGames(tid models.Id, filter func(*models.Game) bool) []*models.Game
 	UpdateGame(*models.Game) error
+
+	ReadEngines() []*models.Engine
+	CreateEngine(*models.Engine)
 }

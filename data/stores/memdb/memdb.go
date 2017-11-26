@@ -11,6 +11,7 @@ import (
 type MemDB struct {
 	tournaments sync.Map
 	games       sync.Map
+	engines     sync.Map
 	locks       sync.Map
 	workers     sync.Map
 	backupDir   string
@@ -23,6 +24,7 @@ func NewMemDB(backupDir string) *MemDB {
 		tournaments: sync.Map{},
 		locks:       sync.Map{},
 		games:       sync.Map{},
+		engines:     sync.Map{},
 		workers:     sync.Map{},
 		backupDir:   backupDir,
 	}

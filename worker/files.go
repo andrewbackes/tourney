@@ -100,7 +100,11 @@ func urlOf(engine models.Engine) string {
 }
 
 func filenameOf(engine models.Engine) string {
-	return engine.Name + "-" + engine.Version + "-" + engine.Os
+	if engine.URL != "" {
+		terms := strings.Split(engine.URL, "/")
+		return terms[len(terms)-1]
+	}
+	return engine.Id()
 }
 
 func getAPIURL() string {

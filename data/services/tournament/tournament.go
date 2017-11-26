@@ -15,14 +15,10 @@ func (s *Service) CreateTournament(t *models.Tournament) (models.Id, error) {
 	t.Id = models.NewId()
 	t.CreationDate = time.Now()
 	for i := range t.Settings.Contestants {
-		if t.Settings.Contestants[i].Id == "" {
-			t.Settings.Contestants[i].Id = models.NewId()
-		}
+		s.CreateEngine(&t.Settings.Contestants[i])
 	}
 	for i := range t.Settings.Opponents {
-		if t.Settings.Opponents[i].Id == "" {
-			t.Settings.Opponents[i].Id = models.NewId()
-		}
+		s.CreateEngine(&t.Settings.Opponents[i])
 	}
 	t.Games = models.NewGameList(t.Id, t.Settings)
 	s.store.CreateTournament(t)

@@ -14,6 +14,7 @@ import (
 func (m *MemDB) restore() {
 	log.Info("Loading persistent data from ", m.backupDir)
 	m.restoreTournaments()
+	m.restoreEngines()
 }
 
 func (m *MemDB) restoreTournaments() {

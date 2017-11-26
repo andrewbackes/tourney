@@ -30,4 +30,6 @@ func Bind(s services.Tournament, r *mux.Router) {
 	//register("PUT", "/engines/{name}/{version}/{os}" putEngine)
 	register("POST", "/engineFiles/{name}/{version}/{os}", postEngineFile)
 	register("GET", "/engineFiles/{name}/{version}/{os}", getEngineFile)
+	register("POST", "/engines", postEngine)
+	register("GET", "/engines", getEngines)
 }

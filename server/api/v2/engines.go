@@ -2,7 +2,9 @@ package api
 
 import (
 	"fmt"
+	"github.com/andrewbackes/tourney/data/models"
 	"github.com/andrewbackes/tourney/data/services"
+	"github.com/andrewbackes/tourney/util"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -54,5 +56,27 @@ func postEngineFile(s services.Tournament) func(w http.ResponseWriter, req *http
 		}
 		defer f.Close()
 		io.Copy(f, file)
+	}
+}
+
+func postEngine(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		var e models.Engine
+		util.ReadJSON(req.Body, &e)
+		defer req.Body.Close()
+		if e.Name == "" || e.Version == "" || e.Os == "" {
+			w.Write([]byte("{\"message\":\"name, version, and os are required fields\"}"))
+			w.WriteHeader(422)
+		} else {
+			s.CreateEngine(&e)
+			w.Write([]byte(fmt.Sprintf("{\"id\":\"%s\"}", e.Id())))
+		}
+	}
+}
+
+func getEngines(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		es := s.ReadEngines()
+		util.WriteJSON(es, w)
 	}
 }

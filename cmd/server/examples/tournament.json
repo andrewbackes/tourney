@@ -11,29 +11,33 @@
         },
         "contestants": [
             {
-                "name": "Stockfish A",
-                "version": "8-Mac-popcnt",
+                "name": "Stockfish_A",
+                "version": "8",
+                "os": "mac",
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
                 "executable": "Mac/stockfish-8-popcnt"
             },
             {
-                "name": "Stockfish B",
-                "version": "8-Mac-popcnt",
+                "name": "Stockfish_B",
+                "version": "8",
+                "os": "mac",
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
                 "executable": "Mac/stockfish-8-popcnt"
             },
             {
-                "name": "Stockfish C",
-                "version": "8-Mac-popcnt",
+                "name": "Stockfish_C",
+                "version": "8",
+                "os": "mac",
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
                 "executable": "Mac/stockfish-8-popcnt"
             },
             {
-                "name": "Stockfish D",
-                "version": "8-Mac-popcnt",
+                "name": "Stockfish_D",
+                "version": "8",
+                "os": "mac",
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
                 "executable": "Mac/stockfish-8-popcnt"

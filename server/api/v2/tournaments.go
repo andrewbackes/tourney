@@ -8,21 +8,32 @@ import (
 	"github.com/andrewbackes/tourney/util"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strings"
 )
 
 func getTournaments(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var filter func(*models.Tournament) bool
-		val := req.URL.Query().Get("status")
-		if val != "" {
-			var status models.Status
-			(&status).UnmarshalJSON([]byte(`"` + val + `"`))
-			filter = func(t *models.Tournament) bool {
-				if t.Status == status {
-					return true
-				}
-				return false
+		statusVal := req.URL.Query().Get("status")
+		engineVal := req.URL.Query().Get("engine")
+		var status models.Status
+		if statusVal != "" {
+			(&status).UnmarshalJSON([]byte(`"` + statusVal + `"`))
+		}
+		filter := func(t *models.Tournament) bool {
+			r := true
+			if statusVal != "" && t.Status != status {
+				r = false
 			}
+			if engineVal != "" {
+				r = false
+				for i := range t.Settings.Contestants {
+					if t.Settings.Contestants[i].Id() == strings.ToLower(engineVal) {
+						r = true
+						break
+					}
+				}
+			}
+			return r
 		}
 		ts := s.ReadTournaments(filter)
 		collapsedTs := make([]*models.CollapsedTournament, len(ts), len(ts))
