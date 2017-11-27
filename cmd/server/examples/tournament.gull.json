@@ -13,12 +13,12 @@
             {
                 "name": "Gull",
                 "version": "1.2",
-                "os": "mac"
+                "os": "osx"
             },
             {
                 "name": "Stockfish",
                 "version": "8-popcnt",
-                "os": "mac",
+                "os": "osx",
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
                 "executable": "stockfish-8-mac/Mac/stockfish-8-popcnt"
