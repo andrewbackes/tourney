@@ -7,6 +7,7 @@ import (
 	"github.com/andrewbackes/tourney/util"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strings"
 )
 
 func getGames(s services.Tournament) func(w http.ResponseWriter, req *http.Request) {
@@ -16,10 +17,8 @@ func getGames(s services.Tournament) func(w http.ResponseWriter, req *http.Reque
 		var filter func(*models.Game) bool
 		val := req.URL.Query().Get("status")
 		if val != "" {
-			//var status models.Status
-			//(&status).UnmarshalJSON([]byte(`"` + val + `"`))
 			filter = func(t *models.Game) bool {
-				if t.Status == models.Status(val) {
+				if t.Status == models.Status(strings.ToLower(val)) {
 					return true
 				}
 				return false

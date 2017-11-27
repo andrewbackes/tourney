@@ -12,19 +12,19 @@
         "contestants": [
             {
                 "name": "Stockfish_A",
-                "version": "8",
+                "version": "8-popcnt",
                 "os": "mac",
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
-                "executable": "Mac/stockfish-8-popcnt"
+                "executable": "stockfish-8-mac/Mac/stockfish-8-popcnt"
             },
             {
                 "name": "Stockfish_B",
-                "version": "8",
+                "version": "8-popcnt",
                 "os": "mac",
                 "protocol": "uci",
                 "url": "https://stockfish.s3.amazonaws.com/stockfish-8-mac.zip",
-                "executable": "Mac/stockfish-8-popcnt"
+                "executable": "stockfish-8-mac/Mac/stockfish-8-popcnt"
             }
         ],
         "rounds": 5,

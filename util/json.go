@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -18,5 +19,16 @@ func ReadJSON(reader io.Reader, dest interface{}) {
 	err := decoder.Decode(&dest)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func PostJSON(url string, obj interface{}) {
+	jsonValue, _ := json.Marshal(obj)
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		panic(err)
+	}
+	if resp.StatusCode > 399 {
+		panic(resp.StatusCode)
 	}
 }

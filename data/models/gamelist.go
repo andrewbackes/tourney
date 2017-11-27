@@ -12,9 +12,11 @@ func NewGameList(tournamentID Id, s Settings) []*Game {
 			for round := 0; round < s.Rounds; round++ {
 				m1 := NewGame(tournamentID, s.TimeControl, s.Contestants[seat], players[opponent])
 				m1.Round = roundNum
+				m1.Status = Pending
 				roundNum++
 				m2 := NewGame(tournamentID, s.TimeControl, players[opponent], s.Contestants[seat])
 				m2.Round = roundNum
+				m2.Status = Pending
 				roundNum++
 				l = append(l, []*Game{m1, m2}...)
 			}

@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -19,13 +20,13 @@ func getEngineFile(s services.Tournament) func(w http.ResponseWriter, req *http.
 		name := vars["name"]
 		version := vars["version"]
 		osName := vars["os"]
-		filepath := "tourney_storage/engineFiles/" + name + "/" + version + "/" + osName
-		filename := name + "-" + version + "-" + osName
-		if _, err := os.Stat(filepath + "/" + filename); os.IsNotExist(err) {
-			log.Error(filepath + "/" + filename + " does not exist")
+		filename := vars["filename"]
+		f := filepath.Join(util.GetStorageLocation(), "engineFiles", name, version, osName, filename)
+		if _, err := os.Stat(f); os.IsNotExist(err) {
+			log.Error(f + " does not exist")
 			return
 		}
-		http.ServeFile(w, req, filepath+"/"+filename)
+		http.ServeFile(w, req, f)
 	}
 }
 
@@ -35,6 +36,7 @@ func postEngineFile(s services.Tournament) func(w http.ResponseWriter, req *http
 		name := vars["name"]
 		version := vars["version"]
 		osName := vars["os"]
+		filename := vars["filename"]
 
 		req.ParseMultipartForm(32 << 20)
 		file, handler, err := req.FormFile("uploadfile")
@@ -45,7 +47,6 @@ func postEngineFile(s services.Tournament) func(w http.ResponseWriter, req *http
 		defer file.Close()
 		fmt.Fprintf(w, "%v", handler.Header)
 		dirname := "tourney_storage/engineFiles/" + name + "/" + version + "/" + osName
-		filename := name + "-" + version + "-" + osName
 		err = os.MkdirAll(dirname, os.ModePerm)
 		if err != nil {
 			panic(err)
@@ -57,12 +58,6 @@ func postEngineFile(s services.Tournament) func(w http.ResponseWriter, req *http
 		}
 		defer f.Close()
 		io.Copy(f, file)
-		e := &models.Engine{
-			Name:    name,
-			Version: version,
-			Os:      osName,
-		}
-		s.CreateEngine(e)
 	}
 }
 
@@ -71,8 +66,8 @@ func postEngine(s services.Tournament) func(w http.ResponseWriter, req *http.Req
 		var e models.Engine
 		util.ReadJSON(req.Body, &e)
 		defer req.Body.Close()
-		if e.Name == "" || e.Version == "" || e.Os == "" {
-			w.Write([]byte("{\"message\":\"name, version, and os are required fields\"}"))
+		if e.Name == "" || e.Version == "" || e.Os == "" || e.URL == "" {
+			w.Write([]byte("{\"message\":\"name, version, os, and url are required fields\"}"))
 			w.WriteHeader(422)
 		} else {
 			s.CreateEngine(&e)

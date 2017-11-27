@@ -15,5 +15,6 @@ type Tournament interface {
 	UpdateGame(*models.Game) error
 
 	ReadEngines(filter func(*models.Engine) bool) []*models.Engine
+	ReadEngine(id string) (*models.Engine, error)
 	CreateEngine(*models.Engine)
 }

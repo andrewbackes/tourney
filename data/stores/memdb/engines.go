@@ -3,12 +3,21 @@ package memdb
 import (
 	"encoding/json"
 	"github.com/andrewbackes/tourney/data/models"
+	"github.com/andrewbackes/tourney/data/stores"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+func (m *MemDB) ReadEngine(id string) (*models.Engine, error) {
+	e, exists := m.engines.Load(id)
+	if !exists {
+		return nil, stores.ErrNotFound
+	}
+	return e.(*models.Engine), nil
+}
 
 func (m *MemDB) ReadEngines(filter func(*models.Engine) bool) []*models.Engine {
 	result := make([]*models.Engine, 0)
@@ -43,7 +52,7 @@ func (m *MemDB) persistEngine(e *models.Engine) {
 	if err != nil {
 		panic(err)
 	}
-	log.Info("Persisting engine", engineJSON)
+	log.Info("Persisting engine ", engineJSON)
 	err = json.NewEncoder(f).Encode(e)
 	if err != nil {
 		panic(err)

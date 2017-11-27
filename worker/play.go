@@ -103,14 +103,14 @@ func endingCondition(status game.GameStatus) models.EndingCondition {
 }
 
 func startEngines(e map[piece.Color]models.Engine) (map[piece.Color]*engines.UCIEngine, error) {
-	if e[piece.White].FilePath == "" || e[piece.Black].FilePath == "" {
+	if e[piece.White].ExecPath() == "" || e[piece.Black].ExecPath() == "" {
 		panic("engine file path not set")
 	}
-	w, err := engines.NewUCIEngine(e[piece.White].FilePath)
+	w, err := engines.NewUCIEngine(e[piece.White].ExecPath())
 	if err != nil {
 		return nil, err
 	}
-	b, err := engines.NewUCIEngine(e[piece.Black].FilePath)
+	b, err := engines.NewUCIEngine(e[piece.Black].ExecPath())
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +121,7 @@ func startEngines(e map[piece.Color]models.Engine) (map[piece.Color]*engines.UCI
 		piece.Black: b,
 	}, nil
 }
+
 func closeEngines(e map[piece.Color]*engines.UCIEngine) {
 	w := e[piece.White]
 	b := e[piece.Black]
